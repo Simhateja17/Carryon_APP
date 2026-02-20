@@ -24,6 +24,10 @@ import com.example.carryon.ui.screens.booking.SenderReceiverScreen
 import com.example.carryon.ui.screens.booking.PaymentScreen
 import com.example.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.example.carryon.ui.screens.booking.BookingConfirmedScreen
+import com.example.carryon.ui.screens.home.SelectAddressScreen
+import com.example.carryon.ui.screens.booking.DetailsScreen
+import com.example.carryon.ui.screens.booking.RequestForRideScreen
+import com.example.carryon.ui.screens.booking.ThankYouScreen
 
 // Simple screen state for iOS compatibility
 sealed class AppScreen {
@@ -49,6 +53,10 @@ sealed class AppScreen {
     data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
     data class BookingConfirmed(val bookingId: String) : AppScreen()
+    data object SelectAddress : AppScreen()
+    data object Details : AppScreen()
+    data object RequestForRide : AppScreen()
+    data object ThankYou : AppScreen()
 }
 
 @Composable
@@ -91,7 +99,7 @@ fun App() {
             is AppScreen.Home -> {
                 HomeScreen(
                     onNavigateToBooking = { pickup, delivery, packageType -> 
-                        currentScreen = AppScreen.CalculateBooking
+                        currentScreen = AppScreen.SelectAddress
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
@@ -188,7 +196,7 @@ fun App() {
             is AppScreen.PaymentSuccess -> {
                 PaymentSuccessScreen(
                     amount = screen.amount,
-                    onContinue = { currentScreen = AppScreen.BookingConfirmed(screen.bookingId) }
+                    onContinue = { currentScreen = AppScreen.ThankYou }
                 )
             }
             is AppScreen.BookingConfirmed -> {
@@ -222,6 +230,29 @@ fun App() {
                     onBack = { currentScreen = AppScreen.ActiveShipment },
                     onDelivered = { currentScreen = AppScreen.Home },
                     onUnsuccessful = { currentScreen = AppScreen.ActiveShipment }
+                )
+            }
+            is AppScreen.SelectAddress -> {
+                SelectAddressScreen(
+                    onNext = { currentScreen = AppScreen.Details },
+                    onBack = { currentScreen = AppScreen.Home }
+                )
+            }
+            is AppScreen.Details -> {
+                DetailsScreen(
+                    onContinue = { currentScreen = AppScreen.RequestForRide },
+                    onBack = { currentScreen = AppScreen.SelectAddress }
+                )
+            }
+            is AppScreen.RequestForRide -> {
+                RequestForRideScreen(
+                    onContinue = { currentScreen = AppScreen.PaymentSuccess("booking", 220) },
+                    onBack = { currentScreen = AppScreen.Details }
+                )
+            }
+            is AppScreen.ThankYou -> {
+                ThankYouScreen(
+                    onViewOrder = { currentScreen = AppScreen.BookingConfirmed("booking") }
                 )
             }
         }
