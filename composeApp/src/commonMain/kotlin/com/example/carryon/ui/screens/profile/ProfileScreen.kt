@@ -31,6 +31,7 @@ import carryon.composeapp.generated.resources.icon_messages_menu
 import carryon.composeapp.generated.resources.icon_settings_menu
 import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.icon_logout_shield
+import carryon.composeapp.generated.resources.icon_logout_hammer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
@@ -156,19 +157,24 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = PrimaryBlue)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(text = "📍", fontSize = 22.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Image(
+                            painter = painterResource(Res.drawable.icon_help),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .align(Alignment.CenterEnd),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.35f
+                        )
                         Text(
                             text = "Saved\nAddresses",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp)
                         )
                     }
                 }
@@ -182,19 +188,24 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFC107))
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(text = "🏆", fontSize = 22.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Image(
+                            painter = painterResource(Res.drawable.icon_logout_shield),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .align(Alignment.CenterEnd),
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.35f
+                        )
                         Text(
                             text = "Rewards",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp)
                         )
                     }
                 }
@@ -212,7 +223,7 @@ fun ProfileScreen(
             ProfileMenuItem(iconRes = Res.drawable.icon_people, title = "Refer Your Friend", onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
             ProfileMenuItem(
-                iconRes = Res.drawable.icon_logout_shield,
+                iconRes = Res.drawable.icon_logout_hammer,
                 title = "Logout",
                 titleColor = Color(0xFFE53935),
                 onClick = onLogout
