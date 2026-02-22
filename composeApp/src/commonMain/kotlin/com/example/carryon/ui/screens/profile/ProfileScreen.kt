@@ -26,6 +26,12 @@ import carryon.composeapp.generated.resources.icon_profile
 import carryon.composeapp.generated.resources.icon_messages
 import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.bell_icon
+import carryon.composeapp.generated.resources.icon_help
+import carryon.composeapp.generated.resources.icon_messages_menu
+import carryon.composeapp.generated.resources.icon_settings_menu
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_logout_shield
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
 
@@ -192,16 +198,16 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             // Menu Items
-            ProfileMenuItem(icon = "❓", title = "Help & Support", onClick = onNavigateToHelp)
+            ProfileMenuItem(iconRes = Res.drawable.icon_help, title = "Help & Support", onClick = onNavigateToHelp)
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(icon = "💬", title = "Terms and Conditions", onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_messages_menu, title = "Terms and Conditions", onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(icon = "⚙️", title = "Settings", onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_settings_menu, title = "Settings", onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(icon = "👤", title = "Refer Your Friend", onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = "Refer Your Friend", onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
             ProfileMenuItem(
-                icon = "🔐",
+                iconRes = Res.drawable.icon_logout_shield,
                 title = "Logout",
                 titleColor = Color(0xFFE53935),
                 onClick = onLogout
@@ -214,7 +220,7 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileMenuItem(
-    icon: String,
+    iconRes: DrawableResource,
     title: String,
     titleColor: Color = TextPrimary,
     onClick: () -> Unit
@@ -226,14 +232,12 @@ private fun ProfileMenuItem(
             .padding(vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(Color(0xFFF5F5F5), CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(icon, fontSize = 18.sp)
-        }
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = title,
+            modifier = Modifier.size(28.dp),
+            contentScale = ContentScale.Fit
+        )
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -244,12 +248,18 @@ private fun ProfileMenuItem(
             modifier = Modifier.weight(1f)
         )
 
-        Text(
-            text = ">",
-            fontSize = 18.sp,
-            color = Color(0xFFBDBDBD),
-            fontWeight = FontWeight.Light
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(Color(0xFFF0F0F0), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = ">",
+                fontSize = 16.sp,
+                color = Color(0xFF9E9E9E)
+            )
+        }
     }
 }
 
