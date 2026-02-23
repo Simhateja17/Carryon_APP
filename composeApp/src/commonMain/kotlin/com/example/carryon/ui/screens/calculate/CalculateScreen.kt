@@ -315,7 +315,9 @@ fun CalculateScreen(
                     focusedBorderColor = Color.LightGray,
                     unfocusedBorderColor = Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 ),
                 singleLine = true
             )
@@ -352,7 +354,9 @@ fun CalculateScreen(
                     focusedBorderColor = Color.LightGray,
                     unfocusedBorderColor = Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 ),
                 singleLine = true
             )
@@ -435,7 +439,9 @@ fun CalculateScreen(
                     focusedBorderColor = Color.LightGray,
                     unfocusedBorderColor = Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 ),
                 singleLine = true
             )

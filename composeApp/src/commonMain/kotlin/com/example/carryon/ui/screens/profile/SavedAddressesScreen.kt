@@ -295,7 +295,11 @@ private fun AddAddressDialog(
                     onValueChange = { label = it },
                     label = { Text("Label (e.g., Mom's House)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
                 
                 OutlinedTextField(
@@ -303,7 +307,11 @@ private fun AddAddressDialog(
                     onValueChange = { address = it },
                     label = { Text("Full Address") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2
+                    minLines = 2,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
                 
                 OutlinedTextField(
@@ -311,7 +319,11 @@ private fun AddAddressDialog(
                     onValueChange = { landmark = it },
                     label = { Text("Landmark (Optional)") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
                 
                 OutlinedTextField(
@@ -319,7 +331,11 @@ private fun AddAddressDialog(
                     onValueChange = { contactName = it },
                     label = { Text("Contact Name") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
                 
                 OutlinedTextField(
@@ -327,7 +343,11 @@ private fun AddAddressDialog(
                     onValueChange = { contactPhone = it },
                     label = { Text("Contact Phone") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    )
                 )
             }
         },

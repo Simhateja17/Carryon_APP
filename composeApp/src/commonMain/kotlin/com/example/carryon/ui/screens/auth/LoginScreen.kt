@@ -82,7 +82,9 @@ fun LoginScreen(
                     focusedBorderColor = PrimaryBlue,
                     unfocusedBorderColor = Color(0xFFE8E8E8),
                     focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 )
             )
 
@@ -104,7 +106,9 @@ fun LoginScreen(
                     focusedBorderColor = PrimaryBlue,
                     unfocusedBorderColor = Color(0xFFE8E8E8),
                     focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 )
             )
 

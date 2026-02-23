@@ -73,7 +73,22 @@ fun DetailsScreen(
             Text("What are you sending", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Text("Select type of item (e.g gadget, document)", fontSize = 12.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(value = itemType, onValueChange = { itemType = it }, placeholder = { Text("Select", color = Color.Gray) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF6F9FA), focusedContainerColor = Color(0xFFF6F9FA), unfocusedBorderColor = Color(0xFFDCE8E9), focusedBorderColor = PrimaryBlue), singleLine = true)
+            OutlinedTextField(
+                value = itemType,
+                onValueChange = { itemType = it },
+                placeholder = { Text("Select", color = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true
+            )
 
             // Warning
             Spacer(modifier = Modifier.height(8.dp))
@@ -87,7 +102,21 @@ fun DetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Text("Quantity", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(value = quantity, onValueChange = { quantity = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF6F9FA), focusedContainerColor = Color(0xFFF6F9FA), unfocusedBorderColor = Color(0xFFDCE8E9), focusedBorderColor = PrimaryBlue), singleLine = true)
+            OutlinedTextField(
+                value = quantity,
+                onValueChange = { quantity = it },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true
+            )
 
             // Select who pays
             Spacer(modifier = Modifier.height(16.dp))
@@ -112,19 +141,64 @@ fun DetailsScreen(
 
             // Payment type dropdown
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(value = "", onValueChange = {}, placeholder = { Text("Payment type", color = Color.Gray) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF6F9FA), focusedContainerColor = Color(0xFFF6F9FA), unfocusedBorderColor = Color(0xFFDCE8E9), focusedBorderColor = PrimaryBlue), singleLine = true, readOnly = true, trailingIcon = { Text("▼", fontSize = 14.sp, color = TextSecondary) })
+            OutlinedTextField(
+                value = "",
+                onValueChange = {},
+                placeholder = { Text("Payment type", color = Color.Gray) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true,
+                readOnly = true,
+                trailingIcon = { Text("▼", fontSize = 14.sp, color = TextSecondary) }
+            )
 
             // Recipient Names
             Spacer(modifier = Modifier.height(16.dp))
             Text("Recipient Names", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(value = recipientName, onValueChange = { recipientName = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF6F9FA), focusedContainerColor = Color(0xFFF6F9FA), unfocusedBorderColor = Color(0xFFDCE8E9), focusedBorderColor = PrimaryBlue), singleLine = true)
+            OutlinedTextField(
+                value = recipientName,
+                onValueChange = { recipientName = it },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true
+            )
 
             // Recipient contact number
             Spacer(modifier = Modifier.height(14.dp))
             Text("Recipient contact number", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(value = recipientPhone, onValueChange = { recipientPhone = it }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(8.dp), colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = Color(0xFFF6F9FA), focusedContainerColor = Color(0xFFF6F9FA), unfocusedBorderColor = Color(0xFFDCE8E9), focusedBorderColor = PrimaryBlue), singleLine = true)
+            OutlinedTextField(
+                value = recipientPhone,
+                onValueChange = { recipientPhone = it },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true
+            )
 
             // Camera box
             Spacer(modifier = Modifier.height(18.dp))

@@ -101,7 +101,9 @@ fun EditProfileScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryOrange,
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
                     
@@ -116,7 +118,9 @@ fun EditProfileScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = PrimaryOrange,
-                            unfocusedBorderColor = Color.LightGray
+                            unfocusedBorderColor = Color.LightGray,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
                         )
                     )
                     
@@ -131,7 +135,11 @@ fun EditProfileScreen(
                         shape = RoundedCornerShape(12.dp),
                         supportingText = {
                             Text("Phone number cannot be changed", color = Color.Gray)
-                        }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = Color.Black,
+                            disabledBorderColor = Color.LightGray
+                        )
                     )
                 }
             }
