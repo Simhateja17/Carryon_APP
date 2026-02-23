@@ -1,3 +1,3 @@
 package com.example.carryon.data.network
 
-actual fun apiBaseUrl(): String = "http://localhost:3000"
+actual fun apiBaseUrl(): String = "https://carryon-backend-wb3t.onrender.com"
