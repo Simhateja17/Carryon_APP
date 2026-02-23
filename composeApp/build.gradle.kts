@@ -31,6 +31,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation("org.maplibre.gl:android-sdk:11.8.0")
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

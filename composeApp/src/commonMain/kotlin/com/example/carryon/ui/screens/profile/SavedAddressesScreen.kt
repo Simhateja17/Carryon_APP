@@ -19,7 +19,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.data.model.Address
 import com.example.carryon.data.model.AddressType
+import com.example.carryon.data.model.MapConfig
+import com.example.carryon.data.model.PlaceResult
+import com.example.carryon.data.network.LocationApi
+import com.example.carryon.ui.components.MapViewComposable
+import com.example.carryon.ui.components.MapMarker
+import com.example.carryon.ui.components.MarkerColor
 import com.example.carryon.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -258,126 +265,198 @@ private fun AddAddressDialog(
     var contactName by remember { mutableStateOf("") }
     var contactPhone by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf(AddressType.HOME) }
-    
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Add New Address") },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Address Type
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AddressType.entries.forEach { type ->
-                        val icon = when (type) {
-                            AddressType.HOME -> "🏠"
-                            AddressType.OFFICE -> "🏢"
-                            AddressType.OTHER -> "📍"
-                        }
-                        FilterChip(
-                            selected = selectedType == type,
-                            onClick = { selectedType = type },
-                            label = { 
-                                Text("$icon ${type.name}")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = PrimaryOrange.copy(alpha = 0.2f)
-                            )
-                        )
-                    }
-                }
-                
-                OutlinedTextField(
-                    value = label,
-                    onValueChange = { label = it },
-                    label = { Text("Label (e.g., Mom's House)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-                
-                OutlinedTextField(
-                    value = address,
-                    onValueChange = { address = it },
-                    label = { Text("Full Address") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-                
-                OutlinedTextField(
-                    value = landmark,
-                    onValueChange = { landmark = it },
-                    label = { Text("Landmark (Optional)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-                
-                OutlinedTextField(
-                    value = contactName,
-                    onValueChange = { contactName = it },
-                    label = { Text("Contact Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-                
-                OutlinedTextField(
-                    value = contactPhone,
-                    onValueChange = { contactPhone = it },
-                    label = { Text("Contact Phone") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    )
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (label.isNotBlank() && address.isNotBlank()) {
-                        onSave(
-                            Address(
-                                id = Random.nextInt(100000, 999999).toString(),
-                                label = label,
-                                address = address,
-                                landmark = landmark,
-                                contactName = contactName,
-                                contactPhone = contactPhone,
-                                type = selectedType
-                            )
-                        )
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
-                enabled = label.isNotBlank() && address.isNotBlank()
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+    var showMapPicker by remember { mutableStateOf(false) }
+    var pickedLat by remember { mutableStateOf(0.0) }
+    var pickedLng by remember { mutableStateOf(0.0) }
+    var mapConfig by remember { mutableStateOf(MapConfig()) }
+
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        LocationApi.getMapConfig().onSuccess { config ->
+            mapConfig = config
         }
-    )
+    }
+
+    if (showMapPicker) {
+        // Map picker overlay
+        AlertDialog(
+            onDismissRequest = { showMapPicker = false },
+            title = { Text("Pick Location on Map") },
+            text = {
+                Column {
+                    Text("Tap on the map to select a location", fontSize = 13.sp, color = Color.Gray)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    MapViewComposable(
+                        modifier = Modifier.fillMaxWidth().height(300.dp),
+                        styleUrl = mapConfig.styleUrl,
+                        centerLat = if (pickedLat != 0.0) pickedLat else 17.385,
+                        centerLng = if (pickedLng != 0.0) pickedLng else 78.4867,
+                        zoom = 13.0,
+                        markers = if (pickedLat != 0.0) listOf(
+                            MapMarker("picked", pickedLat, pickedLng, "Selected", MarkerColor.RED)
+                        ) else emptyList(),
+                        onMapClick = { lat, lng ->
+                            pickedLat = lat
+                            pickedLng = lng
+                            scope.launch {
+                                LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
+                                    if (place != null) {
+                                        address = place.label
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showMapPicker = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    enabled = pickedLat != 0.0
+                ) {
+                    Text("Confirm Location")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showMapPicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Add New Address") },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Address Type
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AddressType.entries.forEach { type ->
+                            val icon = when (type) {
+                                AddressType.HOME -> "🏠"
+                                AddressType.OFFICE -> "🏢"
+                                AddressType.OTHER -> "📍"
+                            }
+                            FilterChip(
+                                selected = selectedType == type,
+                                onClick = { selectedType = type },
+                                label = {
+                                    Text("$icon ${type.name}")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = PrimaryOrange.copy(alpha = 0.2f)
+                                )
+                            )
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = label,
+                        onValueChange = { label = it },
+                        label = { Text("Label (e.g., Mom's House)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+
+                    // Pick on Map button
+                    OutlinedButton(
+                        onClick = { showMapPicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Pick on Map", color = PrimaryBlue)
+                    }
+
+                    OutlinedTextField(
+                        value = address,
+                        onValueChange = { address = it },
+                        label = { Text("Full Address") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = landmark,
+                        onValueChange = { landmark = it },
+                        label = { Text("Landmark (Optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = contactName,
+                        onValueChange = { contactName = it },
+                        label = { Text("Contact Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+
+                    OutlinedTextField(
+                        value = contactPhone,
+                        onValueChange = { contactPhone = it },
+                        label = { Text("Contact Phone") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (label.isNotBlank() && address.isNotBlank()) {
+                            onSave(
+                                Address(
+                                    id = Random.nextInt(100000, 999999).toString(),
+                                    label = label,
+                                    address = address,
+                                    landmark = landmark,
+                                    latitude = pickedLat,
+                                    longitude = pickedLng,
+                                    contactName = contactName,
+                                    contactPhone = contactPhone,
+                                    type = selectedType
+                                )
+                            )
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
+                    enabled = label.isNotBlank() && address.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }

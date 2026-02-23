@@ -36,6 +36,11 @@ import carryon.composeapp.generated.resources.van_vehicle
 import carryon.composeapp.generated.resources.vector_truck
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.data.model.AutocompleteResult
+import com.example.carryon.data.network.LocationApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +56,48 @@ fun HomeScreen(
     var deliveryLocation by remember { mutableStateOf("") }
     var selectedNavItem by remember { mutableStateOf(2) }
     var selectedVehicle by remember { mutableStateOf(0) }
+
+    // Autocomplete state
+    var pickupSuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
+    var deliverySuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
+    var showPickupSuggestions by remember { mutableStateOf(false) }
+    var showDeliverySuggestions by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+    var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
+    var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
+
+    fun searchPickup(query: String) {
+        pickupSearchJob?.cancel()
+        if (query.length < 2) {
+            pickupSuggestions = emptyList()
+            showPickupSuggestions = false
+            return
+        }
+        pickupSearchJob = scope.launch {
+            delay(300)
+            LocationApi.autocomplete(query).onSuccess { results ->
+                pickupSuggestions = results
+                showPickupSuggestions = results.isNotEmpty()
+            }
+        }
+    }
+
+    fun searchDelivery(query: String) {
+        deliverySearchJob?.cancel()
+        if (query.length < 2) {
+            deliverySuggestions = emptyList()
+            showDeliverySuggestions = false
+            return
+        }
+        deliverySearchJob = scope.launch {
+            delay(300)
+            LocationApi.autocomplete(query).onSuccess { results ->
+                deliverySuggestions = results
+                showDeliverySuggestions = results.isNotEmpty()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -142,17 +189,105 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Pickup Location
+            // Pickup Location with autocomplete
             Text("Pickup Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(value = pickupLocation, onValueChange = { pickupLocation = it }, placeholder = { Text("32 Samwell Sq, Chevron", color = Color.Gray) }, leadingIcon = { Text("📍", fontSize = 14.sp) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = RoundedCornerShape(12.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)), singleLine = true)
+            OutlinedTextField(
+                value = pickupLocation,
+                onValueChange = {
+                    pickupLocation = it
+                    searchPickup(it)
+                    showDeliverySuggestions = false
+                },
+                placeholder = { Text("32 Samwell Sq, Chevron", color = Color.Gray) },
+                leadingIcon = { Text("📍", fontSize = 14.sp) },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                singleLine = true
+            )
+
+            // Pickup suggestions dropdown
+            if (showPickupSuggestions && pickupSuggestions.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(4.dp)) {
+                        pickupSuggestions.take(5).forEach { place ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        pickupLocation = place.title
+                                        pickupSuggestions = emptyList()
+                                        showPickupSuggestions = false
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                Text(text = place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
+                                if (place.address.isNotEmpty()) {
+                                    Text(text = place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
+                                }
+                            }
+                            HorizontalDivider(color = Color(0xFFF0F0F0))
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Delivery Location
+            // Delivery Location with autocomplete
             Text("Delivery Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(value = deliveryLocation, onValueChange = { deliveryLocation = it }, placeholder = { Text("21b, Karimu Kotun Street, Victoria Island", color = Color.Gray) }, leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = RoundedCornerShape(12.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)), singleLine = true)
+            OutlinedTextField(
+                value = deliveryLocation,
+                onValueChange = {
+                    deliveryLocation = it
+                    searchDelivery(it)
+                    showPickupSuggestions = false
+                },
+                placeholder = { Text("21b, Karimu Kotun Street, Victoria Island", color = Color.Gray) },
+                leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                singleLine = true
+            )
+
+            // Delivery suggestions dropdown
+            if (showDeliverySuggestions && deliverySuggestions.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(4.dp)) {
+                        deliverySuggestions.take(5).forEach { place ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        deliveryLocation = place.title
+                                        deliverySuggestions = emptyList()
+                                        showDeliverySuggestions = false
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                            ) {
+                                Text(text = place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
+                                if (place.address.isNotEmpty()) {
+                                    Text(text = place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
+                                }
+                            }
+                            HorizontalDivider(color = Color(0xFFF0F0F0))
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 

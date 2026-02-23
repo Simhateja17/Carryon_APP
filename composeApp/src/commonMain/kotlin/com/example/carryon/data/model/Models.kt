@@ -122,7 +122,7 @@ data class PriceEstimate(
 @Serializable
 data class ApiResponse<T>(
     val success: Boolean,
-    val message: String,
+    val message: String = "",
     val data: T? = null
 )
 
@@ -159,4 +159,131 @@ data class LocationUpdate(
     val latitude: Double,
     val longitude: Double,
     val heading: Double = 0.0
+)
+
+// AWS Location Services models
+
+@Serializable
+data class PlaceResult(
+    val placeId: String = "",
+    val label: String = "",
+    val address: String = "",
+    val city: String = "",
+    val region: String = "",
+    val country: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
+
+@Serializable
+data class RouteResult(
+    val distance: Double = 0.0,
+    val duration: Int = 0,
+    val geometry: List<LatLng> = emptyList()
+)
+
+@Serializable
+data class LatLng(
+    val lat: Double = 0.0,
+    val lng: Double = 0.0
+)
+
+@Serializable
+data class MapConfig(
+    val apiKey: String = "",
+    val styleUrl: String = "",
+    val region: String = ""
+)
+
+@Serializable
+data class DevicePosition(
+    val deviceId: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val timestamp: String = ""
+)
+
+@Serializable
+data class CalculateRouteRequest(
+    val originLat: Double,
+    val originLng: Double,
+    val destLat: Double,
+    val destLng: Double
+)
+
+@Serializable
+data class UpdatePositionRequest(
+    val deviceId: String,
+    val latitude: Double,
+    val longitude: Double
+)
+
+// AWS Location Services v2 models
+
+@Serializable
+data class AutocompleteHighlight(
+    val start: Int = 0,
+    val end: Int = 0
+)
+
+@Serializable
+data class AutocompleteResult(
+    val placeId: String = "",
+    val title: String = "",
+    val address: String = "",
+    val highlights: List<AutocompleteHighlight> = emptyList()
+)
+
+@Serializable
+data class NearbyPlace(
+    val placeId: String = "",
+    val title: String = "",
+    val address: String = "",
+    val categories: List<String> = emptyList(),
+    val distance: Double = 0.0,
+    val lat: Double = 0.0,
+    val lng: Double = 0.0
+)
+
+@Serializable
+data class GeocodedPlace(
+    val placeId: String = "",
+    val title: String = "",
+    val lat: Double = 0.0,
+    val lng: Double = 0.0,
+    val address: String = ""
+)
+
+@Serializable
+data class IsolineResult(
+    val geometry: List<LatLng> = emptyList(),
+    val distanceMeters: Double = 0.0,
+    val durationSeconds: Double = 0.0
+)
+
+@Serializable
+data class SnapResult(
+    val snappedPoints: List<LatLng> = emptyList()
+)
+
+@Serializable
+data class StaticMapResponse(
+    val url: String = ""
+)
+
+@Serializable
+data class GeocodeRequest(
+    val address: String
+)
+
+@Serializable
+data class SnapToRoadsRequest(
+    val points: List<LatLng>
+)
+
+@Serializable
+data class IsolineRequest(
+    val lat: Double,
+    val lng: Double,
+    val minutes: Int
 )

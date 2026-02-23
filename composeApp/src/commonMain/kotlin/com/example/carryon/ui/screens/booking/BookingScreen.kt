@@ -23,12 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.map_background
-import carryon.composeapp.generated.resources.group_6476
 import carryon.composeapp.generated.resources.mask_group
-import carryon.composeapp.generated.resources.ellipse_4
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.MapViewComposable
+import com.example.carryon.ui.components.MapMarker
+import com.example.carryon.ui.components.MarkerColor
+import com.example.carryon.data.model.IsolineResult
+import com.example.carryon.data.model.MapConfig
+import com.example.carryon.data.model.RouteResult
+import com.example.carryon.data.model.LatLng
+import com.example.carryon.data.network.LocationApi
+import kotlinx.coroutines.launch
 
 data class VehicleOption(
     val icon: String,
@@ -59,6 +65,63 @@ fun BookingScreen(
     var selectedVehicle by remember { mutableStateOf(vehicles[2]) }
     var paymentType by remember { mutableStateOf("") }
 
+    // Map & route state
+    var mapConfig by remember { mutableStateOf(MapConfig()) }
+    var routeResult by remember { mutableStateOf<RouteResult?>(null) }
+    var isolineResult by remember { mutableStateOf<IsolineResult?>(null) }
+    var isLoadingRoute by remember { mutableStateOf(false) }
+
+    // Coordinates — geocode from addresses if needed, default to Hyderabad area
+    var pickupLat by remember { mutableStateOf(17.385) }
+    var pickupLng by remember { mutableStateOf(78.4867) }
+    var deliveryLat by remember { mutableStateOf(17.4401) }
+    var deliveryLng by remember { mutableStateOf(78.3489) }
+
+    val scope = rememberCoroutineScope()
+
+    // Load map config, geocode addresses, calculate route + isoline
+    LaunchedEffect(Unit) {
+        LocationApi.getMapConfig().onSuccess { config ->
+            mapConfig = config
+        }
+
+        // Geocode pickup address if it's not already coordinates
+        if (pickupAddress.isNotBlank()) {
+            LocationApi.geocode(pickupAddress).onSuccess { place ->
+                if (place != null) {
+                    pickupLat = place.lat
+                    pickupLng = place.lng
+                }
+            }
+        }
+        // Geocode delivery address
+        if (deliveryAddress.isNotBlank()) {
+            LocationApi.geocode(deliveryAddress).onSuccess { place ->
+                if (place != null) {
+                    deliveryLat = place.lat
+                    deliveryLng = place.lng
+                }
+            }
+        }
+
+        isLoadingRoute = true
+        LocationApi.calculateRoute(pickupLat, pickupLng, deliveryLat, deliveryLng).onSuccess { route ->
+            routeResult = route
+        }
+        // Fetch isoline: reachable within 15 min from pickup
+        LocationApi.getIsoline(pickupLat, pickupLng, 15).onSuccess { iso ->
+            isolineResult = iso
+        }
+        isLoadingRoute = false
+    }
+
+    val markers = remember {
+        listOf(
+            MapMarker("pickup", pickupLat, pickupLng, "Pickup", MarkerColor.BLUE),
+            MapMarker("delivery", deliveryLat, deliveryLng, "Delivery", MarkerColor.GREEN)
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -76,7 +139,7 @@ fun BookingScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(8.dp).background(SuccessGreen, CircleShape))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Ride 🔔", fontSize = 12.sp, color = SuccessGreen)
+                            Text("Ride", fontSize = 12.sp, color = SuccessGreen)
                         }
                     }
                 },
@@ -87,25 +150,25 @@ fun BookingScreen(
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues).background(BackgroundLight)
         ) {
-            // Map Area with route
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp).background(PrimaryBlueSurface)) {
-                Image(
-                    painter = painterResource(Res.drawable.map_background),
-                    contentDescription = "Route Map",
+            // Interactive Map with route and isoline
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+                MapViewComposable(
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    styleUrl = mapConfig.styleUrl,
+                    centerLat = (pickupLat + deliveryLat) / 2,
+                    centerLng = (pickupLng + deliveryLng) / 2,
+                    zoom = 11.0,
+                    markers = markers,
+                    routeGeometry = routeResult?.geometry,
+                    polygonGeometry = isolineResult?.geometry
                 )
-                // Route markers
-                Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).align(Alignment.Center), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(36.dp).background(PrimaryBlue, CircleShape), contentAlignment = Alignment.Center) { Text("🔵", fontSize = 16.sp) }
-                        Text("Pickup", fontSize = 11.sp, color = TextSecondary)
-                    }
-                    Text("• • • • • • •", color = PrimaryBlue, modifier = Modifier.align(Alignment.CenterVertically))
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(modifier = Modifier.size(36.dp).background(SuccessGreen, CircleShape), contentAlignment = Alignment.Center) { Text("📍", fontSize = 16.sp) }
-                        Text("Delivery", fontSize = 11.sp, color = TextSecondary)
-                    }
+
+                if (isLoadingRoute) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center).size(32.dp),
+                        color = PrimaryBlue,
+                        strokeWidth = 3.dp
+                    )
                 }
             }
 
@@ -132,10 +195,27 @@ fun BookingScreen(
                         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // Route info from API
+                        if (routeResult != null) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Column {
+                                    Text("Distance", fontSize = 12.sp, color = TextSecondary)
+                                    Text("${routeResult!!.distance} km", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                }
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("Duration", fontSize = 12.sp, color = TextSecondary)
+                                    Text("${routeResult!!.duration} min", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
                         // Charge
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text("Charge", fontSize = 14.sp, color = TextSecondary)
-                            Text("$198", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                            Text(selectedVehicle.price, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                         }
                     }
                 }
@@ -147,8 +227,8 @@ fun BookingScreen(
                             Box(modifier = Modifier.size(10.dp).background(PrimaryBlue, CircleShape))
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text("52 Sanvard Sq, Clayton", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 12.sp, color = TextSecondary)
+                                Text("Pickup", fontSize = 12.sp, color = TextSecondary)
+                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                         Box(modifier = Modifier.padding(start = 4.dp).width(2.dp).height(20.dp).background(Color.LightGray))
@@ -156,8 +236,8 @@ fun BookingScreen(
                             Box(modifier = Modifier.size(10.dp).background(SuccessGreen, CircleShape))
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text("216, Karna Kunjar Street", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 12.sp, color = TextSecondary)
+                                Text("Delivery", fontSize = 12.sp, color = TextSecondary)
+                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             }
                         }
                     }

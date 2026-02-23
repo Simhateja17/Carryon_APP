@@ -5,7 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,9 +21,17 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_messages
 import carryon.composeapp.generated.resources.icon_profile
 import carryon.composeapp.generated.resources.icon_search
-import carryon.composeapp.generated.resources.map_route
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.MapViewComposable
+import com.example.carryon.ui.components.MapMarker
+import com.example.carryon.ui.components.MarkerColor
+import com.example.carryon.data.model.LatLng
+import com.example.carryon.data.model.MapConfig
+import com.example.carryon.data.model.RouteResult
+import com.example.carryon.data.network.LocationApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,6 +39,68 @@ fun TrackingLiveScreen(
     onBack: () -> Unit,
     onCallAgent: () -> Unit = {}
 ) {
+    // Map state
+    var mapConfig by remember { mutableStateOf(MapConfig()) }
+    var driverLat by remember { mutableStateOf(17.400) }
+    var driverLng by remember { mutableStateOf(78.470) }
+    var routeResult by remember { mutableStateOf<RouteResult?>(null) }
+    var snappedPath by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+    var etaMinutes by remember { mutableStateOf(12) }
+
+    // Track raw GPS history for snap-to-roads
+    val gpsHistory = remember { mutableListOf<LatLng>() }
+
+    // Delivery destination (would come from booking in real app)
+    val deliveryLat = 17.440
+    val deliveryLng = 78.349
+
+    val scope = rememberCoroutineScope()
+
+    // Load map config
+    LaunchedEffect(Unit) {
+        LocationApi.getMapConfig().onSuccess { config ->
+            mapConfig = config
+        }
+    }
+
+    // Poll driver position every 8 seconds
+    LaunchedEffect(Unit) {
+        while (true) {
+            // Try to get real position from tracker
+            LocationApi.getPosition("driver-1").onSuccess { pos ->
+                if (pos.latitude != 0.0 && pos.longitude != 0.0) {
+                    driverLat = pos.latitude
+                    driverLng = pos.longitude
+                    gpsHistory.add(LatLng(pos.latitude, pos.longitude))
+                }
+            }
+
+            // Snap GPS trail to roads for smooth display
+            if (gpsHistory.size >= 2) {
+                LocationApi.snapToRoads(gpsHistory.toList()).onSuccess { snapped ->
+                    if (snapped.isNotEmpty()) {
+                        snappedPath = snapped
+                    }
+                }
+            }
+
+            // Recalculate route from driver to delivery
+            LocationApi.calculateRoute(driverLat, driverLng, deliveryLat, deliveryLng).onSuccess { route ->
+                routeResult = route
+                etaMinutes = route.duration
+            }
+
+            delay(8000)
+        }
+    }
+
+    val markers = remember(driverLat, driverLng) {
+        listOf(
+            MapMarker("driver", driverLat, driverLng, "Driver", MarkerColor.BLUE),
+            MapMarker("delivery", deliveryLat, deliveryLng, "Delivery", MarkerColor.GREEN)
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -118,24 +188,18 @@ fun TrackingLiveScreen(
                 )
             }
 
-            // Map — fills remaining space
+            // Interactive Map — fills remaining space
             Box(modifier = Modifier.weight(1f)) {
-                Image(
-                    painter = painterResource(Res.drawable.map_route),
-                    contentDescription = "Route Map",
+                // Use snapped path if available, otherwise fall back to route geometry
+                val displayPath = snappedPath.ifEmpty { routeResult?.geometry }
+                MapViewComposable(
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                // "View details" label on map
-                Text(
-                    text = "View details",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .offset(x = 60.dp, y = (-20).dp)
+                    styleUrl = mapConfig.styleUrl,
+                    centerLat = driverLat,
+                    centerLng = driverLng,
+                    zoom = 13.0,
+                    markers = markers,
+                    routeGeometry = displayPath
                 )
             }
 
@@ -165,7 +229,7 @@ fun TrackingLiveScreen(
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                "12",
+                                "$etaMinutes",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -189,7 +253,7 @@ fun TrackingLiveScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Delivery partner id driving\nsafely to deliver your order",
+                            "Delivery partner is driving\nsafely to deliver your order",
                             fontSize = 13.sp,
                             color = Color.White,
                             lineHeight = 19.sp

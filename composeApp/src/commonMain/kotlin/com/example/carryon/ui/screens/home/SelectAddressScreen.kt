@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.map_background
 import carryon.composeapp.generated.resources.location_pin
 import carryon.composeapp.generated.resources.to_pin
 import carryon.composeapp.generated.resources.ellipse_to
@@ -30,6 +29,17 @@ import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.MapViewComposable
+import com.example.carryon.ui.components.MapMarker
+import com.example.carryon.ui.components.MarkerColor
+import com.example.carryon.data.model.AutocompleteResult
+import com.example.carryon.data.model.MapConfig
+import com.example.carryon.data.model.NearbyPlace
+import com.example.carryon.data.model.PlaceResult
+import com.example.carryon.data.network.LocationApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,11 +51,68 @@ fun SelectAddressScreen(
     var to by remember { mutableStateOf("") }
     var selectedNavItem by remember { mutableStateOf(2) }
 
-    val recentPlaces = listOf(
-        Triple("Hospital", "Zydus Corporate Park, Scheme No. 63,Khoraj", "2.7km"),
-        Triple("Coffee shop", "1901 Thornridge Cir. Shiloh, Hawaii 81063", "1.1km"),
-        Triple("College", "Nirma Universit ,Sarkhej - Gandhinagar Hwy, Gota", "4.9km")
-    )
+    // Map state
+    var mapConfig by remember { mutableStateOf(MapConfig()) }
+    var centerLat by remember { mutableStateOf(17.385) }
+    var centerLng by remember { mutableStateOf(78.4867) }
+    var mapZoom by remember { mutableStateOf(12.0) }
+
+    // Search state — now uses autocomplete
+    var searchResults by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
+    var isSearchingFrom by remember { mutableStateOf(true) }
+    var showSearchResults by remember { mutableStateOf(false) }
+
+    // Nearby places
+    var nearbyPlaces by remember { mutableStateOf<List<NearbyPlace>>(emptyList()) }
+    var isLoadingNearby by remember { mutableStateOf(false) }
+
+    // Selected locations
+    var fromPlace by remember { mutableStateOf<PlaceResult?>(null) }
+    var toPlace by remember { mutableStateOf<PlaceResult?>(null) }
+
+    val scope = rememberCoroutineScope()
+    var searchJob by remember { mutableStateOf<Job?>(null) }
+
+    // Load map config + nearby places on first composition
+    LaunchedEffect(Unit) {
+        LocationApi.getMapConfig().onSuccess { config ->
+            mapConfig = config
+        }
+        isLoadingNearby = true
+        LocationApi.searchNearby(centerLat, centerLng, radius = 2000).onSuccess { places ->
+            nearbyPlaces = places
+        }
+        isLoadingNearby = false
+    }
+
+    // Build markers list
+    val markers = remember(fromPlace, toPlace) {
+        buildList {
+            fromPlace?.let {
+                add(MapMarker("from", it.latitude, it.longitude, "Pickup", MarkerColor.BLUE))
+            }
+            toPlace?.let {
+                add(MapMarker("to", it.latitude, it.longitude, "Delivery", MarkerColor.GREEN))
+            }
+        }
+    }
+
+    // Debounced autocomplete function
+    fun performSearch(query: String) {
+        searchJob?.cancel()
+        if (query.length < 2) {
+            searchResults = emptyList()
+            showSearchResults = false
+            return
+        }
+        searchJob = scope.launch {
+            delay(300) // debounce
+            LocationApi.autocomplete(query, centerLat, centerLng).onSuccess { results ->
+                searchResults = results
+                showSearchResults = results.isNotEmpty()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -81,12 +148,35 @@ fun SelectAddressScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            // Map Image
-            Image(
-                painter = painterResource(Res.drawable.map_background),
-                contentDescription = "Map",
-                modifier = Modifier.fillMaxWidth().height(180.dp),
-                contentScale = ContentScale.Crop
+            // Interactive Map
+            MapViewComposable(
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                styleUrl = mapConfig.styleUrl,
+                centerLat = centerLat,
+                centerLng = centerLng,
+                zoom = mapZoom,
+                markers = markers,
+                onMapClick = { lat, lng ->
+                    // Reverse geocode the tapped location
+                    scope.launch {
+                        LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
+                            if (place != null) {
+                                if (isSearchingFrom) {
+                                    from = place.label
+                                    fromPlace = place
+                                    centerLat = place.latitude
+                                    centerLng = place.longitude
+                                } else {
+                                    to = place.label
+                                    toPlace = place
+                                    centerLat = place.latitude
+                                    centerLng = place.longitude
+                                }
+                                mapZoom = 15.0
+                            }
+                        }
+                    }
+                }
             )
 
             // Bottom sheet
@@ -107,30 +197,164 @@ fun SelectAddressScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // From field
-                OutlinedTextField(value = from, onValueChange = { from = it }, placeholder = { Text("Form", color = PrimaryBlue) }, leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue), singleLine = true)
+                OutlinedTextField(
+                    value = from,
+                    onValueChange = {
+                        from = it
+                        isSearchingFrom = true
+                        performSearch(it)
+                    },
+                    placeholder = { Text("From", color = PrimaryBlue) },
+                    leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                    singleLine = true
+                )
                 Spacer(modifier = Modifier.height(10.dp))
 
                 // To field
-                OutlinedTextField(value = to, onValueChange = { to = it }, placeholder = { Text("To", color = PrimaryBlue) }, leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue), singleLine = true)
+                OutlinedTextField(
+                    value = to,
+                    onValueChange = {
+                        to = it
+                        isSearchingFrom = false
+                        performSearch(it)
+                    },
+                    placeholder = { Text("To", color = PrimaryBlue) },
+                    leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                    singleLine = true
+                )
+
+                // Autocomplete results dropdown
+                if (showSearchResults && searchResults.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(8.dp)) {
+                            searchResults.forEach { place ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            // Geocode the selected autocomplete result to get coordinates
+                                            val selectedTitle = place.title
+                                            if (isSearchingFrom) {
+                                                from = selectedTitle
+                                            } else {
+                                                to = selectedTitle
+                                            }
+                                            searchResults = emptyList()
+                                            showSearchResults = false
+                                            scope.launch {
+                                                LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
+                                                    if (geocoded != null) {
+                                                        val placeResult = PlaceResult(
+                                                            placeId = geocoded.placeId,
+                                                            label = geocoded.title,
+                                                            address = geocoded.address,
+                                                            latitude = geocoded.lat,
+                                                            longitude = geocoded.lng
+                                                        )
+                                                        if (isSearchingFrom) {
+                                                            fromPlace = placeResult
+                                                        } else {
+                                                            toPlace = placeResult
+                                                        }
+                                                        centerLat = geocoded.lat
+                                                        centerLng = geocoded.lng
+                                                        mapZoom = 15.0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        .padding(vertical = 10.dp, horizontal = 8.dp),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp).padding(top = 2.dp), contentScale = ContentScale.Fit)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Column {
+                                        Text(
+                                            place.title,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = TextPrimary,
+                                            maxLines = 2
+                                        )
+                                        if (place.address.isNotEmpty()) {
+                                            Text(
+                                                place.address,
+                                                fontSize = 11.sp,
+                                                color = TextSecondary,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
+                                }
+                                HorizontalDivider(color = Color(0xFFF0F0F0))
+                            }
+                        }
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // Recent places
-                Text("Recent places", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                // Nearby places from API
+                Text("Nearby places", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(10.dp))
-                recentPlaces.forEach { (name, address, distance) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onNext() }.padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(20.dp).padding(top = 2.dp), contentScale = ContentScale.Fit)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                            Text(address, fontSize = 12.sp, color = TextSecondary, lineHeight = 16.sp)
-                        }
-                        Text(distance, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+
+                if (isLoadingNearby) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryBlue, strokeWidth = 2.dp)
                     }
-                    Divider(color = Color(0xFFF0F0F0))
+                } else if (nearbyPlaces.isEmpty()) {
+                    Text("No nearby places found", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(vertical = 8.dp))
+                } else {
+                    nearbyPlaces.take(6).forEach { place ->
+                        val distanceText = if (place.distance >= 1000) {
+                            "${(place.distance / 1000).let { "%.1f".format(it) }}km"
+                        } else {
+                            "${place.distance.toInt()}m"
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                val placeResult = PlaceResult(
+                                    placeId = place.placeId,
+                                    label = place.title,
+                                    address = place.address,
+                                    latitude = place.lat,
+                                    longitude = place.lng
+                                )
+                                if (isSearchingFrom) {
+                                    from = place.title
+                                    fromPlace = placeResult
+                                } else {
+                                    to = place.title
+                                    toPlace = placeResult
+                                }
+                                centerLat = place.lat
+                                centerLng = place.lng
+                                mapZoom = 15.0
+                            }.padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(20.dp).padding(top = 2.dp), contentScale = ContentScale.Fit)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(place.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                Text(place.address, fontSize = 12.sp, color = TextSecondary, lineHeight = 16.sp, maxLines = 2)
+                            }
+                            Text(distanceText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        }
+                        HorizontalDivider(color = Color(0xFFF0F0F0))
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 } // end inner Column
