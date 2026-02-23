@@ -379,11 +379,7 @@ fun HomeScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(vehicle.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("👤 ${vehicle.capacity}", fontSize = 12.sp, color = TextSecondary)
-                                }
+                                Text(vehicle.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text("Fast & reliable delivery", fontSize = 11.sp, color = TextSecondary)
                             }
