@@ -70,7 +70,7 @@ fun DetailsScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // What are you sending
-            Text("What are you sending", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Text("What are you sending", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             Text("Select type of item (e.g gadget, document)", fontSize = 12.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
@@ -92,7 +92,7 @@ fun DetailsScreen(
 
             // Quantity
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Quantity", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Text("Quantity", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = quantity,
@@ -112,7 +112,7 @@ fun DetailsScreen(
 
             // Select who pays
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Select who pays", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Text("Select who pays", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { payer = "me" }) {
@@ -154,7 +154,7 @@ fun DetailsScreen(
 
             // Recipient Names
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Recipient Names", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Text("Recipient Names", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = recipientName,
@@ -174,7 +174,7 @@ fun DetailsScreen(
 
             // Recipient contact number
             Spacer(modifier = Modifier.height(14.dp))
-            Text("Recipient contact number", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+            Text("Recipient contact number", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = recipientPhone,

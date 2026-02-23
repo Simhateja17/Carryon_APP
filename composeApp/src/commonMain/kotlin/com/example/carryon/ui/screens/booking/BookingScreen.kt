@@ -241,7 +241,7 @@ fun BookingScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text("Pickup", fontSize = 12.sp, color = TextSecondary)
-                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                             }
                         }
                         Box(modifier = Modifier.padding(start = 4.dp).width(2.dp).height(20.dp).background(Color.LightGray))
@@ -250,7 +250,7 @@ fun BookingScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text("Delivery", fontSize = 12.sp, color = TextSecondary)
-                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                             }
                         }
                     }
@@ -285,7 +285,7 @@ fun BookingScreen(
                 // Vehicle Selection
                 Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Select Vehicle", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Select Vehicle", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                             vehicles.forEach { vehicle ->
