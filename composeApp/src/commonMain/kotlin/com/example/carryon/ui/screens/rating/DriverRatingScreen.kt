@@ -251,13 +251,15 @@ fun DriverRatingScreen(
                     focusedBorderColor = Color.LightGray,
                     unfocusedBorderColor = Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 ),
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Tips Section
             Text(
                 text = "Tips to make your driver's happy",
@@ -299,13 +301,15 @@ fun DriverRatingScreen(
                     focusedBorderColor = Color.LightGray,
                     unfocusedBorderColor = Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8)
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
                 ),
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // Submit Button
             Button(
                 onClick = onSubmit,

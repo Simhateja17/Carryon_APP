@@ -45,11 +45,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectAddressScreen(
+    initialFrom: String = "",
+    initialTo: String = "",
     onNext: () -> Unit,
     onBack: () -> Unit
 ) {
-    var from by remember { mutableStateOf("") }
-    var to by remember { mutableStateOf("") }
+    var from by remember { mutableStateOf(initialFrom) }
+    var to by remember { mutableStateOf(initialTo) }
     var selectedNavItem by remember { mutableStateOf(2) }
 
     // Map state — default to Hyderabad until real location is obtained
@@ -174,7 +176,7 @@ fun SelectAddressScreen(
             }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White)) {
             // Interactive Map
             MapViewComposable(
                 modifier = Modifier.fillMaxWidth().height(200.dp),

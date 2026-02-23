@@ -55,7 +55,7 @@ sealed class AppScreen {
     data class SenderReceiver(val bookingId: String) : AppScreen()
     data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
-    data object SelectAddress : AppScreen()
+    data class SelectAddress(val pickup: String = "", val delivery: String = "") : AppScreen()
     data object Details : AppScreen()
     data object RequestForRide : AppScreen()
     data object Settings : AppScreen()
@@ -107,8 +107,8 @@ fun App() {
             }
             is AppScreen.Home -> {
                 HomeScreen(
-                    onNavigateToBooking = { pickup, delivery, packageType -> 
-                        currentScreen = AppScreen.SelectAddress
+                    onNavigateToBooking = { pickup, delivery, packageType ->
+                        currentScreen = AppScreen.SelectAddress(pickup, delivery)
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
@@ -150,8 +150,8 @@ fun App() {
             }
             is AppScreen.History -> {
                 HistoryScreen(
-                    onInstantDelivery = { currentScreen = AppScreen.SelectAddress },
-                    onScheduleDelivery = { currentScreen = AppScreen.SelectAddress },
+                    onInstantDelivery = { currentScreen = AppScreen.SelectAddress() },
+                    onScheduleDelivery = { currentScreen = AppScreen.SelectAddress() },
                     onOrderClick = { orderId -> currentScreen = AppScreen.DeliveryDetails(orderId) },
                     onViewAll = { currentScreen = AppScreen.Orders },
                     onNavigateToHome = { currentScreen = AppScreen.Home },
@@ -249,6 +249,8 @@ fun App() {
             }
             is AppScreen.SelectAddress -> {
                 SelectAddressScreen(
+                    initialFrom = screen.pickup,
+                    initialTo = screen.delivery,
                     onNext = { currentScreen = AppScreen.Details },
                     onBack = { currentScreen = AppScreen.Home }
                 )
@@ -256,7 +258,7 @@ fun App() {
             is AppScreen.Details -> {
                 DetailsScreen(
                     onContinue = { currentScreen = AppScreen.RequestForRide },
-                    onBack = { currentScreen = AppScreen.SelectAddress }
+                    onBack = { currentScreen = AppScreen.SelectAddress() }
                 )
             }
             is AppScreen.RequestForRide -> {
