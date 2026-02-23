@@ -127,9 +127,9 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Welcome, Devansh", fontSize = 12.sp, color = Color.White.copy(alpha = 0.9f))
+                        Text("Welcome, Devansh", fontSize = 12.sp, color = TextPrimary.copy(alpha = 0.7f))
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("We are Ready to\nServe", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, lineHeight = 26.sp)
+                        Text("We are Ready to\nServe", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary, lineHeight = 26.sp)
                     }
                     Image(
                         painter = painterResource(Res.drawable.ellipse_4),

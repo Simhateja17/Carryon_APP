@@ -17,14 +17,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.carryon.data.network.AuthApi
+import com.example.carryon.data.network.saveToken
 import com.example.carryon.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpScreen(
-    phone: String,
-    onVerifySuccess: (isNewUser: Boolean) -> Unit,
+    email: String,
+    mode: String = "login",
+    name: String = "",
+    onVerifySuccess: () -> Unit,
     onBack: () -> Unit
 ) {
     var otpValue by remember { mutableStateOf("") }
@@ -32,6 +37,7 @@ fun OtpScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var resendTimer by remember { mutableStateOf(30) }
     var canResend by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // Countdown timer
     LaunchedEffect(resendTimer) {
@@ -88,7 +94,7 @@ fun OtpScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "xxxxxx",
+                text = email,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
@@ -183,8 +189,17 @@ fun OtpScreen(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
                         modifier = Modifier.clickable {
-                            resendTimer = 30
-                            canResend = false
+                            scope.launch {
+                                AuthApi.sendOtp(email, mode).fold(
+                                    onSuccess = {
+                                        resendTimer = 30
+                                        canResend = false
+                                    },
+                                    onFailure = { e ->
+                                        errorMessage = e.message ?: "Failed to resend code"
+                                    }
+                                )
+                            }
                         }
                     )
                 } else {
@@ -203,7 +218,19 @@ fun OtpScreen(
                 onClick = {
                     if (otpValue.length == 6) {
                         isLoading = true
-                        onVerifySuccess(otpValue == "111111")
+                        errorMessage = null
+                        scope.launch {
+                            AuthApi.verifyOtp(email, otpValue, mode, name).fold(
+                                onSuccess = { authResponse ->
+                                    saveToken(authResponse.token)
+                                    onVerifySuccess()
+                                },
+                                onFailure = { e ->
+                                    isLoading = false
+                                    errorMessage = e.message ?: "Verification failed"
+                                }
+                            )
+                        }
                     } else {
                         errorMessage = "Please enter 6-digit code"
                     }

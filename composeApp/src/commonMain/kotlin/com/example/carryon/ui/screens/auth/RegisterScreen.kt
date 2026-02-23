@@ -1,8 +1,6 @@
 package com.example.carryon.ui.screens.auth
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,25 +11,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.sign_in_google
-import carryon.composeapp.generated.resources.sign_in_apple
-import carryon.composeapp.generated.resources.sign_in_facebook
-import org.jetbrains.compose.resources.painterResource
+import com.example.carryon.data.network.AuthApi
 import com.example.carryon.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     phone: String,
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    onNavigateToOtp: (email: String, name: String) -> Unit = { _, _ -> }
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -39,6 +33,8 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
 
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -152,12 +148,39 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
+            // Error message
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                )
+            }
+
             // Sign Up Button
             Button(
                 onClick = {
                     if (name.isNotBlank() && email.isNotBlank()) {
                         isLoading = true
-                        onRegisterSuccess()
+                        errorMessage = null
+                        scope.launch {
+                            try {
+                                AuthApi.sendOtp(email, mode = "signup").fold(
+                                    onSuccess = {
+                                        isLoading = false
+                                        onNavigateToOtp(email, name)
+                                    },
+                                    onFailure = { e ->
+                                        isLoading = false
+                                        errorMessage = e.message ?: "Failed to send verification code"
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                isLoading = false
+                                errorMessage = e.message ?: "Unexpected error"
+                            }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -170,58 +193,6 @@ fun RegisterScreen(
                 } else {
                     Text("Sign Up", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Or Divider
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
-                Text("  Or  ", color = TextSecondary, fontSize = 14.sp)
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Social Login Icons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_apple),
-                    contentDescription = "Apple",
-                    modifier = Modifier.height(64.dp).clickable { },
-                    contentScale = ContentScale.FillHeight
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_google),
-                    contentDescription = "Google",
-                    modifier = Modifier.height(64.dp).clickable { },
-                    contentScale = ContentScale.FillHeight
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_facebook),
-                    contentDescription = "Facebook",
-                    modifier = Modifier.height(64.dp).clickable { },
-                    contentScale = ContentScale.FillHeight
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Continue as Guest
-            OutlinedButton(
-                onClick = { onRegisterSuccess() },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
-            ) {
-                Text("Continue as a Guest", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = PrimaryBlue)
             }
 
             Spacer(modifier = Modifier.height(40.dp))

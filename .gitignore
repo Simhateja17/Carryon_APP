@@ -22,4 +22,7 @@ node_modules/
 *.png
 !composeApp/**/*.png
 !iosApp/**/*.png
-!delivery-app/assets/*.png
+
+# Backend secrets
+backend/.env
+backend/node_modules/

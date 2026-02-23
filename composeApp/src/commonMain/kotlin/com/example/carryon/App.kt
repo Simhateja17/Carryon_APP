@@ -28,14 +28,16 @@ import com.example.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.example.carryon.ui.screens.home.SelectAddressScreen
 import com.example.carryon.ui.screens.booking.DetailsScreen
 import com.example.carryon.ui.screens.booking.RequestForRideScreen
+import com.example.carryon.data.network.getToken
+import com.example.carryon.data.network.clearToken
 
 // Simple screen state for iOS compatibility
 sealed class AppScreen {
     data object Splash : AppScreen()
     data object Welcome : AppScreen()
     data object Login : AppScreen()
-    data class Register(val phone: String = "") : AppScreen()
-    data class Otp(val phone: String, val isNewUser: Boolean = false) : AppScreen()
+    data class Register(val email: String = "") : AppScreen()
+    data class Otp(val email: String, val mode: String = "login", val name: String = "") : AppScreen()
     data object Home : AppScreen()
     data object Profile : AppScreen()
     data object Calculate : AppScreen()
@@ -68,7 +70,9 @@ fun App() {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
-                    onSplashComplete = { currentScreen = AppScreen.Welcome }
+                    onSplashComplete = {
+                        currentScreen = if (getToken() != null) AppScreen.Home else AppScreen.Welcome
+                    }
                 )
             }
             is AppScreen.Welcome -> {
@@ -85,15 +89,20 @@ fun App() {
             }
             is AppScreen.Register -> {
                 RegisterScreen(
-                    phone = screen.phone,
-                    onRegisterSuccess = { currentScreen = AppScreen.Otp(screen.phone, isNewUser = true) }
+                    phone = screen.email,
+                    onRegisterSuccess = { currentScreen = AppScreen.Otp(screen.email) },
+                    onNavigateToOtp = { email, name ->
+                        currentScreen = AppScreen.Otp(email, mode = "signup", name = name)
+                    }
                 )
             }
             is AppScreen.Otp -> {
                 OtpScreen(
-                    phone = screen.phone,
-                    onVerifySuccess = { _ -> currentScreen = AppScreen.Home },
-                    onBack = { currentScreen = if (screen.isNewUser) AppScreen.Register() else AppScreen.Login }
+                    email = screen.email,
+                    mode = screen.mode,
+                    name = screen.name,
+                    onVerifySuccess = { currentScreen = AppScreen.Home },
+                    onBack = { currentScreen = AppScreen.Login }
                 )
             }
             is AppScreen.Home -> {
@@ -119,7 +128,7 @@ fun App() {
                     onNavigateToTrackShipment = { currentScreen = AppScreen.TrackShipment },
                     onNavigateToDriverRating = { currentScreen = AppScreen.DriverRating("Josh Knight") },
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
-                    onLogout = { currentScreen = AppScreen.Login },
+                    onLogout = { clearToken(); currentScreen = AppScreen.Welcome },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }

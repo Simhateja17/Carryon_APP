@@ -2,9 +2,11 @@ package com.example.carryon.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.carryon.ui.screens.splash.SplashScreen
 import com.example.carryon.ui.screens.auth.LoginScreen
 import com.example.carryon.ui.screens.auth.OtpScreen
@@ -37,11 +39,26 @@ sealed class Screen(val route: String) {
     
     // Auth
     data object Login : Screen("login")
-    data object Otp : Screen("otp/{phone}") {
-        fun createRoute(phone: String) = "otp/$phone"
+    data object Otp : Screen("otp/{email}?mode={mode}&name={name}") {
+        private fun percentEncode(value: String): String = buildString {
+            for (c in value) {
+                if (c.isLetterOrDigit() || c == '-' || c == '_' || c == '.' || c == '~') {
+                    append(c)
+                } else {
+                    for (b in c.toString().encodeToByteArray()) {
+                        append('%')
+                        append(b.toUByte().toString(16).uppercase().padStart(2, '0'))
+                    }
+                }
+            }
+        }
+
+        fun createRoute(email: String, mode: String = "login", name: String = ""): String {
+            return "otp/${percentEncode(email)}?mode=$mode&name=${percentEncode(name)}"
+        }
     }
-    data object Register : Screen("register/{phone}") {
-        fun createRoute(phone: String) = "register/$phone"
+    data object Register : Screen("register/{email}") {
+        fun createRoute(email: String) = "register/$email"
     }
     
     // Main
@@ -126,26 +143,33 @@ fun AppNavigation(
         // Auth Screens
         composable(Screen.Login.route) {
             LoginScreen(
-                onNavigateToOtp = { phone ->
-                    navController.navigate(Screen.Otp.createRoute(phone))
+                onNavigateToOtp = { email ->
+                    navController.navigate(Screen.Otp.createRoute(email, mode = "login"))
+                },
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.createRoute(""))
                 }
             )
         }
         
-        composable(Screen.Otp.route) { backStackEntry ->
-            val phone = backStackEntry.arguments?.getString("phone") ?: ""
+        composable(
+            Screen.Otp.route,
+            arguments = listOf(
+                navArgument("mode") { type = NavType.StringType; defaultValue = "login" },
+                navArgument("name") { type = NavType.StringType; defaultValue = "" }
+            )
+        ) { backStackEntry ->
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val mode = backStackEntry.arguments?.getString("mode") ?: "login"
+            val name = backStackEntry.arguments?.getString("name") ?: ""
             OtpScreen(
-                phone = phone,
-                onVerifySuccess = { isNewUser ->
-                    if (isNewUser) {
-                        navController.navigate(Screen.Register.createRoute(phone)) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    } else {
-                        onLoginSuccess()
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
+                email = email,
+                mode = mode,
+                name = name,
+                onVerifySuccess = {
+                    onLoginSuccess()
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
                 onBack = { navController.popBackStack() }
@@ -153,14 +177,17 @@ fun AppNavigation(
         }
         
         composable(Screen.Register.route) { backStackEntry ->
-            val phone = backStackEntry.arguments?.getString("phone") ?: ""
+            val emailArg = backStackEntry.arguments?.getString("email") ?: ""
             RegisterScreen(
-                phone = phone,
+                phone = emailArg,
                 onRegisterSuccess = {
                     onLoginSuccess()
                     navController.navigate(Screen.ReadyToBook.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
+                },
+                onNavigateToOtp = { email, name ->
+                    navController.navigate(Screen.Otp.createRoute(email, mode = "signup", name = name))
                 }
             )
         }

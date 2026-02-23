@@ -2,11 +2,9 @@ package com.example.carryon.ui.screens.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -14,13 +12,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -28,7 +24,9 @@ import carryon.composeapp.generated.resources.sign_in_google
 import carryon.composeapp.generated.resources.sign_in_apple
 import carryon.composeapp.generated.resources.sign_in_facebook
 import org.jetbrains.compose.resources.painterResource
+import com.example.carryon.data.network.AuthApi
 import com.example.carryon.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +37,8 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -117,12 +117,39 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Error message
+            errorMessage?.let {
+                Text(
+                    text = it,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                )
+            }
+
             // Log In Button
             Button(
                 onClick = {
                     if (email.isNotBlank()) {
                         isLoading = true
-                        onNavigateToOtp(email)
+                        errorMessage = null
+                        scope.launch {
+                            try {
+                                AuthApi.sendOtp(email, mode = "login").fold(
+                                    onSuccess = {
+                                        isLoading = false
+                                        onNavigateToOtp(email)
+                                    },
+                                    onFailure = { e ->
+                                        isLoading = false
+                                        errorMessage = e.message ?: "No account found with this email. Please sign up."
+                                    }
+                                )
+                            } catch (e: Exception) {
+                                isLoading = false
+                                errorMessage = e.message ?: "Unexpected error"
+                            }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
@@ -174,19 +201,6 @@ fun LoginScreen(
                     modifier = Modifier.height(64.dp).clickable { },
                     contentScale = ContentScale.FillHeight
                 )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Continue as Guest
-            OutlinedButton(
-                onClick = { onNavigateToOtp("guest@demo.com") },
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
-            ) {
-                Text("Continue as a Guest", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = PrimaryBlue)
             }
 
             Spacer(modifier = Modifier.weight(1f))

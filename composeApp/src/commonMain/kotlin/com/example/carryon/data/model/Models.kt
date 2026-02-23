@@ -127,14 +127,23 @@ data class ApiResponse<T>(
 )
 
 @Serializable
-data class OtpRequest(
-    val phone: String
+data class OtpSendRequest(
+    val email: String,
+    val mode: String = "login"
 )
 
 @Serializable
 data class OtpVerifyRequest(
-    val phone: String,
-    val otp: String
+    val email: String,
+    val otp: String,
+    val mode: String = "login",
+    val name: String = ""
+)
+
+@Serializable
+data class OtpResponse(
+    val success: Boolean,
+    val message: String
 )
 
 @Serializable
