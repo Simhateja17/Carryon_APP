@@ -129,11 +129,15 @@ fun SelectAddressScreen(
             return
         }
         searchJob = scope.launch {
-            delay(300) // debounce
-            LocationApi.autocomplete(query, centerLat, centerLng).onSuccess { results ->
-                searchResults = results
-                showSearchResults = results.isNotEmpty()
-            }
+            delay(300)
+            LocationApi.autocomplete(query, centerLat, centerLng)
+                .onSuccess { results ->
+                    searchResults = results
+                    showSearchResults = results.isNotEmpty()
+                }
+                .onFailure {
+                    println("[Autocomplete] SelectAddress error: ${it.message}")
+                }
         }
     }
 
@@ -220,109 +224,126 @@ fun SelectAddressScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // From field
-                OutlinedTextField(
-                    value = from,
-                    onValueChange = {
-                        from = it
-                        isSearchingFrom = true
-                        performSearch(it)
-                    },
-                    placeholder = { Text("From", color = PrimaryBlue) },
-                    leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
-                    singleLine = true
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // To field
-                OutlinedTextField(
-                    value = to,
-                    onValueChange = {
-                        to = it
-                        isSearchingFrom = false
-                        performSearch(it)
-                    },
-                    placeholder = { Text("To", color = PrimaryBlue) },
-                    leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
-                    singleLine = true
-                )
-
-                // Autocomplete results dropdown
-                if (showSearchResults && searchResults.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Card(
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = from,
+                        onValueChange = {
+                            from = it
+                            isSearchingFrom = true
+                            performSearch(it)
+                        },
+                        placeholder = { Text("From", color = PrimaryBlue) },
+                        leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(4.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                        singleLine = true
+                    )
+                    DropdownMenu(
+                        expanded = showSearchResults && isSearchingFrom && searchResults.isNotEmpty(),
+                        onDismissRequest = { showSearchResults = false },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Column(modifier = Modifier.padding(8.dp)) {
-                            searchResults.forEach { place ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            // Geocode the selected autocomplete result to get coordinates
-                                            val selectedTitle = place.title
-                                            if (isSearchingFrom) {
-                                                from = selectedTitle
-                                            } else {
-                                                to = selectedTitle
-                                            }
-                                            searchResults = emptyList()
-                                            showSearchResults = false
-                                            scope.launch {
-                                                LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
-                                                    if (geocoded != null) {
-                                                        val placeResult = PlaceResult(
-                                                            placeId = geocoded.placeId,
-                                                            label = geocoded.title,
-                                                            address = geocoded.address,
-                                                            latitude = geocoded.lat,
-                                                            longitude = geocoded.lng
-                                                        )
-                                                        if (isSearchingFrom) {
-                                                            fromPlace = placeResult
-                                                        } else {
-                                                            toPlace = placeResult
-                                                        }
-                                                        centerLat = geocoded.lat
-                                                        centerLng = geocoded.lng
-                                                        mapZoom = 15.0
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        .padding(vertical = 10.dp, horizontal = 8.dp),
-                                    verticalAlignment = Alignment.Top
-                                ) {
-                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp).padding(top = 2.dp), contentScale = ContentScale.Fit)
-                                    Spacer(modifier = Modifier.width(10.dp))
+                        searchResults.take(5).forEach { place ->
+                            DropdownMenuItem(
+                                text = {
                                     Column {
-                                        Text(
-                                            place.title,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Medium,
-                                            color = TextPrimary,
-                                            maxLines = 2
-                                        )
+                                        Text(place.title, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextPrimary, maxLines = 1)
                                         if (place.address.isNotEmpty()) {
-                                            Text(
-                                                place.address,
-                                                fontSize = 11.sp,
-                                                color = TextSecondary,
-                                                maxLines = 1
-                                            )
+                                            Text(place.address, fontSize = 11.sp, color = TextSecondary, maxLines = 1)
+                                        }
+                                    }
+                                },
+                                leadingIcon = {
+                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp), contentScale = ContentScale.Fit)
+                                },
+                                onClick = {
+                                    val selectedTitle = place.title
+                                    from = selectedTitle
+                                    searchResults = emptyList()
+                                    showSearchResults = false
+                                    scope.launch {
+                                        LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
+                                            if (geocoded != null) {
+                                                fromPlace = PlaceResult(
+                                                    placeId = geocoded.placeId,
+                                                    label = geocoded.title,
+                                                    address = geocoded.address,
+                                                    latitude = geocoded.lat,
+                                                    longitude = geocoded.lng
+                                                )
+                                                centerLat = geocoded.lat
+                                                centerLng = geocoded.lng
+                                                mapZoom = 15.0
+                                            }
                                         }
                                     }
                                 }
-                                HorizontalDivider(color = Color(0xFFF0F0F0))
-                            }
+                            )
+                            HorizontalDivider(color = Color(0xFFF0F0F0))
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // To field
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = to,
+                        onValueChange = {
+                            to = it
+                            isSearchingFrom = false
+                            performSearch(it)
+                        },
+                        placeholder = { Text("To", color = PrimaryBlue) },
+                        leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                        singleLine = true
+                    )
+                    DropdownMenu(
+                        expanded = showSearchResults && !isSearchingFrom && searchResults.isNotEmpty(),
+                        onDismissRequest = { showSearchResults = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        searchResults.take(5).forEach { place ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(place.title, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextPrimary, maxLines = 1)
+                                        if (place.address.isNotEmpty()) {
+                                            Text(place.address, fontSize = 11.sp, color = TextSecondary, maxLines = 1)
+                                        }
+                                    }
+                                },
+                                leadingIcon = {
+                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp), contentScale = ContentScale.Fit)
+                                },
+                                onClick = {
+                                    val selectedTitle = place.title
+                                    to = selectedTitle
+                                    searchResults = emptyList()
+                                    showSearchResults = false
+                                    scope.launch {
+                                        LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
+                                            if (geocoded != null) {
+                                                toPlace = PlaceResult(
+                                                    placeId = geocoded.placeId,
+                                                    label = geocoded.title,
+                                                    address = geocoded.address,
+                                                    latitude = geocoded.lat,
+                                                    longitude = geocoded.lng
+                                                )
+                                                centerLat = geocoded.lat
+                                                centerLng = geocoded.lng
+                                                mapZoom = 15.0
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                            HorizontalDivider(color = Color(0xFFF0F0F0))
                         }
                     }
                 }

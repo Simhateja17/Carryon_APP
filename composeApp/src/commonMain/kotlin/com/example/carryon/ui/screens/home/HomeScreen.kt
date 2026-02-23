@@ -31,9 +31,12 @@ import carryon.composeapp.generated.resources.mask_group
 import carryon.composeapp.generated.resources.rectangle_22
 import carryon.composeapp.generated.resources.ellipse_4
 import androidx.compose.ui.graphics.Brush
-import carryon.composeapp.generated.resources.group_vehicle
-import carryon.composeapp.generated.resources.van_vehicle
-import carryon.composeapp.generated.resources.vector_truck
+import carryon.composeapp.generated.resources.bike
+import carryon.composeapp.generated.resources.car_4_seater
+import carryon.composeapp.generated.resources.car_two_seater
+import carryon.composeapp.generated.resources.truck
+import carryon.composeapp.generated.resources.mini_van
+import carryon.composeapp.generated.resources.open_truck
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
 import com.example.carryon.ui.components.rememberLocationRequester
@@ -104,9 +107,13 @@ fun HomeScreen(
         }
         pickupSearchJob = scope.launch {
             delay(300)
-            LocationApi.autocomplete(query, userLat, userLng).onSuccess { results ->
+            val result = LocationApi.autocomplete(query, userLat, userLng)
+            result.onSuccess { results ->
                 pickupSuggestions = results
                 showPickupSuggestions = results.isNotEmpty()
+            }.onFailure {
+                // API error — keep showing any existing suggestions rather than crashing
+                println("[Autocomplete] pickup error: ${it.message}")
             }
         }
     }
@@ -120,9 +127,12 @@ fun HomeScreen(
         }
         deliverySearchJob = scope.launch {
             delay(300)
-            LocationApi.autocomplete(query, userLat, userLng).onSuccess { results ->
+            val result = LocationApi.autocomplete(query, userLat, userLng)
+            result.onSuccess { results ->
                 deliverySuggestions = results
                 showDeliverySuggestions = results.isNotEmpty()
+            }.onFailure {
+                println("[Autocomplete] delivery error: ${it.message}")
             }
         }
     }
@@ -239,102 +249,95 @@ fun HomeScreen(
                 }
             }
             Spacer(modifier = Modifier.height(4.dp))
-            OutlinedTextField(
-                value = pickupLocation,
-                onValueChange = {
-                    pickupLocation = it
-                    searchPickup(it)
-                    showDeliverySuggestions = false
-                },
-                placeholder = { Text("Detecting your location…", color = Color.Gray) },
-                leadingIcon = { Text("📍", fontSize = 14.sp) },
-                trailingIcon = if (isGettingLocation) {
-                    { CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = PrimaryBlue) }
-                } else null,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
-                singleLine = true
-            )
-
-            // Pickup suggestions dropdown
-            if (showPickupSuggestions && pickupSuggestions.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(4.dp)
+            // Pickup field + floating dropdown
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                OutlinedTextField(
+                    value = pickupLocation,
+                    onValueChange = {
+                        pickupLocation = it
+                        searchPickup(it)
+                        showDeliverySuggestions = false
+                    },
+                    placeholder = { Text(if (isGettingLocation) "Detecting your location…" else "Enter pickup address", color = Color.Gray) },
+                    leadingIcon = { Text("📍", fontSize = 14.sp) },
+                    trailingIcon = if (isGettingLocation) {
+                        { CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = PrimaryBlue) }
+                    } else null,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                    singleLine = true
+                )
+                DropdownMenu(
+                    expanded = showPickupSuggestions && pickupSuggestions.isNotEmpty(),
+                    onDismissRequest = { showPickupSuggestions = false },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(4.dp)) {
-                        pickupSuggestions.take(5).forEach { place ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        pickupLocation = place.title
-                                        pickupSuggestions = emptyList()
-                                        showPickupSuggestions = false
+                    pickupSuggestions.take(5).forEach { place ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
+                                    if (place.address.isNotEmpty()) {
+                                        Text(place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
                                     }
-                                    .padding(horizontal = 12.dp, vertical = 10.dp)
-                            ) {
-                                Text(text = place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
-                                if (place.address.isNotEmpty()) {
-                                    Text(text = place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
                                 }
+                            },
+                            leadingIcon = { Text("📍", fontSize = 12.sp) },
+                            onClick = {
+                                pickupLocation = place.title
+                                showPickupSuggestions = false
+                                pickupSuggestions = emptyList()
                             }
-                            HorizontalDivider(color = Color(0xFFF0F0F0))
-                        }
+                        )
+                        HorizontalDivider(color = Color(0xFFF0F0F0))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Delivery Location with autocomplete
+            // Delivery Location with floating dropdown
             Text("Delivery Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = deliveryLocation,
-                onValueChange = {
-                    deliveryLocation = it
-                    searchDelivery(it)
-                    showPickupSuggestions = false
-                },
-                placeholder = { Text("Enter delivery address", color = Color.Gray) },
-                leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
-                singleLine = true
-            )
-
-            // Delivery suggestions dropdown
-            if (showDeliverySuggestions && deliverySuggestions.isNotEmpty()) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(4.dp)
+            Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                OutlinedTextField(
+                    value = deliveryLocation,
+                    onValueChange = {
+                        deliveryLocation = it
+                        searchDelivery(it)
+                        showPickupSuggestions = false
+                    },
+                    placeholder = { Text("Enter delivery address", color = Color.Gray) },
+                    leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                    singleLine = true
+                )
+                DropdownMenu(
+                    expanded = showDeliverySuggestions && deliverySuggestions.isNotEmpty(),
+                    onDismissRequest = { showDeliverySuggestions = false },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(4.dp)) {
-                        deliverySuggestions.take(5).forEach { place ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        deliveryLocation = place.title
-                                        deliverySuggestions = emptyList()
-                                        showDeliverySuggestions = false
+                    deliverySuggestions.take(5).forEach { place ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
+                                    if (place.address.isNotEmpty()) {
+                                        Text(place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
                                     }
-                                    .padding(horizontal = 12.dp, vertical = 10.dp)
-                            ) {
-                                Text(text = place.title, fontSize = 13.sp, color = TextPrimary, maxLines = 1)
-                                if (place.address.isNotEmpty()) {
-                                    Text(text = place.address, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
                                 }
+                            },
+                            leadingIcon = { Text("📍", fontSize = 12.sp) },
+                            onClick = {
+                                deliveryLocation = place.title
+                                showDeliverySuggestions = false
+                                deliverySuggestions = emptyList()
                             }
-                            HorizontalDivider(color = Color(0xFFF0F0F0))
-                        }
+                        )
+                        HorizontalDivider(color = Color(0xFFF0F0F0))
                     }
                 }
             }
@@ -344,29 +347,47 @@ fun HomeScreen(
             // Vehicle Type
             Text("Vehicle Type", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(10.dp))
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val vehicles = listOf(
-                    Pair(Res.drawable.group_vehicle, "Bike"),
-                    Pair(Res.drawable.van_vehicle, "Van"),
-                    Pair(Res.drawable.vector_truck, "Truck")
-                )
-                vehicles.forEachIndexed { index, (iconRes, label) ->
+            data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val capacity: String, val price: String)
+            val vehicles = listOf(
+                VehicleOption(Res.drawable.bike, "Bike", "1", "RM 8"),
+                VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "2", "RM 15"),
+                VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "4", "RM 20"),
+                VehicleOption(Res.drawable.mini_van, "Mini Van", "6", "RM 30"),
+                VehicleOption(Res.drawable.truck, "Truck", "Cargo", "RM 45"),
+                VehicleOption(Res.drawable.open_truck, "Open Truck", "Cargo", "RM 40")
+            )
+            Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                vehicles.forEachIndexed { index, vehicle ->
                     Card(
-                        modifier = Modifier.weight(1f).height(64.dp).clickable { selectedVehicle = index },
-                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().clickable { selectedVehicle = index },
+                        shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = if (selectedVehicle == index) PrimaryBlueSurface else Color.White
                         ),
-                        border = if (selectedVehicle == index) androidx.compose.foundation.BorderStroke(2.dp, PrimaryBlue) else null,
+                        border = if (selectedVehicle == index) androidx.compose.foundation.BorderStroke(2.dp, PrimaryBlue) else androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEEEEEE)),
                         elevation = CardDefaults.cardElevation(0.dp)
                     ) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Image(
-                                painter = painterResource(iconRes),
-                                contentDescription = label,
-                                modifier = Modifier.size(32.dp),
+                                painter = painterResource(vehicle.iconRes),
+                                contentDescription = vehicle.name,
+                                modifier = Modifier.size(72.dp),
                                 contentScale = ContentScale.Fit
                             )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(vehicle.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("👤 ${vehicle.capacity}", fontSize = 12.sp, color = TextSecondary)
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text("Fast & reliable delivery", fontSize = 11.sp, color = TextSecondary)
+                            }
+                            Text(vehicle.price, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                         }
                     }
                 }
