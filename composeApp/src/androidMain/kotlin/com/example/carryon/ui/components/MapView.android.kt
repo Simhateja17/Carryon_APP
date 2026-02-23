@@ -58,12 +58,13 @@ actual fun MapViewComposable(
                     "https://demotiles.maplibre.org/style.json"
                 }
 
-                map.setStyle(Style.Builder().fromUri(effectiveStyleUrl)) { style ->
-                    // Set camera position
-                    map.cameraPosition = CameraPosition.Builder()
-                        .target(MLNLatLng(centerLat, centerLng))
-                        .zoom(zoom)
-                        .build()
+                fun applyMapContent() {
+                    // Move camera to current location immediately
+                    if (centerLat != 0.0 || centerLng != 0.0) {
+                        map.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(MLNLatLng(centerLat, centerLng), zoom)
+                        )
+                    }
 
                     // Clear existing annotations
                     map.clear()
@@ -114,14 +115,23 @@ actual fun MapViewComposable(
                             CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 80)
                         )
                     }
+                }
 
-                    // Map click listener
-                    onMapClick?.let { callback ->
-                        map.addOnMapClickListener { latLng ->
-                            callback(latLng.latitude, latLng.longitude)
-                            true
+                if (map.style == null || map.style?.uri != effectiveStyleUrl) {
+                    // Load style once; apply content when ready
+                    map.setStyle(Style.Builder().fromUri(effectiveStyleUrl)) {
+                        // Map click listener — registered once after style loads
+                        onMapClick?.let { callback ->
+                            map.addOnMapClickListener { latLng ->
+                                callback(latLng.latitude, latLng.longitude)
+                                true
+                            }
                         }
+                        applyMapContent()
                     }
+                } else {
+                    // Style already loaded — update content directly
+                    applyMapContent()
                 }
             }
         }
