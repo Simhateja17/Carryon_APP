@@ -24,9 +24,10 @@ import com.example.carryon.ui.theme.*
 fun EditProfileScreen(
     onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf("John Doe") }
-    var email by remember { mutableStateOf("john.doe@example.com") }
-    var phone by remember { mutableStateOf("9876543210") }
+    // TODO: Load from user session/API
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     
@@ -127,7 +128,7 @@ fun EditProfileScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     OutlinedTextField(
-                        value = "+91 $phone",
+                        value = "+60 $phone",
                         onValueChange = { },
                         label = { Text("📱 Phone Number") },
                         enabled = false,

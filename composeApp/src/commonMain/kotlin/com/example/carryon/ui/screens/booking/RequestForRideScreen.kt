@@ -112,19 +112,18 @@ fun RequestForRideScreen(
 
                 // Right: location labels
                 Column(modifier = Modifier.weight(1f)) {
-                    // Current location
+                    // Pickup location
                     Column {
-                        Text("Current location", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                        Text("2972 Westheimer Rd. Santa Ana, Illinois 85486", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
+                        Text("Pickup", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text("Select pickup location", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
                     }
                     Spacer(modifier = Modifier.height(24.dp))
-                    // Office
+                    // Delivery location
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Office", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                            Text("1901 Thornridge Cir. Shiloh, Hawaii 81063", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
+                            Text("Delivery", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                            Text("Select delivery location", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
                         }
-                        Text("1.1km", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
                     }
                 }
             }
@@ -144,7 +143,7 @@ fun RequestForRideScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Mustang Shelby GT", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text("Vehicle", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("⭐", fontSize = 13.sp)
@@ -168,12 +167,12 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Fair Price", fontSize = 14.sp, color = TextSecondary)
-                Text("\$200", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                Text("RM 200", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Tax (5%)", fontSize = 14.sp, color = TextSecondary)
-                Text("\$20", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                Text("RM 20", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(20.dp))

@@ -36,37 +36,8 @@ fun SavedAddressesScreen(
     var showAddDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
     
-    val addresses = remember {
-        mutableStateListOf(
-            Address(
-                id = "1",
-                label = "Home",
-                address = "123, Main Street, Banjara Hills, Hyderabad, 500034",
-                landmark = "Near City Mall",
-                contactName = "John Doe",
-                contactPhone = "9876543210",
-                type = AddressType.HOME
-            ),
-            Address(
-                id = "2",
-                label = "Office",
-                address = "456, Tech Park, Madhapur, Hyderabad, 500081",
-                landmark = "Opposite Metro Station",
-                contactName = "John Doe",
-                contactPhone = "9876543210",
-                type = AddressType.OFFICE
-            ),
-            Address(
-                id = "3",
-                label = "Parent's Home",
-                address = "789, Lake View Colony, Jubilee Hills, Hyderabad",
-                landmark = "Near Jubilee Hills Check Post",
-                contactName = "Mr. Doe Sr.",
-                contactPhone = "9876543211",
-                type = AddressType.OTHER
-            )
-        )
-    }
+    // TODO: Load saved addresses from API
+    val addresses = remember { mutableStateListOf<Address>() }
     
     Scaffold(
         topBar = {

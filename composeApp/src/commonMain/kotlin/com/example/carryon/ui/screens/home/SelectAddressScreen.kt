@@ -32,6 +32,7 @@ import com.example.carryon.ui.theme.*
 import com.example.carryon.ui.components.MapViewComposable
 import com.example.carryon.ui.components.MapMarker
 import com.example.carryon.ui.components.MarkerColor
+import com.example.carryon.ui.components.rememberLocationRequester
 import com.example.carryon.data.model.AutocompleteResult
 import com.example.carryon.data.model.MapConfig
 import com.example.carryon.data.model.NearbyPlace
@@ -51,38 +52,60 @@ fun SelectAddressScreen(
     var to by remember { mutableStateOf("") }
     var selectedNavItem by remember { mutableStateOf(2) }
 
-    // Map state
+    // Map state — default to Hyderabad until real location is obtained
     var mapConfig by remember { mutableStateOf(MapConfig()) }
     var centerLat by remember { mutableStateOf(17.385) }
     var centerLng by remember { mutableStateOf(78.4867) }
     var mapZoom by remember { mutableStateOf(12.0) }
 
-    // Search state — now uses autocomplete
+    // Search state
     var searchResults by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
     var isSearchingFrom by remember { mutableStateOf(true) }
     var showSearchResults by remember { mutableStateOf(false) }
-
-    // Nearby places
     var nearbyPlaces by remember { mutableStateOf<List<NearbyPlace>>(emptyList()) }
     var isLoadingNearby by remember { mutableStateOf(false) }
-
-    // Selected locations
     var fromPlace by remember { mutableStateOf<PlaceResult?>(null) }
     var toPlace by remember { mutableStateOf<PlaceResult?>(null) }
 
     val scope = rememberCoroutineScope()
     var searchJob by remember { mutableStateOf<Job?>(null) }
 
-    // Load map config + nearby places on first composition
+    // Use device location to center map, pre-fill "from", and load real nearby places
+    val requestLocation = rememberLocationRequester(
+        onLocation = { lat, lng ->
+            centerLat = lat
+            centerLng = lng
+            mapZoom = 14.0
+            scope.launch {
+                // Reverse geocode → pre-fill the "from" field
+                LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
+                    if (place != null && from.isBlank()) {
+                        from = place.label.ifEmpty { place.address }
+                        fromPlace = PlaceResult(
+                            placeId = place.placeId,
+                            label = place.label,
+                            address = place.address,
+                            latitude = lat,
+                            longitude = lng
+                        )
+                    }
+                }
+                // Load nearby places around real location
+                isLoadingNearby = true
+                LocationApi.searchNearby(lat, lng, radius = 2000).onSuccess { places ->
+                    nearbyPlaces = places
+                }
+                isLoadingNearby = false
+            }
+        }
+    )
+
+    // Load map config, then request location (triggers permission + GPS)
     LaunchedEffect(Unit) {
         LocationApi.getMapConfig().onSuccess { config ->
             mapConfig = config
         }
-        isLoadingNearby = true
-        LocationApi.searchNearby(centerLat, centerLng, radius = 2000).onSuccess { places ->
-            nearbyPlaces = places
-        }
-        isLoadingNearby = false
+        requestLocation()
     }
 
     // Build markers list

@@ -87,7 +87,7 @@ fun PaymentScreen(
             // "This is price of the package"
             Text("This is price of the package", fontSize = 14.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("$$totalAmount", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+            Text("RM $totalAmount", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
 
             Spacer(modifier = Modifier.height(20.dp))
 

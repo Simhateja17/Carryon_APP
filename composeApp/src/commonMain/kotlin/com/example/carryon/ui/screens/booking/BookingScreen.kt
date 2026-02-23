@@ -53,12 +53,15 @@ fun BookingScreen(
     onConfirmBooking: (String) -> Unit,
     onBack: () -> Unit
 ) {
-    val vehicles = remember {
-        listOf(
-            VehicleOption("🏍️", "Bike", "Up to 10 kg", "₹49", "15 min"),
-            VehicleOption("🛺", "Auto", "Up to 50 kg", "₹99", "20 min"),
-            VehicleOption("🚚", "Mini Truck", "Up to 500 kg", "₹299", "30 min"),
-            VehicleOption("🚛", "Truck", "Up to 2000 kg", "₹599", "45 min")
+    // Vehicle options — prices update after route is calculated
+    var vehicles by remember {
+        mutableStateOf(
+            listOf(
+                VehicleOption("🏍️", "Bike", "Up to 10 kg", "—", "—"),
+                VehicleOption("🛺", "Auto", "Up to 50 kg", "—", "—"),
+                VehicleOption("🚚", "Mini Truck", "Up to 500 kg", "—", "—"),
+                VehicleOption("🚛", "Truck", "Up to 2000 kg", "—", "—")
+            )
         )
     }
 
@@ -107,6 +110,16 @@ fun BookingScreen(
         isLoadingRoute = true
         LocationApi.calculateRoute(pickupLat, pickupLng, deliveryLat, deliveryLng).onSuccess { route ->
             routeResult = route
+            // Update vehicle prices based on route distance
+            val km = route.distance
+            val mins = route.duration
+            vehicles = listOf(
+                VehicleOption("🏍️", "Bike", "Up to 10 kg", "RM ${(5 + km * 1.5).toInt()}", "$mins min"),
+                VehicleOption("🛺", "Auto", "Up to 50 kg", "RM ${(10 + km * 2.5).toInt()}", "${mins + 5} min"),
+                VehicleOption("🚚", "Mini Truck", "Up to 500 kg", "RM ${(30 + km * 4).toInt()}", "${mins + 10} min"),
+                VehicleOption("🚛", "Truck", "Up to 2000 kg", "RM ${(60 + km * 7).toInt()}", "${mins + 15} min")
+            )
+            selectedVehicle = vehicles[2]
         }
         // Fetch isoline: reachable within 15 min from pickup
         LocationApi.getIsoline(pickupLat, pickupLng, 15).onSuccess { iso ->
@@ -186,8 +199,8 @@ fun BookingScreen(
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text("Mustang Dafoy 01", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                Text(selectedVehicle.name, fontSize = 13.sp, color = TextSecondary)
+                                Text(selectedVehicle.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                Text(selectedVehicle.description, fontSize = 13.sp, color = TextSecondary)
                             }
                         }
 

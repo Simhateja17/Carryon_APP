@@ -378,7 +378,7 @@ private fun TipChip(
             .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Text(
-            text = "$$amount",
+            text = "RM $amount",
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = if (isSelected) PrimaryBlue else TextPrimary

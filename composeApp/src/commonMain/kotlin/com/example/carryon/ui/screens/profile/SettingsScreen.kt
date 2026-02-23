@@ -74,7 +74,7 @@ fun SettingsScreen(
             SettingsSection(title = "Preferences") {
                 SettingsItem(title = "Language", subtitle = "English", onClick = {})
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Currency", subtitle = "USD", onClick = {})
+                SettingsItem(title = "Currency", subtitle = "MYR", onClick = {})
             }
 
             Spacer(modifier = Modifier.height(12.dp))

@@ -36,15 +36,8 @@ fun OrdersScreen(
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("All", "Active", "Completed", "Cancelled")
     
-    val orders = remember {
-        listOf(
-            OrderItem("ORD001", "Feb 14, 2026", "Banjara Hills", "Madhapur", "Auto", 118.0, BookingStatus.IN_TRANSIT),
-            OrderItem("ORD002", "Feb 13, 2026", "Jubilee Hills", "Gachibowli", "Bike", 65.0, BookingStatus.DELIVERED),
-            OrderItem("ORD003", "Feb 12, 2026", "Ameerpet", "HITEC City", "Mini Truck", 350.0, BookingStatus.DELIVERED),
-            OrderItem("ORD004", "Feb 11, 2026", "Secunderabad", "Kukatpally", "Auto", 145.0, BookingStatus.CANCELLED),
-            OrderItem("ORD005", "Feb 10, 2026", "LB Nagar", "Dilsukhnagar", "Bike", 45.0, BookingStatus.DELIVERED)
-        )
-    }
+    // TODO: Fetch real orders from API
+    val orders = remember { listOf<OrderItem>() }
     
     val filteredOrders = when (selectedTab) {
         1 -> orders.filter { it.status == BookingStatus.IN_TRANSIT || it.status == BookingStatus.SEARCHING_DRIVER }
@@ -234,7 +227,7 @@ private fun OrderCard(
                 }
                 
                 Text(
-                    text = "₹${order.price.toInt()}",
+                    text = "RM ${order.price.toInt()}",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryOrange

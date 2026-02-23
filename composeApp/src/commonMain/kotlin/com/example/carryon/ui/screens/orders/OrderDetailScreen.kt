@@ -26,17 +26,17 @@ fun OrderDetailScreen(
     var rating by remember { mutableStateOf(0) }
     var showRatingDialog by remember { mutableStateOf(false) }
     
-    // Simulated order data
-    val orderDate = "February 14, 2026 at 2:30 PM"
-    val pickupAddress = "123, Main Street, Banjara Hills, Hyderabad, 500034"
-    val deliveryAddress = "456, Tech Park, Madhapur, Hyderabad, 500081"
-    val driverName = "Rajesh Kumar"
-    val vehicleNumber = "TS09AB1234"
-    val vehicleType = "Auto"
-    val distance = 8.5
-    val basePrice = 50.0
-    val distancePrice = 68.0
-    val totalPrice = 118.0
+    // TODO: Fetch real order data from API using orderId
+    val orderDate = ""
+    val pickupAddress = "—"
+    val deliveryAddress = "—"
+    val driverName = "—"
+    val vehicleNumber = "—"
+    val vehicleType = "—"
+    val distance = 0.0
+    val basePrice = 0.0
+    val distancePrice = 0.0
+    val totalPrice = 0.0
     
     Scaffold(
         topBar = {
@@ -302,7 +302,7 @@ fun OrderDetailScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Base Fare", color = Color.Gray)
-                        Text("₹${basePrice.toInt()}")
+                        Text("RM ${basePrice.toInt()}")
                     }
                     
                     Row(
@@ -312,7 +312,7 @@ fun OrderDetailScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text("Distance Charge ($distance km)", color = Color.Gray)
-                        Text("₹${distancePrice.toInt()}")
+                        Text("RM ${distancePrice.toInt()}")
                     }
                     
                     HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
@@ -327,7 +327,7 @@ fun OrderDetailScreen(
                             fontSize = 16.sp
                         )
                         Text(
-                            text = "₹${totalPrice.toInt()}",
+                            text = "RM ${totalPrice.toInt()}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
                             color = PrimaryOrange

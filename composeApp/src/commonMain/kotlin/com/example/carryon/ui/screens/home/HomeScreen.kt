@@ -36,6 +36,7 @@ import carryon.composeapp.generated.resources.van_vehicle
 import carryon.composeapp.generated.resources.vector_truck
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.rememberLocationRequester
 import com.example.carryon.data.model.AutocompleteResult
 import com.example.carryon.data.network.LocationApi
 import kotlinx.coroutines.Job
@@ -56,6 +57,34 @@ fun HomeScreen(
     var deliveryLocation by remember { mutableStateOf("") }
     var selectedNavItem by remember { mutableStateOf(2) }
     var selectedVehicle by remember { mutableStateOf(0) }
+    var isGettingLocation by remember { mutableStateOf(false) }
+    var userLat by remember { mutableStateOf<Double?>(null) }
+    var userLng by remember { mutableStateOf<Double?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    // Location permission + GPS fetch → reverse geocode → fill pickup
+    val requestLocation = rememberLocationRequester(
+        onLocation = { lat, lng ->
+            userLat = lat
+            userLng = lng
+            scope.launch {
+                isGettingLocation = true
+                LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
+                    if (place != null) {
+                        pickupLocation = place.label.ifEmpty { place.address }
+                    }
+                }
+                isGettingLocation = false
+            }
+        },
+        onDenied = { isGettingLocation = false }
+    )
+
+    // Auto-request location on first open
+    LaunchedEffect(Unit) {
+        requestLocation()
+    }
 
     // Autocomplete state
     var pickupSuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
@@ -63,7 +92,6 @@ fun HomeScreen(
     var showPickupSuggestions by remember { mutableStateOf(false) }
     var showDeliverySuggestions by remember { mutableStateOf(false) }
 
-    val scope = rememberCoroutineScope()
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
 
@@ -76,7 +104,7 @@ fun HomeScreen(
         }
         pickupSearchJob = scope.launch {
             delay(300)
-            LocationApi.autocomplete(query).onSuccess { results ->
+            LocationApi.autocomplete(query, userLat, userLng).onSuccess { results ->
                 pickupSuggestions = results
                 showPickupSuggestions = results.isNotEmpty()
             }
@@ -92,7 +120,7 @@ fun HomeScreen(
         }
         deliverySearchJob = scope.launch {
             delay(300)
-            LocationApi.autocomplete(query).onSuccess { results ->
+            LocationApi.autocomplete(query, userLat, userLng).onSuccess { results ->
                 deliverySuggestions = results
                 showDeliverySuggestions = results.isNotEmpty()
             }
@@ -127,7 +155,8 @@ fun HomeScreen(
             Surface(shadowElevation = 8.dp, color = Color.White) {
                 Column {
                     Button(
-                        onClick = { onNavigateToBooking(pickupLocation.ifBlank { "32 Samwell Sq, Chevron" }, deliveryLocation.ifBlank { "21b, Karimu Kotun Street, Victoria Island" }, "Bike") },
+                        onClick = { if (pickupLocation.isNotBlank() && deliveryLocation.isNotBlank()) onNavigateToBooking(pickupLocation, deliveryLocation, "Bike") },
+                        enabled = pickupLocation.isNotBlank() && deliveryLocation.isNotBlank(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -174,7 +203,7 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Welcome, Devansh", fontSize = 12.sp, color = TextPrimary.copy(alpha = 0.7f))
+                        Text("Welcome", fontSize = 12.sp, color = TextPrimary.copy(alpha = 0.7f))
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("We are Ready to\nServe", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary, lineHeight = 26.sp)
                     }
@@ -189,9 +218,27 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Pickup Location with autocomplete
-            Text("Pickup Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(modifier = Modifier.height(6.dp))
+            // Pickup Location with autocomplete + "use my location"
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Pickup Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                if (isGettingLocation) {
+                    CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = PrimaryBlue)
+                } else {
+                    TextButton(
+                        onClick = {
+                            isGettingLocation = true
+                            requestLocation()
+                        },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text("📍 Use my location", fontSize = 11.sp, color = PrimaryBlue)
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             OutlinedTextField(
                 value = pickupLocation,
                 onValueChange = {
@@ -199,8 +246,11 @@ fun HomeScreen(
                     searchPickup(it)
                     showDeliverySuggestions = false
                 },
-                placeholder = { Text("32 Samwell Sq, Chevron", color = Color.Gray) },
+                placeholder = { Text("Detecting your location…", color = Color.Gray) },
                 leadingIcon = { Text("📍", fontSize = 14.sp) },
+                trailingIcon = if (isGettingLocation) {
+                    { CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = PrimaryBlue) }
+                } else null,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
@@ -250,7 +300,7 @@ fun HomeScreen(
                     searchDelivery(it)
                     showPickupSuggestions = false
                 },
-                placeholder = { Text("21b, Karimu Kotun Street, Victoria Island", color = Color.Gray) },
+                placeholder = { Text("Enter delivery address", color = Color.Gray) },
                 leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp),

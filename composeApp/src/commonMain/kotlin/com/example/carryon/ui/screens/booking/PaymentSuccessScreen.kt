@@ -55,7 +55,7 @@ fun PaymentSuccessScreen(
 
         // ── AMOUNT ──
         Text(
-            "$$amount",
+            "RM $amount",
             fontSize = 52.sp,
             fontWeight = FontWeight.Bold,
             color = PrimaryBlue,

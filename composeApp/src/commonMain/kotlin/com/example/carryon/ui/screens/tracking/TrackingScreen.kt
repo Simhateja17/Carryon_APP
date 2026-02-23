@@ -617,7 +617,7 @@ private fun RatingDialog(
                                 .padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                text = "₹$tip",
+                                text = "RM $tip",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isSelected) Color.White else TextPrimary
