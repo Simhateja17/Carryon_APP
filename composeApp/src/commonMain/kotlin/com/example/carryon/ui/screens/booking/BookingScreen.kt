@@ -74,11 +74,11 @@ fun BookingScreen(
     var isolineResult by remember { mutableStateOf<IsolineResult?>(null) }
     var isLoadingRoute by remember { mutableStateOf(false) }
 
-    // Coordinates — geocode from addresses if needed, default to Hyderabad area
-    var pickupLat by remember { mutableStateOf(17.385) }
-    var pickupLng by remember { mutableStateOf(78.4867) }
-    var deliveryLat by remember { mutableStateOf(17.4401) }
-    var deliveryLng by remember { mutableStateOf(78.3489) }
+    // Coordinates — populated by geocoding user's pickup/delivery addresses
+    var pickupLat by remember { mutableStateOf(0.0) }
+    var pickupLng by remember { mutableStateOf(0.0) }
+    var deliveryLat by remember { mutableStateOf(0.0) }
+    var deliveryLng by remember { mutableStateOf(0.0) }
 
     val scope = rememberCoroutineScope()
 
