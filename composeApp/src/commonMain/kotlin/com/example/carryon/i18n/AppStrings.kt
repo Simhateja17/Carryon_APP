@@ -113,7 +113,7 @@ interface AppStrings {
     val recipientNames: String get() = "Recipient Names"
     val recipientContactNumber: String get() = "Recipient contact number"
     val takePictureOfPackage: String get() = "Take a picture of the package"
-    val prohibitedItems: String get() = "Our Prohibited Items include: blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah"
+    val prohibitedItems: String get() = "Our Prohibited Items include: firearms & weapons, explosives, flammable substances, illegal drugs, hazardous chemicals, perishable food, live animals, liquids over 100ml, sharp objects, counterfeit goods, and cash or valuables."
 
     // ── Sender Receiver Screen ──
     val requestForRide: String get() = "Request for Ride"

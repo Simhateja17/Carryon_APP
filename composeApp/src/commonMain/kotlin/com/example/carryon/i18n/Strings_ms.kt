@@ -113,7 +113,7 @@ object MsStrings : AppStrings {
     override val recipientNames = "Nama Penerima"
     override val recipientContactNumber = "Nombor telefon penerima"
     override val takePictureOfPackage = "Ambil gambar bungkusan"
-    override val prohibitedItems = "Barang Larangan kami termasuk: blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah"
+    override val prohibitedItems = "Barang Larangan kami termasuk: senjata api & senjata lain, bahan letupan, bahan mudah terbakar, dadah haram, bahan kimia berbahaya, makanan mudah rosak, haiwan hidup, cecair melebihi 100ml, objek tajam, barangan tiruan, dan wang tunai atau barang berharga."
 
     // ── Sender Receiver Screen ──
     override val requestForRide = "Permintaan Penghantaran"

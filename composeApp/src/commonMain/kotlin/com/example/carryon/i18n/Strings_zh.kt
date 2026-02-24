@@ -113,7 +113,7 @@ object ZhStrings : AppStrings {
     override val recipientNames = "收件人姓名"
     override val recipientContactNumber = "收件人联系电话"
     override val takePictureOfPackage = "拍摄包裹照片"
-    override val prohibitedItems = "我们的禁运物品包括：blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah"
+    override val prohibitedItems = "我们的禁运物品包括：枪支及武器、爆炸物、易燃物质、违禁药品、危险化学品、易腐食品、活体动物、超过100ml的液体、尖锐物品、假冒商品及现金或贵重物品。"
 
     // ── Sender Receiver Screen ──
     override val requestForRide = "请求配送"

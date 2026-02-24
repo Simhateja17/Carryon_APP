@@ -113,7 +113,7 @@ object TaStrings : AppStrings {
     override val recipientNames = "பெறுநர் பெயர்கள்"
     override val recipientContactNumber = "பெறுநர் தொடர்பு எண்"
     override val takePictureOfPackage = "பொருளின் புகைப்படம் எடுக்கவும்"
-    override val prohibitedItems = "தடைசெய்யப்பட்ட பொருட்கள்: blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah"
+    override val prohibitedItems = "தடைசெய்யப்பட்ட பொருட்கள்: துப்பாக்கிகள் & ஆயுதங்கள், வெடிபொருட்கள், எரியக்கூடிய பொருட்கள், சட்டவிரோத போதைப்பொருட்கள், ஆபத்தான இரசாயனங்கள், கெட்டுப்போகும் உணவுகள், உயிரினங்கள், 100ml க்கு மேற்பட்ட திரவங்கள், கூர்மையான பொருட்கள், போலி பொருட்கள் மற்றும் பண மதிப்புமிக்க பொருட்கள்."
 
     // ── Sender Receiver Screen ──
     override val requestForRide = "பயணத்திற்கான கோரிக்கை"

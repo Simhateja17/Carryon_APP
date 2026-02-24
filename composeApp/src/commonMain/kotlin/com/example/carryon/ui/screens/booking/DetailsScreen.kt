@@ -16,13 +16,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.camera_icon
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.rememberCameraCapture
+import com.example.carryon.ui.components.decodeImageBytes
+import com.example.carryon.data.network.UploadApi
 import com.example.carryon.i18n.LocalStrings
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +46,36 @@ fun DetailsScreen(
     var recipientName by remember { mutableStateOf("Donald Duck") }
     var recipientPhone by remember { mutableStateOf("") }
     val strings = LocalStrings.current
+
+    // Camera capture state
+    var capturedImageBytes by remember { mutableStateOf<ByteArray?>(null) }
+    var packageImageUrl by remember { mutableStateOf<String?>(null) }
+    var isUploading by remember { mutableStateOf(false) }
+    var uploadError by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    val launchCamera = rememberCameraCapture(
+        onImageCaptured = { bytes ->
+            capturedImageBytes = bytes
+            uploadError = null
+            // Upload in background
+            scope.launch {
+                isUploading = true
+                UploadApi.uploadPackageImage(bytes)
+                    .onSuccess { url ->
+                        packageImageUrl = url
+                        isUploading = false
+                    }
+                    .onFailure { err ->
+                        uploadError = err.message ?: "Upload failed"
+                        isUploading = false
+                    }
+            }
+        },
+        onDenied = {
+            uploadError = "Camera permission denied"
+        }
+    )
 
     Scaffold(
         bottomBar = {
@@ -248,21 +283,65 @@ fun DetailsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
+                    .height(if (capturedImageBytes != null) 200.dp else 100.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color(0xFFF6F9FA))
-                    .border(BorderStroke(1.dp, Color(0xFFDCE8E9)), RoundedCornerShape(10.dp)),
+                    .border(BorderStroke(1.dp, Color(0xFFDCE8E9)), RoundedCornerShape(10.dp))
+                    .clickable { launchCamera() },
                 contentAlignment = Alignment.Center
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(Res.drawable.camera_icon),
-                        contentDescription = "Camera",
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(strings.takePictureOfPackage, fontSize = 13.sp, color = TextSecondary)
+                if (capturedImageBytes != null) {
+                    // Show captured image preview
+                    val imageBitmap = remember(capturedImageBytes) {
+                        capturedImageBytes?.let { decodeImageBytes(it) }
+                    }
+                    if (imageBitmap != null) {
+                        Image(
+                            bitmap = imageBitmap,
+                            contentDescription = "Package photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    // Upload indicator overlay
+                    if (isUploading) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(32.dp))
+                        }
+                    }
+                    // Re-take button overlay at bottom
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.Black.copy(alpha = 0.5f))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text("Retake", fontSize = 12.sp, color = Color.White)
+                        }
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(
+                            painter = painterResource(Res.drawable.camera_icon),
+                            contentDescription = "Camera",
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(strings.takePictureOfPackage, fontSize = 13.sp, color = TextSecondary)
+                    }
                 }
+            }
+            // Upload error message
+            if (uploadError != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(uploadError!!, fontSize = 12.sp, color = Color.Red)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
