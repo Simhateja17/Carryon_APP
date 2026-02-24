@@ -35,6 +35,7 @@ import carryon.composeapp.generated.resources.calc_documents
 import carryon.composeapp.generated.resources.calc_map
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class PackageType(
     val icon: String,
@@ -47,11 +48,12 @@ fun CalculateScreen(
     onBack: () -> Unit,
     onFreeCheck: (String, String, String, String) -> Unit
 ) {
+    val strings = LocalStrings.current
     val packageTypes = remember {
         listOf(
-            PackageType("🛒", "Products"),
-            PackageType("📦", "Boxes"),
-            PackageType("📄", "Documents")
+            PackageType("🛒", strings.products),
+            PackageType("📦", strings.boxes),
+            PackageType("📄", strings.documents)
         )
     }
     
@@ -127,7 +129,7 @@ fun CalculateScreen(
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                 ) {
-                    Text("Free Check", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.freeCheck, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
                 BottomNavigationBar(selectedIndex = 2)
             }
@@ -157,7 +159,7 @@ fun CalculateScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 Text(
-                    text = "Calculate",
+                    text = strings.calculate,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -191,13 +193,13 @@ fun CalculateScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Domestic",
+                            text = strings.domestic,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = if (selectedTab == 0) Color.White else TextSecondary
                         )
                     }
-                    
+
                     // International Tab
                     Box(
                         modifier = Modifier
@@ -211,7 +213,7 @@ fun CalculateScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "International",
+                            text = strings.international,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = if (selectedTab == 1) Color.White else TextSecondary
@@ -224,7 +226,7 @@ fun CalculateScreen(
             
             // What are you sending?
             Text(
-                text = "What are you sending?",
+                text = strings.whatAreYouSendingCalc,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -287,18 +289,18 @@ fun CalculateScreen(
             
             // From Field
             Text(
-                text = "From",
+                text = strings.from,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             OutlinedTextField(
                 value = fromAddress,
                 onValueChange = { fromAddress = it },
-                placeholder = { Text("Add address", color = Color.LightGray) },
+                placeholder = { Text(strings.addAddressPlaceholder, color = Color.LightGray) },
                 trailingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.calc_map),
@@ -326,18 +328,18 @@ fun CalculateScreen(
             
             // Destination Field
             Text(
-                text = "Destination",
+                text = strings.destination,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             OutlinedTextField(
                 value = destinationAddress,
                 onValueChange = { destinationAddress = it },
-                placeholder = { Text("Add address", color = Color.LightGray) },
+                placeholder = { Text(strings.addAddressPlaceholder, color = Color.LightGray) },
                 trailingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.calc_map),
@@ -365,7 +367,7 @@ fun CalculateScreen(
             
             // Delivery Option
             Text(
-                text = "Delivery Option",
+                text = strings.deliveryOption,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -421,18 +423,18 @@ fun CalculateScreen(
             
             // Item Weight
             Text(
-                text = "Item Weight",
+                text = strings.itemWeight,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             OutlinedTextField(
                 value = itemWeight,
                 onValueChange = { itemWeight = it },
-                placeholder = { Text("Kilogram", color = Color.LightGray) },
+                placeholder = { Text(strings.kilogram, color = Color.LightGray) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
@@ -501,15 +503,16 @@ private fun PackageTypeCard(
 
 @Composable
 private fun BottomNavigationBar(selectedIndex: Int) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->

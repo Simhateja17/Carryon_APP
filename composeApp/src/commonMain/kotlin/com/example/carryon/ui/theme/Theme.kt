@@ -3,7 +3,10 @@ package com.example.carryon.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import com.example.carryon.i18n.LocalStrings
+import com.example.carryon.i18n.getStringsForLanguage
 
 // Primary Blue Theme (matching Carry On design)
 val PrimaryBlue = Color(0xFF1E88E5)
@@ -91,13 +94,16 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun CarryOnTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    language: String = "en",
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography(),
-        content = content
-    )
+
+    CompositionLocalProvider(LocalStrings provides getStringsForLanguage(language)) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = AppTypography(),
+            content = content
+        )
+    }
 }

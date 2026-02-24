@@ -30,6 +30,7 @@ import com.example.carryon.ui.screens.booking.DetailsScreen
 import com.example.carryon.ui.screens.booking.RequestForRideScreen
 import com.example.carryon.data.network.getToken
 import com.example.carryon.data.network.clearToken
+import com.example.carryon.data.network.getLanguage
 
 // Simple screen state for iOS compatibility
 sealed class AppScreen {
@@ -55,9 +56,9 @@ sealed class AppScreen {
     data class SenderReceiver(val bookingId: String) : AppScreen()
     data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
-    data class SelectAddress(val pickup: String = "", val delivery: String = "") : AppScreen()
-    data object Details : AppScreen()
-    data object RequestForRide : AppScreen()
+    data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
+    data class Details(val vehicleType: String = "") : AppScreen()
+    data class RequestForRide(val vehicleType: String = "") : AppScreen()
     data object Settings : AppScreen()
 }
 
@@ -65,8 +66,9 @@ sealed class AppScreen {
 @Preview
 fun App() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
-    
-    CarryOnTheme {
+    var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
+
+    CarryOnTheme(language = currentLanguage) {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
@@ -108,13 +110,14 @@ fun App() {
             is AppScreen.Home -> {
                 HomeScreen(
                     onNavigateToBooking = { pickup, delivery, packageType ->
-                        currentScreen = AppScreen.SelectAddress(pickup, delivery)
+                        currentScreen = AppScreen.SelectAddress(pickup, delivery, packageType)
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
                     onNavigateToTracking = { currentScreen = AppScreen.ActiveShipment },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
-                    onNavigateToCalculate = { currentScreen = AppScreen.Calculate }
+                    onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
+                    onLanguageChanged = { currentLanguage = it }
                 )
             }
             is AppScreen.Profile -> {
@@ -251,25 +254,29 @@ fun App() {
                 SelectAddressScreen(
                     initialFrom = screen.pickup,
                     initialTo = screen.delivery,
-                    onNext = { currentScreen = AppScreen.Details },
+                    vehicleType = screen.vehicleType,
+                    onNext = { vt -> currentScreen = AppScreen.Details(vt) },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.Details -> {
                 DetailsScreen(
-                    onContinue = { currentScreen = AppScreen.RequestForRide },
+                    vehicleType = screen.vehicleType,
+                    onContinue = { vt -> currentScreen = AppScreen.RequestForRide(vt) },
                     onBack = { currentScreen = AppScreen.SelectAddress() }
                 )
             }
             is AppScreen.RequestForRide -> {
                 RequestForRideScreen(
+                    vehicleType = screen.vehicleType,
                     onContinue = { currentScreen = AppScreen.PaymentSuccess("booking", 220) },
-                    onBack = { currentScreen = AppScreen.Details }
+                    onBack = { currentScreen = AppScreen.Details() }
                 )
             }
             is AppScreen.Settings -> {
                 SettingsScreen(
-                    onBack = { currentScreen = AppScreen.Profile }
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onLanguageChanged = { currentLanguage = it }
                 )
             }
         }

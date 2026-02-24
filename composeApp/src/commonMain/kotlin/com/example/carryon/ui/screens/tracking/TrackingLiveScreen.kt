@@ -23,6 +23,7 @@ import carryon.composeapp.generated.resources.icon_profile
 import carryon.composeapp.generated.resources.icon_search
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import com.example.carryon.ui.components.MapViewComposable
 import com.example.carryon.ui.components.MapMarker
 import com.example.carryon.ui.components.MarkerColor
@@ -39,6 +40,7 @@ fun TrackingLiveScreen(
     onBack: () -> Unit,
     onCallAgent: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     // Map state
     var mapConfig by remember { mutableStateOf(MapConfig()) }
     var driverLat by remember { mutableStateOf(17.400) }
@@ -135,10 +137,10 @@ fun TrackingLiveScreen(
         bottomBar = {
             NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
                 val items = listOf(
-                    Pair(Res.drawable.icon_search, "Search"),
-                    Pair(Res.drawable.icon_messages, "Messages"),
-                    Pair(Res.drawable.icon_home, "Home"),
-                    Pair(Res.drawable.icon_profile, "Profile")
+                    Pair(Res.drawable.icon_search, strings.navSearch),
+                    Pair(Res.drawable.icon_messages, strings.navMessages),
+                    Pair(Res.drawable.icon_home, strings.navHome),
+                    Pair(Res.drawable.icon_profile, strings.navProfile)
                 )
                 items.forEachIndexed { index, (iconRes, label) ->
                     NavigationBarItem(
@@ -181,7 +183,7 @@ fun TrackingLiveScreen(
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    "Track your shipment",
+                    strings.trackYourShipment,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
@@ -235,7 +237,7 @@ fun TrackingLiveScreen(
                                 color = Color.White
                             )
                             Text(
-                                "mins",
+                                strings.mins,
                                 fontSize = 13.sp,
                                 color = Color.White
                             )
@@ -246,14 +248,14 @@ fun TrackingLiveScreen(
 
                     Column {
                         Text(
-                            "Out for delivery",
+                            strings.outForDelivery,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF90CAF9)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Delivery partner is driving\nsafely to deliver your order",
+                            strings.deliveryPartnerDriving,
                             fontSize = 13.sp,
                             color = Color.White,
                             lineHeight = 19.sp
@@ -275,7 +277,7 @@ fun TrackingLiveScreen(
                     Image(painter = painterResource(Res.drawable.call_icon), contentDescription = null, modifier = Modifier.size(20.dp), contentScale = ContentScale.Fit)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "Call Delivery Agent",
+                        strings.callDeliveryAgent,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White

@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.data.model.BookingStatus
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class OrderItem(
     val id: String,
@@ -33,8 +34,9 @@ fun OrdersScreen(
     onBack: () -> Unit,
     onOrderClick: (orderId: String) -> Unit
 ) {
+    val strings = LocalStrings.current
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("All", "Active", "Completed", "Cancelled")
+    val tabs = listOf(strings.all, strings.active, strings.completed, strings.cancelled)
     
     // TODO: Fetch real orders from API
     val orders = remember { listOf<OrderItem>() }
@@ -49,7 +51,7 @@ fun OrdersScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Orders") },
+                title = { Text(strings.myOrders) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Text("←", fontSize = 24.sp)
@@ -99,12 +101,12 @@ fun OrdersScreen(
                         Text("📦", fontSize = 64.sp)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "No orders found",
+                            text = strings.noOrdersFound,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "Your orders will appear here",
+                            text = strings.ordersWillAppearHere,
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -133,12 +135,13 @@ private fun OrderCard(
     order: OrderItem,
     onClick: () -> Unit
 ) {
+    val strings = LocalStrings.current
     val (statusColor, statusText, statusIcon) = when (order.status) {
-        BookingStatus.DELIVERED -> Triple(SuccessGreen, "Delivered", "✅")
-        BookingStatus.CANCELLED -> Triple(ErrorRed, "Cancelled", "❌")
-        BookingStatus.IN_TRANSIT -> Triple(InfoBlue, "In Transit", "🚚")
-        BookingStatus.SEARCHING_DRIVER -> Triple(WarningYellow, "Finding Driver", "🔍")
-        else -> Triple(Color.Gray, "Processing", "⏳")
+        BookingStatus.DELIVERED -> Triple(SuccessGreen, strings.delivered, "✅")
+        BookingStatus.CANCELLED -> Triple(ErrorRed, strings.cancelled, "❌")
+        BookingStatus.IN_TRANSIT -> Triple(InfoBlue, strings.inTransit, "🚚")
+        BookingStatus.SEARCHING_DRIVER -> Triple(WarningYellow, strings.findingDriver, "🔍")
+        else -> Triple(Color.Gray, strings.processing, "⏳")
     }
     
     Card(

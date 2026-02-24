@@ -28,6 +28,7 @@ import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.map_background
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +37,7 @@ fun ActiveShipmentScreen(
     onNavigateToHome: () -> Unit,
     onNavigateToHistory: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     var shareWithNeighbors by remember { mutableStateOf(true) }
 
     Scaffold(
@@ -162,13 +164,13 @@ fun ActiveShipmentScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
                         Text(
-                            text = "Share delivery with neighbors",
+                            text = strings.shareWithNeighbors,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextPrimary
                         )
                         Text(
-                            text = "For extra discount",
+                            text = strings.forExtraDiscount,
                             fontSize = 11.sp,
                             color = TextSecondary
                         )
@@ -208,7 +210,7 @@ fun ActiveShipmentScreen(
                 ) {
                     Column {
                         Text(
-                            text = "Dispatched",
+                            text = strings.dispatched,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
@@ -223,7 +225,7 @@ fun ActiveShipmentScreen(
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Deliver by",
+                            text = strings.deliverBy,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
@@ -251,7 +253,7 @@ fun ActiveShipmentScreen(
                     )
                 ) {
                     Text(
-                        text = "Track Shipments",
+                        text = strings.trackShipments,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White
@@ -269,15 +271,16 @@ private fun ActiveShipmentBottomNav(
     onNavigateToHome: () -> Unit,
     onNavigateToHistory: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
 
         items.forEachIndexed { index, (iconRes, label) ->

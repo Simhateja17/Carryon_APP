@@ -29,6 +29,7 @@ import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,13 +38,14 @@ fun DriverRatingScreen(
     onSubmit: () -> Unit,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var rating by remember { mutableStateOf(5) }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var comment by remember { mutableStateOf("") }
     var selectedTip by remember { mutableStateOf<Int?>(null) }
     var customTip by remember { mutableStateOf("") }
-    
-    val feedbackTags = listOf("Good communication", "Excellent Service", "Clean & Comfy")
+
+    val feedbackTags = listOf(strings.goodCommunication, strings.excellentService, strings.cleanAndComfy)
     val tipAmounts = listOf(10, 20, 50, 80, 100)
     
     Scaffold(
@@ -106,16 +108,16 @@ fun DriverRatingScreen(
             
             // Title
             Text(
-                text = "Give Rating for Driver",
+                text = strings.giveRatingForDriver,
                 fontSize = 16.sp,
                 color = TextSecondary
             )
-            
+
             Spacer(modifier = Modifier.height(24.dp))
-            
+
             // How was the driver?
             Text(
-                text = "How was the driver?",
+                text = strings.howWasTheDriver,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -189,7 +191,7 @@ fun DriverRatingScreen(
             
             // Yay! What impressed you?
             Text(
-                text = "Yay!What impressed you?",
+                text = strings.whatImpressedYou,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -239,9 +241,9 @@ fun DriverRatingScreen(
             OutlinedTextField(
                 value = comment,
                 onValueChange = { comment = it },
-                placeholder = { 
+                placeholder = {
                     Text(
-                        "Say something nice to your driver",
+                        strings.sayNiceToDriver,
                         color = Color.LightGray
                     )
                 },
@@ -262,7 +264,7 @@ fun DriverRatingScreen(
 
             // Tips Section
             Text(
-                text = "Tips to make your driver's happy",
+                text = strings.tipsForDriver,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -291,7 +293,7 @@ fun DriverRatingScreen(
                 onValueChange = { customTip = it },
                 placeholder = { 
                     Text(
-                        "Enter your tips here",
+                        strings.enterYourTips,
                         color = Color.LightGray
                     )
                 },
@@ -322,7 +324,7 @@ fun DriverRatingScreen(
                 )
             ) {
                 Text(
-                    text = "Submit",
+                    text = strings.submit,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -392,15 +394,16 @@ private fun TipChip(
 
 @Composable
 private fun BottomNavigationBar(selectedIndex: Int) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->

@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 
 private const val PREFS_NAME = "carryon_prefs"
 private const val KEY_TOKEN = "jwt_token"
+private const val KEY_LANGUAGE = "user_language"
 
 private lateinit var prefs: SharedPreferences
 
@@ -22,4 +23,12 @@ actual fun getToken(): String? {
 
 actual fun clearToken() {
     prefs.edit().remove(KEY_TOKEN).apply()
+}
+
+actual fun saveLanguage(language: String) {
+    prefs.edit().putString(KEY_LANGUAGE, language).apply()
+}
+
+actual fun getLanguage(): String? {
+    return prefs.getString(KEY_LANGUAGE, null)
 }

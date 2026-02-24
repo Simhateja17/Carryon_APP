@@ -16,18 +16,47 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.ui.theme.*
+import com.example.carryon.ui.components.LanguageSelectionDialog
+import com.example.carryon.ui.components.getLanguageDisplayName
+import com.example.carryon.i18n.LocalStrings
+import com.example.carryon.data.network.UserApi
+import com.example.carryon.data.network.getLanguage
+import com.example.carryon.data.network.saveLanguage
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLanguageChanged: (String) -> Unit = {}
 ) {
+    val strings = LocalStrings.current
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
+    val scope = rememberCoroutineScope()
+
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            currentLanguage = currentLanguage,
+            onDismiss = { showLanguageDialog = false },
+            onLanguageSelected = { langCode ->
+                currentLanguage = langCode
+                saveLanguage(langCode)
+                showLanguageDialog = false
+                onLanguageChanged(langCode)
+                scope.launch {
+                    UserApi.updateLanguage(langCode)
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings",
+                        text = strings.settings,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary
@@ -51,40 +80,40 @@ fun SettingsScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            SettingsSection(title = "Account") {
-                SettingsItem(title = "Edit Profile", onClick = {})
+            SettingsSection(title = strings.account) {
+                SettingsItem(title = strings.editProfile, onClick = {})
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Change Password", onClick = {})
+                SettingsItem(title = strings.changePassword, onClick = {})
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Saved Addresses", onClick = {})
+                SettingsItem(title = strings.savedAddressesMenu, onClick = {})
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            SettingsSection(title = "Notifications") {
-                SettingsToggleItem(title = "Push Notifications", initialValue = true)
+            SettingsSection(title = strings.notifications) {
+                SettingsToggleItem(title = strings.pushNotifications, initialValue = true)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsToggleItem(title = "Email Notifications", initialValue = false)
+                SettingsToggleItem(title = strings.emailNotifications, initialValue = false)
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsToggleItem(title = "SMS Notifications", initialValue = true)
+                SettingsToggleItem(title = strings.smsNotifications, initialValue = true)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            SettingsSection(title = "Preferences") {
-                SettingsItem(title = "Language", subtitle = "English", onClick = {})
+            SettingsSection(title = strings.preferences) {
+                SettingsItem(title = strings.language, subtitle = getLanguageDisplayName(currentLanguage), onClick = { showLanguageDialog = true })
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Currency", subtitle = "MYR", onClick = {})
+                SettingsItem(title = strings.currency, subtitle = "MYR", onClick = {})
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            SettingsSection(title = "About") {
-                SettingsItem(title = "App Version", subtitle = "1.0.0", onClick = {})
+            SettingsSection(title = strings.about) {
+                SettingsItem(title = strings.appVersion, subtitle = "1.0.0", onClick = {})
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Privacy Policy", onClick = {})
+                SettingsItem(title = strings.privacyPolicy, onClick = {})
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = Color(0xFFF0F0F0))
-                SettingsItem(title = "Terms of Service", onClick = {})
+                SettingsItem(title = strings.termsOfService, onClick = {})
             }
 
             Spacer(modifier = Modifier.height(32.dp))

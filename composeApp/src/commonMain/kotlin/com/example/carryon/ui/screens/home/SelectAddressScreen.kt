@@ -38,6 +38,7 @@ import com.example.carryon.data.model.MapConfig
 import com.example.carryon.data.model.NearbyPlace
 import com.example.carryon.data.model.PlaceResult
 import com.example.carryon.data.network.LocationApi
+import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,7 +48,8 @@ import kotlinx.coroutines.launch
 fun SelectAddressScreen(
     initialFrom: String = "",
     initialTo: String = "",
-    onNext: () -> Unit,
+    vehicleType: String = "",
+    onNext: (vehicleType: String) -> Unit,
     onBack: () -> Unit
 ) {
     var from by remember { mutableStateOf(initialFrom) }
@@ -71,6 +73,7 @@ fun SelectAddressScreen(
 
     val scope = rememberCoroutineScope()
     var searchJob by remember { mutableStateOf<Job?>(null) }
+    val strings = LocalStrings.current
 
     // Use device location to center map, pre-fill "from", and load real nearby places
     val requestLocation = rememberLocationRequester(
@@ -161,13 +164,13 @@ fun SelectAddressScreen(
             Surface(shadowElevation = 8.dp, color = Color.White) {
                 Column {
                     Button(
-                        onClick = onNext,
+                        onClick = { onNext(vehicleType) },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                    ) { Text("Next", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+                    ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
                     NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val items = listOf(Pair(Res.drawable.icon_search, "Search"), Pair(Res.drawable.icon_messages, "Messages"), Pair(Res.drawable.icon_home, "Home"), Pair(Res.drawable.icon_profile, "Profile"))
+                        val items = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
                         items.forEachIndexed { index, (iconRes, label) ->
                             NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = selectedNavItem == index, onClick = { selectedNavItem = index }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedNavItem == index) PrimaryBlueSurface else Color.Transparent))
                         }
@@ -222,7 +225,7 @@ fun SelectAddressScreen(
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Select address", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(strings.selectAddress, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // From field
@@ -234,7 +237,7 @@ fun SelectAddressScreen(
                             isSearchingFrom = true
                             performSearch(it)
                         },
-                        placeholder = { Text("From", color = PrimaryBlue) },
+                        placeholder = { Text(strings.from, color = PrimaryBlue) },
                         leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
@@ -297,7 +300,7 @@ fun SelectAddressScreen(
                             isSearchingFrom = false
                             performSearch(it)
                         },
-                        placeholder = { Text("To", color = PrimaryBlue) },
+                        placeholder = { Text(strings.to, color = PrimaryBlue) },
                         leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
@@ -353,7 +356,7 @@ fun SelectAddressScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Nearby places from API
-                Text("Nearby places", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(strings.nearbyPlaces, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(10.dp))
 
                 if (isLoadingNearby) {
@@ -361,7 +364,7 @@ fun SelectAddressScreen(
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryBlue, strokeWidth = 2.dp)
                     }
                 } else if (nearbyPlaces.isEmpty()) {
-                    Text("No nearby places found", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(vertical = 8.dp))
+                    Text(strings.noNearbyPlaces, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(vertical = 8.dp))
                 } else {
                     nearbyPlaces.take(6).forEach { place ->
                         val distanceText = if (place.distance >= 1000) {

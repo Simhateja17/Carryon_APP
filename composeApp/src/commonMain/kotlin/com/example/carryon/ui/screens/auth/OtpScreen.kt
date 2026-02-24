@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.example.carryon.data.network.AuthApi
 import com.example.carryon.data.network.saveToken
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -38,6 +39,7 @@ fun OtpScreen(
     var resendTimer by remember { mutableStateOf(30) }
     var canResend by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val strings = LocalStrings.current
 
     // Countdown timer
     LaunchedEffect(resendTimer) {
@@ -76,7 +78,7 @@ fun OtpScreen(
 
             // Enter the Code
             Text(
-                text = "Enter the Code",
+                text = strings.enterTheCode,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -86,7 +88,7 @@ fun OtpScreen(
 
             // Subtitle
             Text(
-                text = "A verification code has been sent to",
+                text = strings.verificationCodeSentTo,
                 fontSize = 14.sp,
                 color = TextSecondary
             )
@@ -177,14 +179,14 @@ fun OtpScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Don't receive code?  ",
+                    text = strings.dontReceiveCode,
                     color = TextSecondary,
                     fontSize = 14.sp
                 )
 
                 if (canResend) {
                     Text(
-                        text = "Resend again",
+                        text = strings.resendAgain,
                         color = PrimaryBlue,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp,
@@ -196,7 +198,7 @@ fun OtpScreen(
                                         canResend = false
                                     },
                                     onFailure = { e ->
-                                        errorMessage = e.message ?: "Failed to resend code"
+                                        errorMessage = e.message ?: strings.failedToResendCode
                                     }
                                 )
                             }
@@ -204,7 +206,7 @@ fun OtpScreen(
                     )
                 } else {
                     Text(
-                        text = "Resend again (${resendTimer}s)",
+                        text = strings.resendAgainTimer(resendTimer),
                         color = Color.LightGray,
                         fontSize = 14.sp
                     )
@@ -227,12 +229,12 @@ fun OtpScreen(
                                 },
                                 onFailure = { e ->
                                     isLoading = false
-                                    errorMessage = e.message ?: "Verification failed"
+                                    errorMessage = e.message ?: strings.verificationFailed
                                 }
                             )
                         }
                     } else {
-                        errorMessage = "Please enter 6-digit code"
+                        errorMessage = strings.pleaseEnter6DigitCode
                     }
                 },
                 modifier = Modifier
@@ -245,7 +247,7 @@ fun OtpScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Next", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 

@@ -22,29 +22,35 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.camera_icon
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsScreen(
-    onContinue: () -> Unit,
+    vehicleType: String = "",
+    onContinue: (vehicleType: String) -> Unit,
     onBack: () -> Unit
 ) {
     var itemType by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("5") }
     var payer by remember { mutableStateOf("me") }
+    var paymentType by remember { mutableStateOf("") }
+    var paymentDropdownExpanded by remember { mutableStateOf(false) }
+    val paymentOptions = listOf("Cash", "DuitNow QR", "Touch 'n Go eWallet", "GrabPay", "FPX Online Banking", "Credit / Debit Card")
     var recipientName by remember { mutableStateOf("Donald Duck") }
-    var recipientPhone by remember { mutableStateOf("08123456789") }
+    var recipientPhone by remember { mutableStateOf("") }
+    val strings = LocalStrings.current
 
     Scaffold(
         bottomBar = {
             Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Button(
-                    onClick = onContinue,
+                    onClick = { onContinue(vehicleType) },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                ) { Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+                ) { Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
             }
         },
         topBar = {
@@ -65,18 +71,18 @@ fun DetailsScreen(
             // Back + Title
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("<", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, modifier = Modifier.clickable { onBack() }.padding(end = 8.dp))
-                Text("Details", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(strings.details, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             }
             Spacer(modifier = Modifier.height(20.dp))
 
             // What are you sending
-            Text("What are you sending", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Text("Select type of item (e.g gadget, document)", fontSize = 12.sp, color = TextSecondary)
+            Text(strings.whatAreYouSending, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(strings.selectTypeOfItem, fontSize = 12.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = itemType,
                 onValueChange = { itemType = it },
-                placeholder = { Text("Select", color = Color.Gray) },
+                placeholder = { Text(strings.select, color = Color.Gray) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -95,12 +101,12 @@ fun DetailsScreen(
             Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Color.Transparent).padding(10.dp)) {
                 Text("⚠", fontSize = 14.sp, color = Color.Red)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Our Prohibited Items include: blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah, blah", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
+                Text(strings.prohibitedItems, fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
             }
 
             // Quantity
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Quantity", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(strings.quantity, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = quantity,
@@ -120,7 +126,7 @@ fun DetailsScreen(
 
             // Select who pays
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Select who pays", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(strings.selectWhoPays, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { payer = "me" }) {
@@ -128,41 +134,75 @@ fun DetailsScreen(
                         if (payer == "me") Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.White))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Me", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text(strings.me, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { payer = "recipient" }) {
                     Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(if (payer == "recipient") PrimaryBlue else Color.Transparent).border(BorderStroke(1.5.dp, if (payer == "recipient") PrimaryBlue else Color(0xFFDCE8E9)), CircleShape), contentAlignment = Alignment.Center) {
                         if (payer == "recipient") Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.White))
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Recipient", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text(strings.recipient, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
             }
 
             // Payment type dropdown
             Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = { Text("Payment type", color = Color.Gray) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true,
-                readOnly = true,
-                trailingIcon = { Text("▼", fontSize = 14.sp, color = TextSecondary) }
-            )
+            ExposedDropdownMenuBox(
+                expanded = paymentDropdownExpanded,
+                onExpandedChange = { paymentDropdownExpanded = !paymentDropdownExpanded }
+            ) {
+                OutlinedTextField(
+                    value = paymentType,
+                    onValueChange = {},
+                    placeholder = { Text(strings.paymentType, color = Color.Gray) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedContainerColor = Color(0xFFF6F9FA),
+                        focusedContainerColor = Color(0xFFF6F9FA),
+                        unfocusedBorderColor = Color(0xFFDCE8E9),
+                        focusedBorderColor = PrimaryBlue,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black
+                    ),
+                    singleLine = true,
+                    readOnly = true,
+                    trailingIcon = {
+                        Text(
+                            if (paymentDropdownExpanded) "▲" else "▼",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+                )
+                ExposedDropdownMenu(
+                    expanded = paymentDropdownExpanded,
+                    onDismissRequest = { paymentDropdownExpanded = false },
+                    modifier = Modifier.background(Color.White)
+                ) {
+                    paymentOptions.forEachIndexed { index, option ->
+                        DropdownMenuItem(
+                            text = { Text(option, fontSize = 14.sp, color = TextPrimary) },
+                            onClick = {
+                                paymentType = option
+                                paymentDropdownExpanded = false
+                            },
+                            modifier = Modifier.background(Color.White)
+                        )
+                        if (index < paymentOptions.size - 1) {
+                            HorizontalDivider(
+                                color = Color(0xFFE0E0E0),
+                                thickness = 0.8.dp,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
 
             // Recipient Names
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Recipient Names", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(strings.recipientNames, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = recipientName,
@@ -182,11 +222,13 @@ fun DetailsScreen(
 
             // Recipient contact number
             Spacer(modifier = Modifier.height(14.dp))
-            Text("Recipient contact number", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Text(strings.recipientContactNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = recipientPhone,
                 onValueChange = { recipientPhone = it },
+                placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
+                prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -197,7 +239,8 @@ fun DetailsScreen(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black
                 ),
-                singleLine = true
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
             )
 
             // Camera box
@@ -218,7 +261,7 @@ fun DetailsScreen(
                         modifier = Modifier.size(32.dp)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text("Take a picture of the package", fontSize = 13.sp, color = TextSecondary)
+                    Text(strings.takePictureOfPackage, fontSize = 13.sp, color = TextSecondary)
                 }
             }
 

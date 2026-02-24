@@ -26,6 +26,7 @@ import carryon.composeapp.generated.resources.sign_in_facebook
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.data.network.AuthApi
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +40,7 @@ fun LoginScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val strings = LocalStrings.current
 
     Box(
         modifier = Modifier
@@ -56,24 +58,24 @@ fun LoginScreen(
 
             // Welcome Text
             Row {
-                Text("Welcome to ", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Text("Carry On", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                 Text("!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Hello there, Sign in to Continue", fontSize = 14.sp, color = TextSecondary)
+            Text(strings.loginSubtitle, fontSize = 14.sp, color = TextSecondary)
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // Email Address
-            Text("Email Address", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.emailAddress, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("Enter your email", color = Color.LightGray) },
+                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -91,12 +93,12 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Password
-            Text("Password", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.password, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("Password", color = Color.LightGray) },
+                placeholder = { Text(strings.password, color = Color.LightGray) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -115,7 +117,7 @@ fun LoginScreen(
             // Forgot Password
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { }) {
-                    Text("Forgot Password ?", fontSize = 13.sp, color = PrimaryBlue, fontWeight = FontWeight.Medium)
+                    Text(strings.forgotPassword, fontSize = 13.sp, color = PrimaryBlue, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -146,12 +148,12 @@ fun LoginScreen(
                                     },
                                     onFailure = { e ->
                                         isLoading = false
-                                        errorMessage = e.message ?: "No account found with this email. Please sign up."
+                                        errorMessage = e.message ?: strings.noAccountFound
                                     }
                                 )
                             } catch (e: Exception) {
                                 isLoading = false
-                                errorMessage = e.message ?: "Unexpected error"
+                                errorMessage = e.message ?: strings.unexpectedError
                             }
                         }
                     }
@@ -164,7 +166,7 @@ fun LoginScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Log In", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.logIn, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -173,7 +175,7 @@ fun LoginScreen(
             // Or Divider
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
-                Text("  Or  ", color = TextSecondary, fontSize = 14.sp)
+                Text("  ${strings.or}  ", color = TextSecondary, fontSize = 14.sp)
                 HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
             }
 
@@ -215,9 +217,9 @@ fun LoginScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text("Don't have an Account ?", color = TextSecondary, fontSize = 14.sp)
+                Text(strings.dontHaveAccount, color = TextSecondary, fontSize = 14.sp)
                 TextButton(onClick = { onNavigateToRegister() }) {
-                    Text("Sign up", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text(strings.signUp, color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 }
             }
         }

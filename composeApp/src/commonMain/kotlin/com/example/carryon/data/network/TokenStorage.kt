@@ -3,3 +3,6 @@ package com.example.carryon.data.network
 expect fun saveToken(token: String)
 expect fun getToken(): String?
 expect fun clearToken()
+
+expect fun saveLanguage(language: String)
+expect fun getLanguage(): String?

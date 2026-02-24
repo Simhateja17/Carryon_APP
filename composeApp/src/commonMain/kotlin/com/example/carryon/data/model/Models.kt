@@ -9,6 +9,7 @@ data class User(
     val email: String = "",
     val phone: String = "",
     val profileImage: String? = null,
+    val language: String = "",
     val isVerified: Boolean = false,
     val createdAt: String = ""
 )

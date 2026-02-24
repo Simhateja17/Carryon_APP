@@ -27,6 +27,7 @@ import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class TrackingStep(
     val icon: String,
@@ -44,12 +45,13 @@ fun PackageDetailsScreen(
     onBack: () -> Unit,
     onRateDriver: () -> Unit
 ) {
-    val trackingSteps = remember {
+    val strings = LocalStrings.current
+    val trackingSteps = remember(strings) {
         listOf(
-            TrackingStep("📦", "Sent Package", "JnE.north Bekasi", "22Dec,2021", "12:30pm"),
-            TrackingStep("📊", "Transit", "3nE.Bandung", "22Dec,2021", "12:30pm"),
-            TrackingStep("🚚", "On a journey", "your destination", "22Dec,2021", "12:30pm"),
-            TrackingStep("📍", "Accepted", "By Fernando", "22Dec,2021", "12:30pm")
+            TrackingStep("📦", strings.sentPackage, "JnE.north Bekasi", "22Dec,2021", "12:30pm"),
+            TrackingStep("📊", strings.transit, "3nE.Bandung", "22Dec,2021", "12:30pm"),
+            TrackingStep("🚚", strings.onAJourney, "your destination", "22Dec,2021", "12:30pm"),
+            TrackingStep("📍", strings.accepted, "By Fernando", "22Dec,2021", "12:30pm")
         )
     }
     
@@ -125,7 +127,7 @@ fun PackageDetailsScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 Text(
-                    text = "Package",
+                    text = strings.packageLabel,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -173,7 +175,7 @@ fun PackageDetailsScreen(
                         
                         Column {
                             Text(
-                                text = "Documents",
+                                text = strings.documents,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
@@ -197,7 +199,7 @@ fun PackageDetailsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "From",
+                                text = strings.from,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -211,7 +213,7 @@ fun PackageDetailsScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Destination",
+                                text = strings.destination,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -231,7 +233,7 @@ fun PackageDetailsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Delivery",
+                                text = strings.delivery,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -245,7 +247,7 @@ fun PackageDetailsScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Item Weight",
+                                text = strings.itemWeight,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -272,7 +274,7 @@ fun PackageDetailsScreen(
                         )
                     ) {
                         Text(
-                            text = "View details",
+                            text = strings.viewDetails,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White
@@ -285,7 +287,7 @@ fun PackageDetailsScreen(
             
             // Details Timeline
             Text(
-                text = "Details",
+                text = strings.details,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -386,15 +388,16 @@ private fun TimelineItem(
 
 @Composable
 private fun BottomNavigationBar(selectedIndex: Int) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->

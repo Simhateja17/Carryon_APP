@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class TrackingStatus(
     val title: String,
@@ -35,14 +36,15 @@ fun TrackingScreen(
     onBack: () -> Unit,
     onNavigateToHome: () -> Unit
 ) {
-    val trackingStatuses = remember {
+    val strings = LocalStrings.current
+    val trackingStatuses = remember(strings) {
         listOf(
-            TrackingStatus("Order Confirmed", "Your order has been placed", "10:30 AM", true),
-            TrackingStatus("Driver Assigned", "John Smith is on the way", "10:35 AM", true),
-            TrackingStatus("Picked Up", "Package collected from sender", "10:45 AM", true),
-            TrackingStatus("In Transit", "On the way to destination", "11:00 AM", true, true),
-            TrackingStatus("Out for Delivery", "Near your location", "", false),
-            TrackingStatus("Delivered", "Package delivered successfully", "", false)
+            TrackingStatus(strings.orderConfirmed, strings.orderPlaced, "10:30 AM", true),
+            TrackingStatus(strings.driverAssigned, strings.driverOnTheWay, "10:35 AM", true),
+            TrackingStatus(strings.pickedUp, strings.packageCollected, "10:45 AM", true),
+            TrackingStatus(strings.inTransit, strings.onTheWayToDestination, "11:00 AM", true, true),
+            TrackingStatus(strings.outForDelivery, strings.nearYourLocation, "", false),
+            TrackingStatus(strings.delivered, strings.packageDeliveredSuccessfully, "", false)
         )
     }
     
@@ -99,7 +101,7 @@ fun TrackingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Track your shipment",
+                        text = strings.trackYourShipment,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -107,7 +109,7 @@ fun TrackingScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Order ID: $bookingId",
+                        text = strings.orderIdLabel(bookingId),
                         fontSize = 13.sp,
                         color = TextSecondary
                     )
@@ -128,7 +130,7 @@ fun TrackingScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "Estimated delivery: 11:30 AM",
+                        text = strings.estimatedDelivery,
                         fontSize = 12.sp,
                         color = PrimaryBlue
                     )
@@ -146,7 +148,7 @@ fun TrackingScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Your Package",
+                        text = strings.yourPackage,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -170,7 +172,7 @@ fun TrackingScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Documents",
+                                text = strings.documents,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -178,9 +180,9 @@ fun TrackingScreen(
                             Spacer(modifier = Modifier.height(4.dp))
                             
                             Row {
-                                StatusChip("Processing", PrimaryBlue)
+                                StatusChip(strings.processing, PrimaryBlue)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                StatusChip("Delivering", SuccessGreen)
+                                StatusChip(strings.delivering, SuccessGreen)
                             }
                         }
                     }
@@ -192,8 +194,8 @@ fun TrackingScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        DetailItem("📦", "Parcels", "2 Kg")
-                        DetailItem("⏱️", "Est. Express", "30 min")
+                        DetailItem("📦", strings.parcels, "2 Kg")
+                        DetailItem("⏱️", strings.estExpress, "30 min")
                     }
                 }
             }
@@ -213,7 +215,7 @@ fun TrackingScreen(
                 )
             ) {
                 Text(
-                    text = "View details",
+                    text = strings.viewDetails,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -232,7 +234,7 @@ fun TrackingScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Details",
+                        text = strings.details,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -334,7 +336,7 @@ fun TrackingScreen(
                 )
             ) {
                 Text(
-                    text = "Rate Driver",
+                    text = strings.rateDriver,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -468,11 +470,12 @@ private fun RatingDialog(
     onDismiss: () -> Unit,
     onSubmit: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var rating by remember { mutableStateOf(5) }
     var selectedTags by remember { mutableStateOf(setOf<String>()) }
     var selectedTip by remember { mutableStateOf<Int?>(null) }
     
-    val tags = listOf("Good communication", "Excellent Service", "Clean & Comfy")
+    val tags = listOf(strings.goodCommunication, strings.excellentService, strings.cleanAndComfy)
     val tips = listOf(10, 50, 80, 100, 200)
     
     AlertDialog(
@@ -486,7 +489,7 @@ private fun RatingDialog(
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
-                Text("Submit", fontWeight = FontWeight.SemiBold)
+                Text(strings.submit, fontWeight = FontWeight.SemiBold)
             }
         },
         title = {
@@ -495,7 +498,7 @@ private fun RatingDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Give Rating for Driver",
+                    text = strings.giveRatingForDriver,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -507,7 +510,7 @@ private fun RatingDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Driver info
-                Text("How was the driver?", fontSize = 14.sp, color = TextSecondary)
+                Text(strings.howWasTheDriver, fontSize = 14.sp, color = TextSecondary)
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
@@ -550,7 +553,7 @@ private fun RatingDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 // Tags
-                Text("Yay! What impressed you?", fontSize = 13.sp, color = TextSecondary)
+                Text(strings.whatImpressedYou, fontSize = 13.sp, color = TextSecondary)
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
@@ -594,7 +597,7 @@ private fun RatingDialog(
                 
                 // Tip section
                 Text(
-                    text = "Tips to make your driver's happy",
+                    text = strings.tipsForDriver,
                     fontSize = 13.sp,
                     color = TextSecondary
                 )

@@ -17,12 +17,14 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.welcome_truck
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @Composable
 fun WelcomeScreen(
     onCreateAccount: () -> Unit,
     onLogin: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -49,7 +51,7 @@ fun WelcomeScreen(
 
             // Welcome text
             Text(
-                text = "Welcome",
+                text = strings.welcome,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -60,7 +62,7 @@ fun WelcomeScreen(
             // Subtitle
             Row {
                 Text(
-                    text = "Have a Better Experience with ",
+                    text = strings.welcomeSubtitle,
                     fontSize = 15.sp,
                     color = TextSecondary
                 )
@@ -90,7 +92,7 @@ fun WelcomeScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
                 Text(
-                    "Create an account",
+                    strings.createAnAccount,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -110,7 +112,7 @@ fun WelcomeScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
             ) {
                 Text(
-                    "Log In",
+                    strings.logIn,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryBlue

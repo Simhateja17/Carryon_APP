@@ -22,15 +22,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.*
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RequestForRideScreen(
+    vehicleType: String = "",
     onContinue: () -> Unit,
     onBack: () -> Unit
 ) {
     var selectedPayment by remember { mutableStateOf("visa") }
+    val strings = LocalStrings.current
+
+    val vehicleImageRes = when (vehicleType) {
+        "Bike" -> Res.drawable.bike
+        "Car (2-Seat)" -> Res.drawable.car_two_seater
+        "Car (4-Seat)" -> Res.drawable.car_4_seater
+        "Mini Van" -> Res.drawable.mini_van
+        "Truck" -> Res.drawable.truck
+        "Open Truck" -> Res.drawable.open_truck
+        else -> Res.drawable.car_mustang
+    }
+    val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
 
     Scaffold(
         bottomBar = {
@@ -40,7 +54,7 @@ fun RequestForRideScreen(
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                ) { Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+                ) { Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
             }
         },
         topBar = {
@@ -75,7 +89,7 @@ fun RequestForRideScreen(
                     color = PrimaryBlue,
                     modifier = Modifier.clickable { onBack() }.padding(end = 8.dp)
                 )
-                Text("Request for Ride", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(strings.requestForRide, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             }
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -114,15 +128,15 @@ fun RequestForRideScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     // Pickup location
                     Column {
-                        Text("Pickup", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                        Text("Select pickup location", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
+                        Text(strings.pickup, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text(strings.selectPickupLocation, fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
                     }
                     Spacer(modifier = Modifier.height(24.dp))
                     // Delivery location
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Delivery", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                            Text("Select delivery location", fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
+                            Text(strings.delivery, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                            Text(strings.selectDeliveryLocation, fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
                         }
                     }
                 }
@@ -143,7 +157,7 @@ fun RequestForRideScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Vehicle", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text(vehicleDisplayName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("⭐", fontSize = 13.sp)
@@ -152,8 +166,8 @@ fun RequestForRideScreen(
                         }
                     }
                     Image(
-                        painter = painterResource(Res.drawable.car_mustang),
-                        contentDescription = "Mustang Shelby GT",
+                        painter = painterResource(vehicleImageRes),
+                        contentDescription = vehicleDisplayName,
                         modifier = Modifier.width(110.dp).height(70.dp),
                         contentScale = ContentScale.Fit
                     )
@@ -163,22 +177,22 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Charge section
-            Text("Charge", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(strings.charge, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Fair Price", fontSize = 14.sp, color = TextSecondary)
+                Text(strings.fairPrice, fontSize = 14.sp, color = TextSecondary)
                 Text("RM 200", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Tax (5%)", fontSize = 14.sp, color = TextSecondary)
+                Text(strings.taxPercent, fontSize = 14.sp, color = TextSecondary)
                 Text("RM 20", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // Select payment method
-            Text("Select payment method", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(strings.selectPaymentMethod, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             Spacer(modifier = Modifier.height(12.dp))
 
             PaymentMethodRow(
@@ -204,7 +218,7 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(10.dp))
             PaymentMethodRow(
                 iconRes = Res.drawable.payment_cash,
-                title = "Cash",
+                title = strings.cash,
                 subtitle = "",
                 isSelected = selectedPayment == "cash"
             ) { selectedPayment = "cash" }

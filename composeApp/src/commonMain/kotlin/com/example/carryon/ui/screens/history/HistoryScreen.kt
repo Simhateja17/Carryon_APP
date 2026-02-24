@@ -28,6 +28,7 @@ import carryon.composeapp.generated.resources.icon_spark
 import carryon.composeapp.generated.resources.icon_timer
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class OrderHistory(
     val orderId: String,
@@ -47,6 +48,7 @@ fun HistoryScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     val orderHistory = remember {
         listOf(
             OrderHistory("ORDB1234", "Paul Pogba", "Maryland bustop, Anthony Ikeja", "12 January 2020, 2:43pm", "Completed"),
@@ -116,7 +118,7 @@ fun HistoryScreen(
             
             // Delivery in Progress Banner
             Text(
-                text = "You have 1 delivery in progress",
+                text = strings.deliveryInProgress,
                 fontSize = 13.sp,
                 color = TextSecondary
             )
@@ -146,7 +148,7 @@ fun HistoryScreen(
                             color = PrimaryBlue
                         )
                         Text(
-                            text = "Receipient: Paul Pogba",
+                            text = strings.recipientLabel("Paul Pogba"),
                             fontSize = 13.sp,
                             color = TextSecondary
                         )
@@ -158,7 +160,7 @@ fun HistoryScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
-                                text = " to delivery location",
+                                text = " ${strings.toDeliveryLocation}",
                                 fontSize = 13.sp,
                                 color = TextSecondary
                             )
@@ -171,7 +173,7 @@ fun HistoryScreen(
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            text = "In progress",
+                            text = strings.inProgress,
                             fontSize = 12.sp,
                             color = PrimaryBlue,
                             fontWeight = FontWeight.Medium
@@ -184,7 +186,7 @@ fun HistoryScreen(
             
             // What would you like to do?
             Text(
-                text = "What would you like to do?",
+                text = strings.whatWouldYouLikeToDo,
                 fontSize = 14.sp,
                 color = TextSecondary
             )
@@ -209,14 +211,14 @@ fun HistoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Instant Delivery",
+                            text = strings.instantDelivery,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        
+
                         Text(
-                            text = "Courier takes only your package and delivers instantly",
+                            text = strings.instantDeliveryDesc,
                             fontSize = 13.sp,
                             color = Color.White.copy(alpha = 0.8f)
                         )
@@ -253,14 +255,14 @@ fun HistoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Schedule Delivery",
+                            text = strings.scheduleDelivery,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
-                        
+
                         Text(
-                            text = "Courier comes to pick up on your specified date and time",
+                            text = strings.scheduleDeliveryDesc,
                             fontSize = 13.sp,
                             color = TextSecondary
                         )
@@ -286,14 +288,14 @@ fun HistoryScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "History",
+                    text = strings.history,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 TextButton(onClick = onViewAll) {
                     Text(
-                        text = "View all",
+                        text = strings.viewAll,
                         fontSize = 13.sp,
                         color = PrimaryBlue
                     )
@@ -323,6 +325,7 @@ private fun HistoryItem(
     order: OrderHistory,
     onClick: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -357,7 +360,7 @@ private fun HistoryItem(
             }
             
             Text(
-                text = "Receipient: ${order.recipient}",
+                text = strings.recipientLabel(order.recipient),
                 fontSize = 13.sp,
                 color = TextSecondary
             )
@@ -380,7 +383,7 @@ private fun HistoryItem(
                     Row {
                         Text("📍 ", fontSize = 12.sp, color = PrimaryBlue)
                         Text(
-                            text = "Drop off",
+                            text = strings.dropOff,
                             fontSize = 12.sp,
                             color = TextSecondary
                         )
@@ -407,15 +410,16 @@ private fun BottomNavigationBar(
     onNavigateToHome: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->

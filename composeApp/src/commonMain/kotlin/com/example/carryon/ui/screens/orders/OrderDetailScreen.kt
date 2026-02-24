@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +24,7 @@ fun OrderDetailScreen(
     orderId: String,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var rating by remember { mutableStateOf(0) }
     var showRatingDialog by remember { mutableStateOf(false) }
     
@@ -93,7 +95,7 @@ fun OrderDetailScreen(
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "✅ Delivered",
+                                text = "✅ ${strings.delivered}",
                                 fontSize = 13.sp,
                                 color = SuccessGreen,
                                 fontWeight = FontWeight.Medium
@@ -130,7 +132,7 @@ fun OrderDetailScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "PICKUP",
+                                text = strings.pickup,
                                 fontSize = 11.sp,
                                 color = Color.Gray,
                                 fontWeight = FontWeight.Medium
@@ -161,7 +163,7 @@ fun OrderDetailScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = "DELIVERY",
+                                text = strings.delivery,
                                 fontSize = 11.sp,
                                 color = Color.Gray,
                                 fontWeight = FontWeight.Medium
@@ -189,7 +191,7 @@ fun OrderDetailScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Distance",
+                                text = strings.distance,
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )
@@ -207,7 +209,7 @@ fun OrderDetailScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Duration",
+                                text = strings.duration,
                                 fontSize = 12.sp,
                                 color = Color.Gray
                             )
@@ -392,7 +394,7 @@ fun OrderDetailScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Submit Rating")
+                            Text(strings.submit)
                         }
                     }
                 }
@@ -443,7 +445,7 @@ fun OrderDetailScreen(
                     onClick = { showRatingDialog = false },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                 ) {
-                    Text("OK")
+                    Text(strings.ok)
                 }
             }
         )

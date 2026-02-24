@@ -35,6 +35,7 @@ import carryon.composeapp.generated.resources.icon_logout_hammer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +52,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -60,7 +62,7 @@ fun ProfileScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "Carry On",
+                            text = strings.appName,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = PrimaryBlue,
@@ -113,7 +115,7 @@ fun ProfileScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Hi There!",
+                        text = strings.hiThere,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -168,7 +170,7 @@ fun ProfileScreen(
                             alpha = 0.35f
                         )
                         Text(
-                            text = "Saved\nAddresses",
+                            text = strings.savedAddresses,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White,
@@ -199,7 +201,7 @@ fun ProfileScreen(
                             alpha = 0.35f
                         )
                         Text(
-                            text = "Rewards",
+                            text = strings.rewards,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White,
@@ -214,17 +216,17 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(28.dp))
 
             // Menu Items
-            ProfileMenuItem(iconRes = Res.drawable.icon_help, title = "Help & Support", onClick = onNavigateToHelp)
+            ProfileMenuItem(iconRes = Res.drawable.icon_help, title = strings.helpAndSupport, onClick = onNavigateToHelp)
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_messages_menu, title = "Terms and Conditions", onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_messages_menu, title = strings.termsAndConditions, onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_settings_menu, title = "Settings", onClick = onNavigateToSettings)
+            ProfileMenuItem(iconRes = Res.drawable.icon_settings_menu, title = strings.settings, onClick = onNavigateToSettings)
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = "Refer Your Friend", onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = strings.referYourFriend, onClick = { })
             HorizontalDivider(color = Color(0xFFF0F0F0))
             ProfileMenuItem(
                 iconRes = Res.drawable.icon_logout_hammer,
-                title = "Logout",
+                title = strings.logout,
                 titleColor = Color(0xFFE53935),
                 onClick = onLogout
             )

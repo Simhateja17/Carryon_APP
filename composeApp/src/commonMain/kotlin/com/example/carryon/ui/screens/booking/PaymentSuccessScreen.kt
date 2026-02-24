@@ -19,12 +19,14 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.thankyou_icon
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @Composable
 fun PaymentSuccessScreen(
     amount: Int = 220,
     onContinue: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -45,7 +47,7 @@ fun PaymentSuccessScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            "Payment Success",
+            strings.paymentSuccess,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = TextPrimary
@@ -65,7 +67,7 @@ fun PaymentSuccessScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            "Your payment has been processed\nsuccessfully",
+            strings.paymentProcessedSuccessfully,
             fontSize = 14.sp,
             color = TextSecondary,
             textAlign = TextAlign.Center,
@@ -84,7 +86,7 @@ fun PaymentSuccessScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("Continue", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+            Text(strings.continueText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(40.dp))

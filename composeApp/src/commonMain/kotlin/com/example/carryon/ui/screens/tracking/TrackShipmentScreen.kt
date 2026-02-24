@@ -37,6 +37,7 @@ import carryon.composeapp.generated.resources.track_accepted
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +46,7 @@ fun TrackShipmentScreen(
     onViewDetails: (String) -> Unit,
     onNavigateToHistory: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     var trackingNumber by remember { mutableStateOf("") }
     
     Scaffold(
@@ -110,7 +112,7 @@ fun TrackShipmentScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Track your shipment",
+                    text = strings.trackYourShipment,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -136,7 +138,7 @@ fun TrackShipmentScreen(
             OutlinedTextField(
                 value = trackingNumber,
                 onValueChange = { trackingNumber = it },
-                placeholder = { Text("Enter your tracking number", color = Color.LightGray) },
+                placeholder = { Text(strings.enterTrackingNumber, color = Color.LightGray) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -164,7 +166,7 @@ fun TrackShipmentScreen(
                 )
             ) {
                 Text(
-                    text = "Search",
+                    text = strings.search,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -174,7 +176,7 @@ fun TrackShipmentScreen(
             
             // Your Package Section
             Text(
-                text = "Your Package",
+                text = strings.yourPackage,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -215,7 +217,7 @@ fun TrackShipmentScreen(
                         
                         Column {
                             Text(
-                                text = "Documents",
+                                text = strings.documents,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
@@ -241,7 +243,7 @@ fun TrackShipmentScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "From",
+                                text = strings.from,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -255,7 +257,7 @@ fun TrackShipmentScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Destination",
+                                text = strings.destination,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -275,7 +277,7 @@ fun TrackShipmentScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Delivery",
+                                text = strings.delivery,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -289,7 +291,7 @@ fun TrackShipmentScreen(
                         
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Item Weight",
+                                text = strings.itemWeight,
                                 fontSize = 11.sp,
                                 color = Color.White.copy(alpha = 0.7f)
                             )
@@ -344,7 +346,7 @@ fun TrackShipmentScreen(
                         )
                     ) {
                         Text(
-                            text = "View details",
+                            text = strings.viewDetails,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White
@@ -357,7 +359,7 @@ fun TrackShipmentScreen(
             
             // Details Timeline
             Text(
-                text = "Details",
+                text = strings.details,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -367,7 +369,7 @@ fun TrackShipmentScreen(
             // Timeline Items
             TrackingTimelineItem(
                 iconRes = Res.drawable.track_sent,
-                title = "Sent Package",
+                title = strings.sentPackage,
                 location = "JnE.north Beko时",
                 date = "22Dec,2021",
                 time = "12:30pm",
@@ -377,7 +379,7 @@ fun TrackShipmentScreen(
 
             TrackingTimelineItem(
                 iconRes = Res.drawable.track_transit,
-                title = "Transit",
+                title = strings.transit,
                 location = "3nE.Bandung",
                 date = "22Dec,2021",
                 time = "12:30pm",
@@ -387,7 +389,7 @@ fun TrackShipmentScreen(
 
             TrackingTimelineItem(
                 iconRes = Res.drawable.track_journey,
-                title = "On a journey",
+                title = strings.onAJourney,
                 location = "your destination",
                 date = "22Dec,2021",
                 time = "12:30pm",
@@ -397,7 +399,7 @@ fun TrackShipmentScreen(
 
             TrackingTimelineItem(
                 iconRes = Res.drawable.track_accepted,
-                title = "Accepted",
+                title = strings.accepted,
                 location = "By Fernando",
                 date = "22Dec,2021",
                 time = "12:30pm",
@@ -512,15 +514,16 @@ private fun TrackingTimelineItem(
 
 @Composable
 private fun BottomNavigationBar(selectedIndex: Int, onNavigateToHistory: () -> Unit = {}) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->

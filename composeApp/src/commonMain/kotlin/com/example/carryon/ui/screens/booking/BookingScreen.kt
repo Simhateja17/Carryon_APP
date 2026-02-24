@@ -26,6 +26,7 @@ import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.mask_group
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import com.example.carryon.ui.components.MapViewComposable
 import com.example.carryon.ui.components.MapMarker
 import com.example.carryon.ui.components.MarkerColor
@@ -53,20 +54,23 @@ fun BookingScreen(
     onConfirmBooking: (String) -> Unit,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
+
     // Vehicle options — prices update after route is calculated
     var vehicles by remember {
         mutableStateOf(
             listOf(
-                VehicleOption("🏍️", "Bike", "Up to 10 kg", "—", "—"),
-                VehicleOption("🛺", "Auto", "Up to 50 kg", "—", "—"),
-                VehicleOption("🚚", "Mini Truck", "Up to 500 kg", "—", "—"),
-                VehicleOption("🚛", "Truck", "Up to 2000 kg", "—", "—")
+                VehicleOption("🏍️", "Bike", strings.upToKg(10), "—", "—"),
+                VehicleOption("🛺", "Auto", strings.upToKg(50), "—", "—"),
+                VehicleOption("🚚", "Mini Truck", strings.upToKg(500), "—", "—"),
+                VehicleOption("🚛", "Truck", strings.upToKg(2000), "—", "—")
             )
         )
     }
 
     var selectedVehicle by remember { mutableStateOf(vehicles[2]) }
-    var paymentType by remember { mutableStateOf("") }
+    var paymentType by remember { mutableStateOf("DuitNow") }
+    var paidBy by remember { mutableStateOf("Me") }
 
     // Map & route state
     var mapConfig by remember { mutableStateOf(MapConfig()) }
@@ -114,10 +118,10 @@ fun BookingScreen(
             val km = route.distance
             val mins = route.duration
             vehicles = listOf(
-                VehicleOption("🏍️", "Bike", "Up to 10 kg", "RM ${(5 + km * 1.5).toInt()}", "$mins min"),
-                VehicleOption("🛺", "Auto", "Up to 50 kg", "RM ${(10 + km * 2.5).toInt()}", "${mins + 5} min"),
-                VehicleOption("🚚", "Mini Truck", "Up to 500 kg", "RM ${(30 + km * 4).toInt()}", "${mins + 10} min"),
-                VehicleOption("🚛", "Truck", "Up to 2000 kg", "RM ${(60 + km * 7).toInt()}", "${mins + 15} min")
+                VehicleOption("🏍️", "Bike", strings.upToKg(10), strings.rmAmount((5 + km * 1.5).toInt()), strings.minDuration(mins)),
+                VehicleOption("🛺", "Auto", strings.upToKg(50), strings.rmAmount((10 + km * 2.5).toInt()), strings.minDuration(mins + 5)),
+                VehicleOption("🚚", "Mini Truck", strings.upToKg(500), strings.rmAmount((30 + km * 4).toInt()), strings.minDuration(mins + 10)),
+                VehicleOption("🚛", "Truck", strings.upToKg(2000), strings.rmAmount((60 + km * 7).toInt()), strings.minDuration(mins + 15))
             )
             selectedVehicle = vehicles[2]
         }
@@ -130,8 +134,8 @@ fun BookingScreen(
 
     val markers = remember {
         listOf(
-            MapMarker("pickup", pickupLat, pickupLng, "Pickup", MarkerColor.BLUE),
-            MapMarker("delivery", deliveryLat, deliveryLng, "Delivery", MarkerColor.GREEN)
+            MapMarker("pickup", pickupLat, pickupLng, strings.pickup, MarkerColor.BLUE),
+            MapMarker("delivery", deliveryLat, deliveryLng, strings.delivery, MarkerColor.GREEN)
         )
     }
 
@@ -152,7 +156,7 @@ fun BookingScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(8.dp).background(SuccessGreen, CircleShape))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Ride", fontSize = 12.sp, color = SuccessGreen)
+                            Text(strings.ride, fontSize = 12.sp, color = SuccessGreen)
                         }
                     }
                 },
@@ -212,12 +216,12 @@ fun BookingScreen(
                         if (routeResult != null) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Column {
-                                    Text("Distance", fontSize = 12.sp, color = TextSecondary)
+                                    Text(strings.distance, fontSize = 12.sp, color = TextSecondary)
                                     Text("${routeResult!!.distance} km", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                                 }
                                 Column(horizontalAlignment = Alignment.End) {
-                                    Text("Duration", fontSize = 12.sp, color = TextSecondary)
-                                    Text("${routeResult!!.duration} min", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                    Text(strings.duration, fontSize = 12.sp, color = TextSecondary)
+                                    Text(strings.minDuration(routeResult!!.duration), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                                 }
                             }
                             Spacer(modifier = Modifier.height(12.dp))
@@ -227,7 +231,7 @@ fun BookingScreen(
 
                         // Charge
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Charge", fontSize = 14.sp, color = TextSecondary)
+                            Text(strings.charge, fontSize = 14.sp, color = TextSecondary)
                             Text(selectedVehicle.price, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                         }
                     }
@@ -258,26 +262,88 @@ fun BookingScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Payment Type field
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text("Payment Type", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = paymentType,
-                        onValueChange = { paymentType = it },
-                        placeholder = { Text("Select payment type", color = Color.LightGray, fontSize = 13.sp) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PrimaryBlue,
-                            unfocusedBorderColor = Color(0xFFE0E0E0),
-                            focusedContainerColor = Color(0xFFF8F8F8),
-                            unfocusedContainerColor = Color(0xFFF8F8F8),
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black
-                        ),
-                        singleLine = true
-                    )
+                // Payment Section
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        // Who pays?
+                        Text("Select who pays", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            listOf("Me", "Recipient").forEach { option ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable { paidBy = option }.padding(end = 20.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = paidBy == option,
+                                        onClick = { paidBy = option },
+                                        colors = RadioButtonDefaults.colors(selectedColor = PrimaryBlue)
+                                    )
+                                    Text(option, fontSize = 14.sp, color = TextPrimary)
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = Color.LightGray.copy(alpha = 0.5f))
+
+                        // Payment method chips
+                        Text("Payment type", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        val paymentMethods = listOf(
+                            Pair("💵", "Cash"),
+                            Pair("🇲🇾", "DuitNow"),
+                            Pair("🟢", "Touch 'n Go"),
+                            Pair("🚗", "GrabPay"),
+                            Pair("🏦", "FPX"),
+                            Pair("💳", "Card")
+                        )
+                        val rows = paymentMethods.chunked(3)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            rows.forEach { rowItems ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    rowItems.forEach { (icon, method) ->
+                                        val isSelected = paymentType == method
+                                        Box(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .border(
+                                                    width = if (isSelected) 2.dp else 1.dp,
+                                                    color = if (isSelected) PrimaryBlue else Color(0xFFE0E0E0),
+                                                    shape = RoundedCornerShape(12.dp)
+                                                )
+                                                .background(
+                                                    color = if (isSelected) PrimaryBlue.copy(alpha = 0.08f) else Color(0xFFF8F8F8),
+                                                    shape = RoundedCornerShape(12.dp)
+                                                )
+                                                .clickable { paymentType = method }
+                                                .padding(vertical = 10.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text(icon, fontSize = 20.sp)
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    method,
+                                                    fontSize = 10.sp,
+                                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                                    color = if (isSelected) PrimaryBlue else TextSecondary,
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

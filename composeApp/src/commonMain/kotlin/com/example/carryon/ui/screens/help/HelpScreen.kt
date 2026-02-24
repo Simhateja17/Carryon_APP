@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 data class FaqItem(
     val question: String,
@@ -26,39 +27,40 @@ data class FaqItem(
 fun HelpScreen(
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     val faqs = remember {
         listOf(
             FaqItem(
-                "How do I book a delivery?",
-                "Enter your pickup and delivery locations on the home screen, select a vehicle type, and tap 'Book Now'. You'll see the estimated price before confirming."
+                strings.faqBookDelivery,
+                strings.faqBookDeliveryAnswer
             ),
             FaqItem(
-                "How is the price calculated?",
-                "The price includes a base fare plus a per-kilometer charge based on the vehicle type and distance. During peak hours, there may be additional surge charges."
+                strings.faqPriceCalculated,
+                strings.faqPriceCalculatedAnswer
             ),
             FaqItem(
-                "Can I schedule a delivery for later?",
-                "Yes! On the home screen, tap on 'Schedule' to book a delivery for a future date and time."
+                strings.faqScheduleDelivery,
+                strings.faqScheduleDeliveryAnswer
             ),
             FaqItem(
-                "How do I track my delivery?",
-                "Once your booking is confirmed and a driver is assigned, you can track the delivery in real-time on the tracking screen."
+                strings.faqTrackDelivery,
+                strings.faqTrackDeliveryAnswer
             ),
             FaqItem(
-                "What payment methods are accepted?",
-                "We accept Cash, UPI, Credit/Debit Cards, and Wallet payments."
+                strings.faqPaymentMethods,
+                strings.faqPaymentMethodsAnswer
             ),
             FaqItem(
-                "How do I cancel a booking?",
-                "You can cancel a booking from the tracking screen before the driver picks up your package. Cancellation charges may apply."
+                strings.faqCancelBooking,
+                strings.faqCancelBookingAnswer
             ),
             FaqItem(
-                "What if my package is damaged?",
-                "We have insurance coverage for all deliveries. Contact our support team within 24 hours of delivery to file a claim."
+                strings.faqDamagedPackage,
+                strings.faqDamagedPackageAnswer
             ),
             FaqItem(
-                "How do I contact the driver?",
-                "You can call the driver directly from the tracking screen once they are assigned to your booking."
+                strings.faqContactDriver,
+                strings.faqContactDriverAnswer
             )
         )
     }
@@ -68,10 +70,10 @@ fun HelpScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Help & Support") },
+                title = { Text(strings.helpAndSupport) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("← Back", color = Color.Black)
+                        Text("← ${strings.back}", color = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -91,12 +93,12 @@ fun HelpScreen(
             // Contact Options
             item {
                 Text(
-                    text = "Contact Us",
+                    text = strings.contactUs,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -105,21 +107,21 @@ fun HelpScreen(
                     Column {
                         ContactOption(
                             icon = "📞",
-                            title = "Call Us",
-                            subtitle = "Available 24/7",
+                            title = strings.callUs,
+                            subtitle = strings.available247,
                             onClick = { }
                         )
                         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         ContactOption(
                             icon = "💬",
-                            title = "Chat Support",
-                            subtitle = "Typically replies in 5 minutes",
+                            title = strings.chatSupport,
+                            subtitle = strings.typicallyReplies,
                             onClick = { }
                         )
                         HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                         ContactOption(
                             icon = "📧",
-                            title = "Email Us",
+                            title = strings.emailUs,
                             subtitle = "support@carryon.com",
                             onClick = { }
                         )
@@ -131,45 +133,45 @@ fun HelpScreen(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Quick Help",
+                    text = strings.quickHelp,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     QuickHelpCard(
                         icon = "📦",
-                        title = "Track Order",
+                        title = strings.trackOrder,
                         modifier = Modifier.weight(1f),
                         onClick = { }
                     )
                     QuickHelpCard(
                         icon = "💳",
-                        title = "Payment Issue",
+                        title = strings.paymentIssue,
                         modifier = Modifier.weight(1f),
                         onClick = { }
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(12.dp))
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     QuickHelpCard(
                         icon = "🚫",
-                        title = "Cancel Order",
+                        title = strings.cancelOrder,
                         modifier = Modifier.weight(1f),
                         onClick = { }
                     )
                     QuickHelpCard(
                         icon = "💰",
-                        title = "Refund Status",
+                        title = strings.refundStatus,
                         modifier = Modifier.weight(1f),
                         onClick = { }
                     )
@@ -180,7 +182,7 @@ fun HelpScreen(
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Frequently Asked Questions",
+                    text = strings.faq,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 8.dp)

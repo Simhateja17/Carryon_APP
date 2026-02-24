@@ -40,8 +40,13 @@ import carryon.composeapp.generated.resources.open_truck
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
 import com.example.carryon.ui.components.rememberLocationRequester
+import com.example.carryon.ui.components.LanguageSelectionDialog
+import com.example.carryon.i18n.LocalStrings
 import com.example.carryon.data.model.AutocompleteResult
 import com.example.carryon.data.network.LocationApi
+import com.example.carryon.data.network.UserApi
+import com.example.carryon.data.network.getLanguage
+import com.example.carryon.data.network.saveLanguage
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,8 +59,10 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToTracking: (String) -> Unit,
     onNavigateToHistory: () -> Unit = {},
-    onNavigateToCalculate: () -> Unit = {}
+    onNavigateToCalculate: () -> Unit = {},
+    onLanguageChanged: (String) -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     var pickupLocation by remember { mutableStateOf("") }
     var deliveryLocation by remember { mutableStateOf("") }
     var selectedNavItem by remember { mutableStateOf(2) }
@@ -63,8 +70,17 @@ fun HomeScreen(
     var isGettingLocation by remember { mutableStateOf(false) }
     var userLat by remember { mutableStateOf<Double?>(null) }
     var userLng by remember { mutableStateOf<Double?>(null) }
+    var showLanguageModal by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
+
+    // Show language modal if user hasn't selected one yet
+    LaunchedEffect(Unit) {
+        val savedLang = getLanguage()
+        if (savedLang.isNullOrEmpty()) {
+            showLanguageModal = true
+        }
+    }
 
     // Location permission + GPS fetch → reverse geocode → fill pickup
     val requestLocation = rememberLocationRequester(
@@ -137,6 +153,20 @@ fun HomeScreen(
         }
     }
 
+    if (showLanguageModal) {
+        LanguageSelectionDialog(
+            onDismiss = { /* don't allow dismiss without selecting */ },
+            onLanguageSelected = { langCode ->
+                saveLanguage(langCode)
+                showLanguageModal = false
+                onLanguageChanged(langCode)
+                scope.launch {
+                    UserApi.updateLanguage(langCode)
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -165,14 +195,19 @@ fun HomeScreen(
             Surface(shadowElevation = 8.dp, color = Color.White) {
                 Column {
                     Button(
-                        onClick = { if (pickupLocation.isNotBlank() && deliveryLocation.isNotBlank()) onNavigateToBooking(pickupLocation, deliveryLocation, "Bike") },
+                        onClick = {
+                            if (pickupLocation.isNotBlank() && deliveryLocation.isNotBlank()) {
+                                val vehicles = listOf("Bike", "Car (2-Seat)", "Car (4-Seat)", "Mini Van", "Truck", "Open Truck")
+                                onNavigateToBooking(pickupLocation, deliveryLocation, vehicles[selectedVehicle])
+                            }
+                        },
                         enabled = pickupLocation.isNotBlank() && deliveryLocation.isNotBlank(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                    ) { Text("Next", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
+                    ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
                     NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val navItems = listOf(Pair(Res.drawable.icon_search, "Search"), Pair(Res.drawable.icon_messages, "Messages"), Pair(Res.drawable.icon_home, "Home"), Pair(Res.drawable.icon_profile, "Profile"))
+                        val navItems = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
                         navItems.forEachIndexed { index, (iconRes, label) ->
                             NavigationBarItem(
                                 icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) },
@@ -213,9 +248,9 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Welcome", fontSize = 12.sp, color = TextPrimary.copy(alpha = 0.7f))
+                        Text(strings.welcome, fontSize = 12.sp, color = TextPrimary.copy(alpha = 0.7f))
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text("We are Ready to\nServe", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary, lineHeight = 26.sp)
+                        Text(strings.weAreReadyToServe, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary, lineHeight = 26.sp)
                     }
                     Image(
                         painter = painterResource(Res.drawable.ellipse_4),
@@ -233,7 +268,7 @@ fun HomeScreen(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Pickup Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
+                Text(strings.pickupLocation, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.weight(1f))
                 if (isGettingLocation) {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = PrimaryBlue)
                 } else {
@@ -244,7 +279,7 @@ fun HomeScreen(
                         },
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("📍 Use my location", fontSize = 11.sp, color = PrimaryBlue)
+                        Text("📍 ${strings.useMyLocation}", fontSize = 11.sp, color = PrimaryBlue)
                     }
                 }
             }
@@ -258,7 +293,7 @@ fun HomeScreen(
                         searchPickup(it)
                         showDeliverySuggestions = false
                     },
-                    placeholder = { Text(if (isGettingLocation) "Detecting your location…" else "Enter pickup address", color = Color.Gray) },
+                    placeholder = { Text(if (isGettingLocation) strings.detectingLocation else strings.enterPickupAddress, color = Color.Gray) },
                     leadingIcon = { Text("📍", fontSize = 14.sp) },
                     trailingIcon = if (isGettingLocation) {
                         { CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = PrimaryBlue) }
@@ -298,7 +333,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Delivery Location with floating dropdown
-            Text("Delivery Location", fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(strings.deliveryLocation, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(6.dp))
             Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                 OutlinedTextField(
@@ -308,7 +343,7 @@ fun HomeScreen(
                         searchDelivery(it)
                         showPickupSuggestions = false
                     },
-                    placeholder = { Text("Enter delivery address", color = Color.Gray) },
+                    placeholder = { Text(strings.enterDeliveryAddress, color = Color.Gray) },
                     leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -345,7 +380,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Vehicle Type
-            Text("Vehicle Type", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(strings.vehicleType, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(10.dp))
             data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val capacity: String, val price: String)
             val vehicles = listOf(
@@ -381,7 +416,7 @@ fun HomeScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(vehicle.name, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                                 Spacer(modifier = Modifier.height(2.dp))
-                                Text("Fast & reliable delivery", fontSize = 11.sp, color = TextSecondary)
+                                Text(strings.fastAndReliable, fontSize = 11.sp, color = TextSecondary)
                             }
                             Text(vehicle.price, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                         }
@@ -392,12 +427,12 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Our services
-            Text("Our services", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(strings.ourServices, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                ServiceCard(imageRes = Res.drawable.clip_path_group_1, title = "Same day\ndelivery", modifier = Modifier.weight(1f))
-                ServiceCard(imageRes = Res.drawable.clip_path_group, title = "Overnight\ndelivery", modifier = Modifier.weight(1f))
-                ServiceCard(imageRes = Res.drawable.mask_group, title = "Express\ndelivery", modifier = Modifier.weight(1f))
+                ServiceCard(imageRes = Res.drawable.clip_path_group_1, title = strings.sameDayDelivery, modifier = Modifier.weight(1f))
+                ServiceCard(imageRes = Res.drawable.clip_path_group, title = strings.overnightDelivery, modifier = Modifier.weight(1f))
+                ServiceCard(imageRes = Res.drawable.mask_group, title = strings.expressDelivery, modifier = Modifier.weight(1f))
             }
 
             Spacer(modifier = Modifier.height(16.dp))

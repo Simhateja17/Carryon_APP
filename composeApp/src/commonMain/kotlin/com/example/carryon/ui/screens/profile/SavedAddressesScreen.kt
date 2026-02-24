@@ -26,6 +26,7 @@ import com.example.carryon.ui.components.MapViewComposable
 import com.example.carryon.ui.components.MapMarker
 import com.example.carryon.ui.components.MarkerColor
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 fun SavedAddressesScreen(
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var showAddDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
     
@@ -42,10 +44,10 @@ fun SavedAddressesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Saved Addresses") },
+                title = { Text(strings.savedAddressesMenu) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("← Back", color = Color.Black)
+                        Text("← ${strings.back}", color = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -74,12 +76,12 @@ fun SavedAddressesScreen(
                     Text("📍", fontSize = 64.sp)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "No saved addresses",
+                        text = strings.noSavedAddresses,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Add addresses for quick booking",
+                        text = strings.addAddressesForQuickBooking,
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
@@ -88,7 +90,7 @@ fun SavedAddressesScreen(
                         onClick = { showAddDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                     ) {
-                        Text("+ Add Address")
+                        Text(strings.addAddress)
                     }
                 }
             }
@@ -131,8 +133,8 @@ fun SavedAddressesScreen(
     showDeleteDialog?.let { addressId ->
         AlertDialog(
             onDismissRequest = { showDeleteDialog = null },
-            title = { Text("Delete Address") },
-            text = { Text("Are you sure you want to delete this address?") },
+            title = { Text(strings.deleteAddress) },
+            text = { Text(strings.deleteAddressConfirmation) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -141,12 +143,12 @@ fun SavedAddressesScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
                 ) {
-                    Text("Delete")
+                    Text(strings.delete)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = null }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         )
@@ -230,6 +232,7 @@ private fun AddAddressDialog(
     onDismiss: () -> Unit,
     onSave: (Address) -> Unit
 ) {
+    val strings = LocalStrings.current
     var label by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var landmark by remember { mutableStateOf("") }
@@ -253,10 +256,10 @@ private fun AddAddressDialog(
         // Map picker overlay
         AlertDialog(
             onDismissRequest = { showMapPicker = false },
-            title = { Text("Pick Location on Map") },
+            title = { Text(strings.pickLocationOnMap) },
             text = {
                 Column {
-                    Text("Tap on the map to select a location", fontSize = 13.sp, color = Color.Gray)
+                    Text(strings.tapOnMapToSelect, fontSize = 13.sp, color = Color.Gray)
                     Spacer(modifier = Modifier.height(8.dp))
                     MapViewComposable(
                         modifier = Modifier.fillMaxWidth().height(300.dp),
@@ -287,19 +290,19 @@ private fun AddAddressDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     enabled = pickedLat != 0.0
                 ) {
-                    Text("Confirm Location")
+                    Text(strings.confirmLocation)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showMapPicker = false }) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         )
     } else {
         AlertDialog(
             onDismissRequest = onDismiss,
-            title = { Text("Add New Address") },
+            title = { Text(strings.addNewAddress) },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -331,7 +334,7 @@ private fun AddAddressDialog(
                     OutlinedTextField(
                         value = label,
                         onValueChange = { label = it },
-                        label = { Text("Label (e.g., Mom's House)") },
+                        label = { Text(strings.labelExample) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -346,13 +349,13 @@ private fun AddAddressDialog(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text("Pick on Map", color = PrimaryBlue)
+                        Text(strings.pickOnMap, color = PrimaryBlue)
                     }
 
                     OutlinedTextField(
                         value = address,
                         onValueChange = { address = it },
-                        label = { Text("Full Address") },
+                        label = { Text(strings.fullAddress) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 2,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -364,7 +367,7 @@ private fun AddAddressDialog(
                     OutlinedTextField(
                         value = landmark,
                         onValueChange = { landmark = it },
-                        label = { Text("Landmark (Optional)") },
+                        label = { Text(strings.landmarkOptional) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -376,7 +379,7 @@ private fun AddAddressDialog(
                     OutlinedTextField(
                         value = contactName,
                         onValueChange = { contactName = it },
-                        label = { Text("Contact Name") },
+                        label = { Text(strings.contactName) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -388,9 +391,12 @@ private fun AddAddressDialog(
                     OutlinedTextField(
                         value = contactPhone,
                         onValueChange = { contactPhone = it },
-                        label = { Text("Contact Phone") },
+                        label = { Text(strings.contactPhone) },
+                        placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
+                        prefix = { Text("+60 ", color = Color.Black) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.Black,
                             unfocusedTextColor = Color.Black
@@ -420,12 +426,12 @@ private fun AddAddressDialog(
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange),
                     enabled = label.isNotBlank() && address.isNotBlank()
                 ) {
-                    Text("Save")
+                    Text(strings.save)
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Cancel")
+                    Text(strings.cancel)
                 }
             }
         )

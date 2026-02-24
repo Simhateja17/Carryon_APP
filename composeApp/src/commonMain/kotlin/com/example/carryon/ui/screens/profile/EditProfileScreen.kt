@@ -18,12 +18,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     // TODO: Load from user session/API
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -34,10 +36,10 @@ fun EditProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Profile") },
+                title = { Text(strings.editProfile) },
                 navigationIcon = {
                     TextButton(onClick = onBack) {
-                        Text("← Back", color = Color.Black)
+                        Text("← ${strings.back}", color = Color.Black)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -80,7 +82,7 @@ fun EditProfileScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     TextButton(onClick = { }) {
-                        Text("📷 Change Photo", color = PrimaryOrange)
+                        Text("📷 ${strings.changePhoto}", color = PrimaryOrange)
                     }
                 }
             }
@@ -97,7 +99,7 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("👤 Full Name") },
+                        label = { Text("👤 ${strings.fullName}") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -113,7 +115,7 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("📧 Email") },
+                        label = { Text("📧 ${strings.email}") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
@@ -130,12 +132,12 @@ fun EditProfileScreen(
                     OutlinedTextField(
                         value = "+60 $phone",
                         onValueChange = { },
-                        label = { Text("📱 Phone Number") },
+                        label = { Text("📱 ${strings.phoneNumber}") },
                         enabled = false,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         supportingText = {
-                            Text("Phone number cannot be changed", color = Color.Gray)
+                            Text(strings.phoneCannotBeChanged, color = Color.Gray)
                         },
                         colors = OutlinedTextFieldDefaults.colors(
                             disabledTextColor = Color.Black,
@@ -169,7 +171,7 @@ fun EditProfileScreen(
                     )
                 } else {
                     Text(
-                        text = "Save Changes",
+                        text = strings.saveChanges,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -184,8 +186,8 @@ fun EditProfileScreen(
                 showSuccessDialog = false
                 onBack()
             },
-            title = { Text("Success") },
-            text = { Text("Your profile has been updated successfully.") },
+            title = { Text(strings.success) },
+            text = { Text(strings.profileUpdatedSuccessfully) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -194,7 +196,7 @@ fun EditProfileScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                 ) {
-                    Text("OK")
+                    Text(strings.ok)
                 }
             }
         )

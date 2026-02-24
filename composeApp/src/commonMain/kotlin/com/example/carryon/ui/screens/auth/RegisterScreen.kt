@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.carryon.data.network.AuthApi
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,6 +36,7 @@ fun RegisterScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val strings = LocalStrings.current
 
     Box(
         modifier = Modifier
@@ -52,24 +54,24 @@ fun RegisterScreen(
 
             // Welcome Text
             Row {
-                Text("Welcome to ", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Text("Carry On", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
                 Text("!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Hello there, Sign up to get started", fontSize = 14.sp, color = TextSecondary)
+            Text(strings.registerSubtitle, fontSize = 14.sp, color = TextSecondary)
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Name
-            Text("Name", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                placeholder = { Text("Enter your name", color = Color.LightGray) },
+                placeholder = { Text(strings.enterYourName, color = Color.LightGray) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -86,12 +88,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Email Address
-            Text("Email Address", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.emailAddress, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("Enter your email", color = Color.LightGray) },
+                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -109,12 +111,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Password
-            Text("Password", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.password, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("Password", color = Color.LightGray) },
+                placeholder = { Text(strings.password, color = Color.LightGray) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -133,12 +135,12 @@ fun RegisterScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Confirm Password
-            Text("Confirm Password", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            Text(strings.confirmPassword, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                placeholder = { Text("Confirm password", color = Color.LightGray) },
+                placeholder = { Text(strings.confirmPasswordPlaceholder, color = Color.LightGray) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
@@ -181,12 +183,12 @@ fun RegisterScreen(
                                     },
                                     onFailure = { e ->
                                         isLoading = false
-                                        errorMessage = e.message ?: "Failed to send verification code"
+                                        errorMessage = e.message ?: strings.failedToSendCode
                                     }
                                 )
                             } catch (e: Exception) {
                                 isLoading = false
-                                errorMessage = e.message ?: "Unexpected error"
+                                errorMessage = e.message ?: strings.unexpectedError
                             }
                         }
                     }
@@ -199,7 +201,7 @@ fun RegisterScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Sign Up", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.signUp, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 

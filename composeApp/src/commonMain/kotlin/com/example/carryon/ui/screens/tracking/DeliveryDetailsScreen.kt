@@ -28,6 +28,7 @@ import carryon.composeapp.generated.resources.map_background
 import carryon.composeapp.generated.resources.image_3
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +38,7 @@ fun DeliveryDetailsScreen(
     onDelivered: () -> Unit = {},
     onUnsuccessful: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
@@ -62,15 +64,15 @@ fun DeliveryDetailsScreen(
             // Delivery / Ride Tabs
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Column(modifier = Modifier.weight(1f).clickable { selectedTab = 0 }, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Delivery", fontSize = 15.sp, fontWeight = if (selectedTab == 0) FontWeight.SemiBold else FontWeight.Normal, color = if (selectedTab == 0) TextPrimary else TextSecondary)
+                    Text(strings.delivery, fontSize = 15.sp, fontWeight = if (selectedTab == 0) FontWeight.SemiBold else FontWeight.Normal, color = if (selectedTab == 0) TextPrimary else TextSecondary)
                     Spacer(modifier = Modifier.height(6.dp))
                     Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(if (selectedTab == 0) PrimaryBlue else Color.Transparent, RoundedCornerShape(2.dp)))
                 }
                 Column(modifier = Modifier.weight(1f).clickable { selectedTab = 1 }, horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                        Text("Ride", fontSize = 15.sp, fontWeight = if (selectedTab == 1) FontWeight.SemiBold else FontWeight.Normal, color = if (selectedTab == 1) TextPrimary else TextSecondary)
+                        Text(strings.ride, fontSize = 15.sp, fontWeight = if (selectedTab == 1) FontWeight.SemiBold else FontWeight.Normal, color = if (selectedTab == 1) TextPrimary else TextSecondary)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Box(modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text("New", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White) }
+                        Box(modifier = Modifier.background(PrimaryBlue, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) { Text(strings.newLabel, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White) }
                     }
                     Spacer(modifier = Modifier.height(6.dp))
                     Box(modifier = Modifier.fillMaxWidth().height(3.dp).background(if (selectedTab == 1) PrimaryBlue else Color.Transparent, RoundedCornerShape(2.dp)))
@@ -81,11 +83,11 @@ fun DeliveryDetailsScreen(
 
             // Track your shipment header
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
-                Text("Track your shipment", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(strings.trackYourShipment, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(8.dp))
                 // Select dropdown
                 OutlinedTextField(
-                    value = "Select",
+                    value = strings.select,
                     onValueChange = { },
                     readOnly = true,
                     trailingIcon = { Text("▼", fontSize = 12.sp, color = TextSecondary) },
@@ -118,7 +120,7 @@ fun DeliveryDetailsScreen(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
-                        Text("Your Package", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Text(strings.yourPackage, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Text("Order #$orderId", fontSize = 12.sp, color = TextSecondary)
                     }
                 }
@@ -126,9 +128,9 @@ fun DeliveryDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Transit and Package Timeline
-                DeliveryTimelineItem(icon = "📊", label = "Transit", location = "3nE.Bandung", date = "22Dec,2021", time = "12:30pm")
+                DeliveryTimelineItem(icon = "📊", label = strings.transit, location = "3nE.Bandung", date = "22Dec,2021", time = "12:30pm")
                 Spacer(modifier = Modifier.height(12.dp))
-                DeliveryTimelineItem(icon = "📦", label = "Sent Package", location = "JnE.north BekoPf", date = "22Dec,2021", time = "12:30pm")
+                DeliveryTimelineItem(icon = "📦", label = strings.sentPackage, location = "JnE.north BekoPf", date = "22Dec,2021", time = "12:30pm")
 
                 Spacer(modifier = Modifier.height(20.dp))
                 HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
@@ -137,12 +139,12 @@ fun DeliveryDetailsScreen(
                 // Sender / Receiver Grid
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Sender's Name", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(strings.sendersName, fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Phoebe", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Sender's Number", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(strings.sendersNumber, fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("028607329", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     }
@@ -150,12 +152,12 @@ fun DeliveryDetailsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Receiver's Name", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(strings.receiversName, fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("Paul", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     }
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Receiver's Number", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                        Text(strings.receiversNumber, fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text("028607329", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     }
@@ -165,12 +167,12 @@ fun DeliveryDetailsScreen(
 
                 // Delivery Method & Fee
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Delivery Method: ", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text(strings.deliveryMethod, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                     Text("COD", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Delivery Fee: ", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text(strings.deliveryFee, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                     Text("150", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
 
@@ -184,14 +186,14 @@ fun DeliveryDetailsScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
                         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCCCCCC))
-                    ) { Text("Unsuccessful", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextSecondary) }
+                    ) { Text(strings.unsuccessful, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextSecondary) }
 
                     Button(
                         onClick = onDelivered,
                         modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                    ) { Text("Delivered", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White) }
+                    ) { Text(strings.delivered, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Color.White) }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -218,8 +220,9 @@ private fun DeliveryTimelineItem(icon: String, label: String, location: String, 
 
 @Composable
 private fun DeliveryDetailsBottomNav() {
+    val strings = LocalStrings.current
     NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-        val items = listOf(Pair(Res.drawable.icon_search, "Search"), Pair(Res.drawable.icon_messages, "Messages"), Pair(Res.drawable.icon_home, "Home"), Pair(Res.drawable.icon_profile, "Profile"))
+        val items = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
         items.forEachIndexed { index, (iconRes, label) ->
             NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = index == 2, onClick = { }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (index == 2) PrimaryBlueSurface else Color.Transparent))
         }

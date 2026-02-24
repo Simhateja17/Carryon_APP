@@ -23,12 +23,14 @@ import carryon.composeapp.generated.resources.icon_search
 import carryon.composeapp.generated.resources.vehicle_truck_new
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadyToBookScreen(
     onLetsRide: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -101,7 +103,7 @@ fun ReadyToBookScreen(
 
             // "You are ready to Book" heading
             Text(
-                text = "You are ready to Book",
+                text = strings.youAreReadyToBook,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
@@ -113,7 +115,7 @@ fun ReadyToBookScreen(
 
             // Subtitle text
             Text(
-                text = "Your account is now activated. Lets book your first load",
+                text = strings.readyToBookSubtitle,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,
                 color = TextSecondary,
@@ -136,7 +138,7 @@ fun ReadyToBookScreen(
                 )
             ) {
                 Text(
-                    text = "Lets Ride",
+                    text = strings.letsRide,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
@@ -150,15 +152,16 @@ fun ReadyToBookScreen(
 
 @Composable
 private fun ReadyToBookBottomNav() {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_search, strings.navSearch),
+            Pair(Res.drawable.icon_messages, strings.navMessages),
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_profile, strings.navProfile)
         )
 
         items.forEachIndexed { index, (iconRes, label) ->

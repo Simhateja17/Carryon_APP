@@ -27,6 +27,7 @@ import carryon.composeapp.generated.resources.payment_icon_3
 import carryon.composeapp.generated.resources.rectangle_22
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
+import com.example.carryon.i18n.LocalStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,12 +38,13 @@ fun PaymentScreen(
 ) {
     var selectedMethod by remember { mutableStateOf("VISA") }
     var email by remember { mutableStateOf("") }
+    val strings = LocalStrings.current
 
     val paymentMethods = listOf(
-        Triple("VISA", "Visa Card", Res.drawable.payment_icon_1),
-        Triple("MASTERCARD", "Mastercard", Res.drawable.payment_icon_2),
-        Triple("CASH", "Cash on Delivery", Res.drawable.payment_icon_3),
-        Triple("WALLET", "Wallet", Res.drawable.payment_icon)
+        Triple("VISA", strings.visaCard, Res.drawable.payment_icon_1),
+        Triple("MASTERCARD", strings.mastercard, Res.drawable.payment_icon_2),
+        Triple("CASH", strings.cashOnDelivery, Res.drawable.payment_icon_3),
+        Triple("WALLET", strings.wallet, Res.drawable.payment_icon)
     )
 
     Scaffold(
@@ -66,9 +68,9 @@ fun PaymentScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Request for Ride", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(strings.requestForRide, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Select payment method", fontSize = 14.sp, color = TextSecondary)
+            Text(strings.selectPaymentMethod, fontSize = 14.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(20.dp))
 
             // Visa Card Image
@@ -85,19 +87,19 @@ fun PaymentScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // "This is price of the package"
-            Text("This is price of the package", fontSize = 14.sp, color = TextSecondary)
+            Text(strings.priceOfPackage, fontSize = 14.sp, color = TextSecondary)
             Spacer(modifier = Modifier.height(8.dp))
             Text("RM $totalAmount", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
 
             Spacer(modifier = Modifier.height(20.dp))
 
             // Email field
-            Text("Email", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
+            Text(strings.email, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                placeholder = { Text("Enter your email", color = Color.LightGray, fontSize = 13.sp) },
+                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray, fontSize = 13.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -114,7 +116,7 @@ fun PaymentScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             // Payment Method Selection
-            Text("Payment Method", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Text(strings.paymentMethod, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -152,7 +154,7 @@ fun PaymentScreen(
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen)
             ) {
-                Text("Continue", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text(strings.continueText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
