@@ -24,10 +24,6 @@ import carryon.composeapp.generated.resources.icon_products
 import carryon.composeapp.generated.resources.icon_boxes
 import carryon.composeapp.generated.resources.icon_documents
 import carryon.composeapp.generated.resources.icon_map
-import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.payment_icon
-import carryon.composeapp.generated.resources.icon_people
-import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.calc_products
 import carryon.composeapp.generated.resources.calc_boxes
@@ -130,7 +126,6 @@ fun CalculateScreen(
                 ) {
                     Text(strings.freeCheck, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-                BottomNavigationBar(selectedIndex = 0)
             }
         }
     ) { paddingValues ->
@@ -449,36 +444,3 @@ private fun PackageTypeCard(
     }
 }
 
-@Composable
-private fun BottomNavigationBar(selectedIndex: Int) {
-    val strings = LocalStrings.current
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        val items = listOf(
-            Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_timer, strings.navOrders),
-            Pair(Res.drawable.payment_icon, strings.navPayments),
-            Pair(Res.drawable.icon_people, strings.navAccount)
-        )
-
-        items.forEachIndexed { index, (iconRes, label) ->
-            NavigationBarItem(
-                icon = {
-                    Image(
-                        painter = painterResource(iconRes),
-                        contentDescription = label,
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                selected = selectedIndex == index,
-                onClick = { },
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (selectedIndex == index) PrimaryBlueSurface else Color.Transparent
-                )
-            )
-        }
-    }
-}

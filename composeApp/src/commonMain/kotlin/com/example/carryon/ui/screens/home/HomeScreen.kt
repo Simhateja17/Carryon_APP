@@ -65,7 +65,6 @@ fun HomeScreen(
     val strings = LocalStrings.current
     var pickupLocation by remember { mutableStateOf("") }
     var deliveryLocation by remember { mutableStateOf("") }
-    var selectedNavItem by remember { mutableStateOf(0) }
     var selectedVehicle by remember { mutableStateOf(0) }
     var isGettingLocation by remember { mutableStateOf(false) }
     var userLat by remember { mutableStateOf<Double?>(null) }
@@ -206,24 +205,6 @@ fun HomeScreen(
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                     ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
-                    NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val navItems = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
-                        navItems.forEachIndexed { index, (iconRes, label) ->
-                            NavigationBarItem(
-                                icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) },
-                                selected = selectedNavItem == index,
-                                onClick = {
-                                    selectedNavItem = index
-                                    when (index) {
-                                        1 -> onNavigateToOrders()
-                                        2 -> { /* Payments/Wallet - already on home */ }
-                                        3 -> onNavigateToProfile()
-                                    }
-                                },
-                                colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedNavItem == index) PrimaryBlueSurface else Color.Transparent)
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -460,16 +441,5 @@ private fun ServiceCard(imageRes: org.jetbrains.compose.resources.DrawableResour
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(title, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextPrimary, lineHeight = 15.sp, modifier = Modifier.padding(horizontal = 2.dp))
-    }
-}
-
-@Composable
-private fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
-    val strings = LocalStrings.current
-    NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-        val items = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
-        items.forEachIndexed { index, (iconRes, label) ->
-            NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = selectedIndex == index, onClick = { onItemSelected(index) }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedIndex == index) PrimaryBlueSurface else Color.Transparent))
-        }
     }
 }

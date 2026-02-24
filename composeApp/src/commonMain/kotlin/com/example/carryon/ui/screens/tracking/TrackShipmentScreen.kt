@@ -25,10 +25,6 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.carryon_logo
 import carryon.composeapp.generated.resources.icon_documents
-import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.payment_icon
-import carryon.composeapp.generated.resources.icon_people
-import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.track_sent
 import carryon.composeapp.generated.resources.track_transit
@@ -43,8 +39,7 @@ import com.example.carryon.i18n.LocalStrings
 @Composable
 fun TrackShipmentScreen(
     onSearch: (String) -> Unit,
-    onViewDetails: (String) -> Unit,
-    onNavigateToHistory: () -> Unit = {}
+    onViewDetails: (String) -> Unit
 ) {
     val strings = LocalStrings.current
     var trackingNumber by remember { mutableStateOf("") }
@@ -91,9 +86,6 @@ fun TrackShipmentScreen(
                 )
             )
         },
-        bottomBar = {
-            BottomNavigationBar(selectedIndex = 0, onNavigateToHistory = onNavigateToHistory)
-        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -512,36 +504,3 @@ private fun TrackingTimelineItem(
     }
 }
 
-@Composable
-private fun BottomNavigationBar(selectedIndex: Int, onNavigateToHistory: () -> Unit = {}) {
-    val strings = LocalStrings.current
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        val items = listOf(
-            Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_timer, strings.navOrders),
-            Pair(Res.drawable.payment_icon, strings.navPayments),
-            Pair(Res.drawable.icon_people, strings.navAccount)
-        )
-        
-        items.forEachIndexed { index, (iconRes, label) ->
-            NavigationBarItem(
-                icon = {
-                    Image(
-                        painter = painterResource(iconRes),
-                        contentDescription = label,
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                selected = selectedIndex == index,
-                onClick = { if (index == 1) onNavigateToHistory() }, // Orders tab
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent
-                )
-            )
-        }
-    }
-}

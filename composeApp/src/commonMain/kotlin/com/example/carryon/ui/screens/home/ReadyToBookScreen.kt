@@ -16,10 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.payment_icon
-import carryon.composeapp.generated.resources.icon_people
-import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.vehicle_truck_new
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
@@ -73,9 +69,6 @@ fun ReadyToBookScreen(
                     containerColor = Color.White
                 )
             )
-        },
-        bottomBar = {
-            ReadyToBookBottomNav()
         },
         containerColor = Color.White
     ) { paddingValues ->
@@ -146,40 +139,6 @@ fun ReadyToBookScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
-
-@Composable
-private fun ReadyToBookBottomNav() {
-    val strings = LocalStrings.current
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        val items = listOf(
-            Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_timer, strings.navOrders),
-            Pair(Res.drawable.payment_icon, strings.navPayments),
-            Pair(Res.drawable.icon_people, strings.navAccount)
-        )
-
-        items.forEachIndexed { index, (iconRes, label) ->
-            NavigationBarItem(
-                icon = {
-                    Image(
-                        painter = painterResource(iconRes),
-                        contentDescription = label,
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                selected = index == 0,
-                onClick = { },
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (index == 0) PrimaryBlueSurface else Color.Transparent
-                )
-            )
         }
     }
 }

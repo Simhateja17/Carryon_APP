@@ -54,7 +54,6 @@ fun SelectAddressScreen(
 ) {
     var from by remember { mutableStateOf(initialFrom) }
     var to by remember { mutableStateOf(initialTo) }
-    var selectedNavItem by remember { mutableStateOf(0) }
 
     // Map state — centered on user's real location once obtained
     var mapConfig by remember { mutableStateOf(MapConfig()) }
@@ -169,12 +168,6 @@ fun SelectAddressScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                     ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
-                    NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val items = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
-                        items.forEachIndexed { index, (iconRes, label) ->
-                            NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = selectedNavItem == index, onClick = { selectedNavItem = index }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedNavItem == index) PrimaryBlueSurface else Color.Transparent))
-                        }
-                    }
                 }
             }
         }

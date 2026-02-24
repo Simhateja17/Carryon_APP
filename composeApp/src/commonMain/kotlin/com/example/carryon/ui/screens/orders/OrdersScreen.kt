@@ -79,10 +79,11 @@ fun OrdersScreen(
                     Tab(
                         selected = selectedTab == index,
                         onClick = { selectedTab = index },
-                        text = { 
+                        text = {
                             Text(
                                 text = title,
-                                fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Normal
+                                fontWeight = if (selectedTab == index) FontWeight.SemiBold else FontWeight.Normal,
+                                maxLines = 1
                             )
                         }
                     )

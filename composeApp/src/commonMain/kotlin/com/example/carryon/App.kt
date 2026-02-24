@@ -1,8 +1,22 @@
 package com.example.carryon
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.icon_home
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.CarryOnTheme
+import com.example.carryon.ui.theme.PrimaryBlueSurface
 import com.example.carryon.ui.screens.splash.SplashScreen
 import com.example.carryon.ui.screens.auth.WelcomeScreen
 import com.example.carryon.ui.screens.auth.LoginScreen
@@ -86,7 +100,43 @@ fun App() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
 
+    val showBottomBar = currentScreen !is AppScreen.Splash &&
+        currentScreen !is AppScreen.Welcome &&
+        currentScreen !is AppScreen.Login &&
+        currentScreen !is AppScreen.Register &&
+        currentScreen !is AppScreen.Otp &&
+        currentScreen !is AppScreen.PaymentSuccess
+
+    val selectedTab = when (currentScreen) {
+        is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
+        is AppScreen.Calculate, is AppScreen.Details, is AppScreen.RequestForRide -> 0
+        is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment,
+        is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
+        is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
+        is AppScreen.BookingPayment -> 1
+        is AppScreen.Wallet, is AppScreen.Invoice -> 2
+        is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses,
+        is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support,
+        is AppScreen.TicketDetail, is AppScreen.Promo, is AppScreen.DriverRating,
+        is AppScreen.Chat -> 3
+        else -> 0
+    }
+
     CarryOnTheme(language = currentLanguage) {
+        Scaffold(
+            bottomBar = {
+                if (showBottomBar) {
+                    AppBottomBar(
+                        selectedTab = selectedTab,
+                        onHomeClick = { currentScreen = AppScreen.Home },
+                        onOrdersClick = { currentScreen = AppScreen.Orders },
+                        onPaymentsClick = { currentScreen = AppScreen.Wallet },
+                        onAccountClick = { currentScreen = AppScreen.Profile }
+                    )
+                }
+            }
+        ) { scaffoldPadding ->
+        Box(modifier = Modifier.padding(scaffoldPadding)) {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
@@ -183,11 +233,7 @@ fun App() {
                     onInstantDelivery = { currentScreen = AppScreen.SelectAddress() },
                     onScheduleDelivery = { currentScreen = AppScreen.SelectAddress() },
                     onOrderClick = { orderId -> currentScreen = AppScreen.DeliveryDetails(orderId) },
-                    onViewAll = { currentScreen = AppScreen.Orders },
-                    onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToProfile = { currentScreen = AppScreen.Profile },
-                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToWallet = { currentScreen = AppScreen.Wallet }
+                    onViewAll = { currentScreen = AppScreen.Orders }
                 )
             }
             is AppScreen.TrackShipment -> {
@@ -195,8 +241,7 @@ fun App() {
                     onSearch = { },
                     onViewDetails = { _ ->
                         currentScreen = AppScreen.TrackingLive
-                    },
-                    onNavigateToHistory = { currentScreen = AppScreen.History }
+                    }
                 )
             }
             is AppScreen.TrackingLive -> {
@@ -256,11 +301,7 @@ fun App() {
                     driverName = screen.driverName,
                     bookingId = screen.bookingId,
                     onSubmit = { currentScreen = AppScreen.Home },
-                    onBack = { currentScreen = AppScreen.Home },
-                    onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToProfile = { currentScreen = AppScreen.Profile }
+                    onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.ReadyToBook -> {
@@ -271,10 +312,6 @@ fun App() {
             is AppScreen.ActiveShipment -> {
                 ActiveShipmentScreen(
                     onTrackShipments = { currentScreen = AppScreen.TrackShipment },
-                    onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToProfile = { currentScreen = AppScreen.Profile },
                     onChatWithDriver = { bookingId, driverName ->
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
@@ -287,11 +324,7 @@ fun App() {
                     onDelivered = { currentScreen = AppScreen.DriverRating("Driver", screen.orderId) },
                     onUnsuccessful = { currentScreen = AppScreen.ActiveShipment },
                     onChatWithDriver = { currentScreen = AppScreen.Chat(screen.orderId, "Driver") },
-                    onViewInvoice = { currentScreen = AppScreen.Invoice(screen.orderId) },
-                    onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToProfile = { currentScreen = AppScreen.Profile }
+                    onViewInvoice = { currentScreen = AppScreen.Invoice(screen.orderId) }
                 )
             }
             is AppScreen.SelectAddress -> {
@@ -360,6 +393,49 @@ fun App() {
                     onBack = { currentScreen = AppScreen.Orders }
                 )
             }
+        }
+        }
+        }
+    }
+}
+
+@Composable
+private fun AppBottomBar(
+    selectedTab: Int,
+    onHomeClick: () -> Unit,
+    onOrdersClick: () -> Unit,
+    onPaymentsClick: () -> Unit,
+    onAccountClick: () -> Unit
+) {
+    NavigationBar(
+        containerColor = Color.White,
+        tonalElevation = 8.dp
+    ) {
+        val items = listOf(
+            Res.drawable.icon_home,
+            Res.drawable.icon_timer,
+            Res.drawable.payment_icon,
+            Res.drawable.icon_people
+        )
+        val actions = listOf(onHomeClick, onOrdersClick, onPaymentsClick, onAccountClick)
+
+        items.forEachIndexed { index, iconRes ->
+            NavigationBarItem(
+                icon = {
+                    Image(
+                        painter = painterResource(iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                },
+                selected = selectedTab == index,
+                onClick = { actions[index]() },
+                label = null,
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = if (selectedTab == index) PrimaryBlueSurface else Color.Transparent
+                )
+            )
         }
     }
 }
