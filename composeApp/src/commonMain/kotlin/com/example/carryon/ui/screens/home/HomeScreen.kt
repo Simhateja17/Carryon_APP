@@ -230,7 +230,7 @@ fun HomeScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
-                .background(Brush.verticalGradient(listOf(Color(0x332F80ED), Color.White)))
+                .background(Brush.verticalGradient(listOf(Color(0xFF2F80ED), Color.White)))
                 .verticalScroll(rememberScrollState())
         ) {
             // Banner: "We are Ready to Serve" with background image
@@ -300,7 +300,7 @@ fun HomeScreen(
                     } else null,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8), focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary),
                     singleLine = true
                 )
                 DropdownMenu(
@@ -347,7 +347,7 @@ fun HomeScreen(
                     leadingIcon = { Text("○", fontSize = 14.sp, color = SuccessGreen) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8)),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color.White, unfocusedContainerColor = Color(0xFFF8F8F8), focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary),
                     singleLine = true
                 )
                 DropdownMenu(
@@ -382,14 +382,14 @@ fun HomeScreen(
             // Vehicle Type
             Text(strings.vehicleType, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(10.dp))
-            data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val capacity: String, val price: String)
+            data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val price: String)
             val vehicles = listOf(
-                VehicleOption(Res.drawable.bike, "Bike", "1", "RM 8"),
-                VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "2", "RM 15"),
-                VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "4", "RM 20"),
-                VehicleOption(Res.drawable.mini_van, "Mini Van", "6", "RM 30"),
-                VehicleOption(Res.drawable.truck, "Truck", "Cargo", "RM 45"),
-                VehicleOption(Res.drawable.open_truck, "Open Truck", "Cargo", "RM 40")
+                VehicleOption(Res.drawable.bike, "Bike", "RM 8"),
+                VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "RM 15"),
+                VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "RM 20"),
+                VehicleOption(Res.drawable.mini_van, "Mini Van", "RM 30"),
+                VehicleOption(Res.drawable.truck, "Truck", "RM 45"),
+                VehicleOption(Res.drawable.open_truck, "Open Truck", "RM 40")
             )
             Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 vehicles.forEachIndexed { index, vehicle ->

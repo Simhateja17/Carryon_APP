@@ -56,10 +56,10 @@ fun SelectAddressScreen(
     var to by remember { mutableStateOf(initialTo) }
     var selectedNavItem by remember { mutableStateOf(2) }
 
-    // Map state — default to Hyderabad until real location is obtained
+    // Map state — centered on user's real location once obtained
     var mapConfig by remember { mutableStateOf(MapConfig()) }
-    var centerLat by remember { mutableStateOf(17.385) }
-    var centerLng by remember { mutableStateOf(78.4867) }
+    var centerLat by remember { mutableStateOf(0.0) }
+    var centerLng by remember { mutableStateOf(0.0) }
     var mapZoom by remember { mutableStateOf(12.0) }
 
     // Search state

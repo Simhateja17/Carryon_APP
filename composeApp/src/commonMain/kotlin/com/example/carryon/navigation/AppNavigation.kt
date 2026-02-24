@@ -196,7 +196,7 @@ fun AppNavigation(
         composable(Screen.Home.route) {
             HomeScreen(
                 onNavigateToBooking = { pickup, delivery, packageType ->
-                    navController.navigate(Screen.Calculate.route)
+                    navController.navigate(Screen.Booking.createRoute(pickup, delivery, packageType))
                 },
                 onNavigateToOrders = {
                     navController.navigate(Screen.Orders.route)
