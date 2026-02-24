@@ -28,6 +28,15 @@ import com.example.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.example.carryon.ui.screens.home.SelectAddressScreen
 import com.example.carryon.ui.screens.booking.DetailsScreen
 import com.example.carryon.ui.screens.booking.RequestForRideScreen
+import com.example.carryon.ui.screens.wallet.WalletScreen
+import com.example.carryon.ui.screens.chat.ChatScreen
+import com.example.carryon.ui.screens.support.SupportScreen
+import com.example.carryon.ui.screens.support.TicketDetailScreen
+import com.example.carryon.ui.screens.promo.PromoScreen
+import com.example.carryon.ui.screens.invoice.InvoiceScreen
+import com.example.carryon.ui.screens.profile.EditProfileScreen
+import com.example.carryon.ui.screens.profile.SavedAddressesScreen
+import com.example.carryon.ui.screens.help.HelpScreen
 import com.example.carryon.data.network.getToken
 import com.example.carryon.data.network.clearToken
 import com.example.carryon.data.network.getLanguage
@@ -48,11 +57,13 @@ sealed class AppScreen {
     data object Orders : AppScreen()
     data class PackageDetails(val orderId: String) : AppScreen()
     data class Booking(val pickup: String, val delivery: String, val packageType: String) : AppScreen()
-    data class DriverRating(val driverName: String) : AppScreen()
+    data class DriverRating(val driverName: String, val bookingId: String = "") : AppScreen()
     data object ReadyToBook : AppScreen()
     data object ActiveShipment : AppScreen()
     data class DeliveryDetails(val orderId: String) : AppScreen()
-    data object CalculateBooking : AppScreen()
+    data object EditProfile : AppScreen()
+    data object SavedAddresses : AppScreen()
+    data object Help : AppScreen()
     data class SenderReceiver(val bookingId: String) : AppScreen()
     data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
@@ -60,6 +71,13 @@ sealed class AppScreen {
     data class Details(val vehicleType: String = "") : AppScreen()
     data class RequestForRide(val vehicleType: String = "") : AppScreen()
     data object Settings : AppScreen()
+    // New screens
+    data object Wallet : AppScreen()
+    data class Chat(val bookingId: String, val driverName: String = "Driver") : AppScreen()
+    data object Support : AppScreen()
+    data class TicketDetail(val ticketId: String) : AppScreen()
+    data object Promo : AppScreen()
+    data class Invoice(val bookingId: String) : AppScreen()
 }
 
 @Composable
@@ -122,15 +140,17 @@ fun App() {
             }
             is AppScreen.Profile -> {
                 ProfileScreen(
-                    onNavigateToEditProfile = {},
-                    onNavigateToSavedAddresses = {},
-                    onNavigateToHelp = {},
+                    onNavigateToEditProfile = { currentScreen = AppScreen.EditProfile },
+                    onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses },
+                    onNavigateToHelp = { currentScreen = AppScreen.Support },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
                     onNavigateToTrackShipment = { currentScreen = AppScreen.TrackShipment },
                     onNavigateToDriverRating = { currentScreen = AppScreen.DriverRating("Josh Knight") },
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
+                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
+                    onNavigateToPromo = { currentScreen = AppScreen.Promo },
                     onLogout = { clearToken(); currentScreen = AppScreen.Welcome },
                     onBack = { currentScreen = AppScreen.Home }
                 )
@@ -143,12 +163,19 @@ fun App() {
                     }
                 )
             }
-            is AppScreen.CalculateBooking -> {
-                CalculateScreen(
-                    onBack = { currentScreen = AppScreen.Home },
-                    onFreeCheck = { from, to, option, weight ->
-                        currentScreen = AppScreen.Booking(from, to, option)
-                    }
+            is AppScreen.EditProfile -> {
+                EditProfileScreen(
+                    onBack = { currentScreen = AppScreen.Profile }
+                )
+            }
+            is AppScreen.SavedAddresses -> {
+                SavedAddressesScreen(
+                    onBack = { currentScreen = AppScreen.Profile }
+                )
+            }
+            is AppScreen.Help -> {
+                HelpScreen(
+                    onBack = { currentScreen = AppScreen.Profile }
                 )
             }
             is AppScreen.History -> {
@@ -158,7 +185,9 @@ fun App() {
                     onOrderClick = { orderId -> currentScreen = AppScreen.DeliveryDetails(orderId) },
                     onViewAll = { currentScreen = AppScreen.Orders },
                     onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToProfile = { currentScreen = AppScreen.Profile }
+                    onNavigateToProfile = { currentScreen = AppScreen.Profile },
+                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
+                    onNavigateToWallet = { currentScreen = AppScreen.Wallet }
                 )
             }
             is AppScreen.TrackShipment -> {
@@ -196,12 +225,12 @@ fun App() {
                     deliveryAddress = screen.delivery,
                     packageType = screen.packageType,
                     onConfirmBooking = { bookingId -> currentScreen = AppScreen.SenderReceiver(bookingId) },
-                    onBack = { currentScreen = AppScreen.CalculateBooking }
+                    onBack = { currentScreen = AppScreen.Calculate }
                 )
             }
             is AppScreen.SenderReceiver -> {
                 SenderReceiverScreen(
-                    onBack = { currentScreen = AppScreen.CalculateBooking },
+                    onBack = { currentScreen = AppScreen.Calculate },
                     onNext = { _, _, _, _, _ ->
                         currentScreen = AppScreen.BookingPayment(screen.bookingId)
                     }
@@ -222,12 +251,16 @@ fun App() {
                     onContinue = { currentScreen = AppScreen.ActiveShipment }
                 )
             }
-
             is AppScreen.DriverRating -> {
                 DriverRatingScreen(
                     driverName = screen.driverName,
+                    bookingId = screen.bookingId,
                     onSubmit = { currentScreen = AppScreen.Home },
-                    onBack = { currentScreen = AppScreen.Profile }
+                    onBack = { currentScreen = AppScreen.Home },
+                    onNavigateToHome = { currentScreen = AppScreen.Home },
+                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
+                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
+                    onNavigateToProfile = { currentScreen = AppScreen.Profile }
                 )
             }
             is AppScreen.ReadyToBook -> {
@@ -239,15 +272,26 @@ fun App() {
                 ActiveShipmentScreen(
                     onTrackShipments = { currentScreen = AppScreen.TrackShipment },
                     onNavigateToHome = { currentScreen = AppScreen.Home },
-                    onNavigateToHistory = { currentScreen = AppScreen.History }
+                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
+                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
+                    onNavigateToProfile = { currentScreen = AppScreen.Profile },
+                    onChatWithDriver = { bookingId, driverName ->
+                        currentScreen = AppScreen.Chat(bookingId, driverName)
+                    }
                 )
             }
             is AppScreen.DeliveryDetails -> {
                 DeliveryDetailsScreen(
                     orderId = screen.orderId,
                     onBack = { currentScreen = AppScreen.ActiveShipment },
-                    onDelivered = { currentScreen = AppScreen.Home },
-                    onUnsuccessful = { currentScreen = AppScreen.ActiveShipment }
+                    onDelivered = { currentScreen = AppScreen.DriverRating("Driver", screen.orderId) },
+                    onUnsuccessful = { currentScreen = AppScreen.ActiveShipment },
+                    onChatWithDriver = { currentScreen = AppScreen.Chat(screen.orderId, "Driver") },
+                    onViewInvoice = { currentScreen = AppScreen.Invoice(screen.orderId) },
+                    onNavigateToHome = { currentScreen = AppScreen.Home },
+                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
+                    onNavigateToWallet = { currentScreen = AppScreen.Wallet },
+                    onNavigateToProfile = { currentScreen = AppScreen.Profile }
                 )
             }
             is AppScreen.SelectAddress -> {
@@ -277,6 +321,43 @@ fun App() {
                 SettingsScreen(
                     onBack = { currentScreen = AppScreen.Profile },
                     onLanguageChanged = { currentLanguage = it }
+                )
+            }
+            // ── New Screens ──────────────────────────────────
+            is AppScreen.Wallet -> {
+                WalletScreen(
+                    onBack = { currentScreen = AppScreen.Profile }
+                )
+            }
+            is AppScreen.Chat -> {
+                ChatScreen(
+                    bookingId = screen.bookingId,
+                    driverName = screen.driverName,
+                    onBack = { currentScreen = AppScreen.ActiveShipment }
+                )
+            }
+            is AppScreen.Support -> {
+                SupportScreen(
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onTicketClick = { ticketId -> currentScreen = AppScreen.TicketDetail(ticketId) }
+                )
+            }
+            is AppScreen.TicketDetail -> {
+                TicketDetailScreen(
+                    ticketId = screen.ticketId,
+                    onBack = { currentScreen = AppScreen.Support }
+                )
+            }
+            is AppScreen.Promo -> {
+                PromoScreen(
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onApplyCoupon = null
+                )
+            }
+            is AppScreen.Invoice -> {
+                InvoiceScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.Orders }
                 )
             }
         }

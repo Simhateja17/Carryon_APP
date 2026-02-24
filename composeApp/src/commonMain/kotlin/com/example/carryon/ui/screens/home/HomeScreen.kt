@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.clip_path_group
 import carryon.composeapp.generated.resources.clip_path_group_1
@@ -65,7 +65,7 @@ fun HomeScreen(
     val strings = LocalStrings.current
     var pickupLocation by remember { mutableStateOf("") }
     var deliveryLocation by remember { mutableStateOf("") }
-    var selectedNavItem by remember { mutableStateOf(2) }
+    var selectedNavItem by remember { mutableStateOf(0) }
     var selectedVehicle by remember { mutableStateOf(0) }
     var isGettingLocation by remember { mutableStateOf(false) }
     var userLat by remember { mutableStateOf<Double?>(null) }
@@ -207,7 +207,7 @@ fun HomeScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                     ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
                     NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val navItems = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
+                        val navItems = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
                         navItems.forEachIndexed { index, (iconRes, label) ->
                             NavigationBarItem(
                                 icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) },
@@ -215,8 +215,8 @@ fun HomeScreen(
                                 onClick = {
                                     selectedNavItem = index
                                     when (index) {
-                                        0 -> onNavigateToCalculate()
-                                        1 -> onNavigateToHistory()
+                                        1 -> onNavigateToOrders()
+                                        2 -> { /* Payments/Wallet - already on home */ }
                                         3 -> onNavigateToProfile()
                                     }
                                 },
@@ -465,8 +465,9 @@ private fun ServiceCard(imageRes: org.jetbrains.compose.resources.DrawableResour
 
 @Composable
 private fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+    val strings = LocalStrings.current
     NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-        val items = listOf(Pair(Res.drawable.icon_search, "Search"), Pair(Res.drawable.icon_messages, "Messages"), Pair(Res.drawable.icon_home, "Home"), Pair(Res.drawable.icon_profile, "Profile"))
+        val items = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
         items.forEachIndexed { index, (iconRes, label) ->
             NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = selectedIndex == index, onClick = { onItemSelected(index) }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedIndex == index) PrimaryBlueSurface else Color.Transparent))
         }

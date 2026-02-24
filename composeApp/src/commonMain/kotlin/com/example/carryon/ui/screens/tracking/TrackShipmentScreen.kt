@@ -26,9 +26,9 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.carryon_logo
 import carryon.composeapp.generated.resources.icon_documents
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.track_sent
 import carryon.composeapp.generated.resources.track_transit
@@ -520,10 +520,10 @@ private fun BottomNavigationBar(selectedIndex: Int, onNavigateToHistory: () -> U
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, strings.navSearch),
-            Pair(Res.drawable.icon_messages, strings.navMessages),
             Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_profile, strings.navProfile)
+            Pair(Res.drawable.icon_timer, strings.navOrders),
+            Pair(Res.drawable.payment_icon, strings.navPayments),
+            Pair(Res.drawable.icon_people, strings.navAccount)
         )
         
         items.forEachIndexed { index, (iconRes, label) ->
@@ -537,7 +537,7 @@ private fun BottomNavigationBar(selectedIndex: Int, onNavigateToHistory: () -> U
                     )
                 },
                 selected = selectedIndex == index,
-                onClick = { if (index == 1) onNavigateToHistory() },
+                onClick = { if (index == 1) onNavigateToHistory() }, // Orders tab
                 colors = NavigationBarItemDefaults.colors(
                     indicatorColor = Color.Transparent
                 )

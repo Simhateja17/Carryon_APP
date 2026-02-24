@@ -11,6 +11,7 @@ data class User(
     val profileImage: String? = null,
     val language: String = "",
     val isVerified: Boolean = false,
+    val referralCode: String? = null,
     val createdAt: String = ""
 )
 
@@ -61,6 +62,11 @@ data class Booking(
     val paymentStatus: PaymentStatus = PaymentStatus.PENDING,
     val driver: Driver? = null,
     val otp: String = "",
+    val promoCode: String? = null,
+    val discountAmount: Double = 0.0,
+    val deliveryProofUrl: String? = null,
+    val deliveredAt: String? = null,
+    val eta: Int? = null,
     val createdAt: String = "",
     val updatedAt: String = ""
 )
@@ -104,9 +110,11 @@ data class Driver(
 @Serializable
 data class Order(
     val id: String = "",
-    val booking: Booking = Booking(),
+    val bookingId: String = "",
     val rating: Int? = null,
     val review: String? = null,
+    val tags: List<String> = emptyList(),
+    val tipAmount: Double = 0.0,
     val completedAt: String = ""
 )
 
@@ -287,4 +295,201 @@ data class IsolineRequest(
     val lat: Double,
     val lng: Double,
     val minutes: Int
+)
+
+// ── Promo & Referral Models ─────────────────────────────
+
+@Serializable
+data class Coupon(
+    val id: String = "",
+    val code: String = "",
+    val description: String = "",
+    val discountType: String = "PERCENTAGE",
+    val discountValue: Double = 0.0,
+    val maxDiscount: Double? = null,
+    val minOrderValue: Double = 0.0,
+    val expiresAt: String? = null
+)
+
+@Serializable
+data class PromoValidateResponse(
+    val couponId: String = "",
+    val code: String = "",
+    val description: String = "",
+    val discountType: String = "",
+    val discountValue: Double = 0.0,
+    val calculatedDiscount: Double = 0.0
+)
+
+@Serializable
+data class PromoApplyResponse(
+    val discount: Double = 0.0,
+    val finalPrice: Double = 0.0
+)
+
+@Serializable
+data class ReferralInfo(
+    val referralCode: String = "",
+    val totalReferrals: Int = 0,
+    val completedReferrals: Int = 0,
+    val totalEarned: Double = 0.0
+)
+
+// ── Chat Models ─────────────────────────────────────────
+
+@Serializable
+data class ChatMessage(
+    val id: String = "",
+    val bookingId: String = "",
+    val senderId: String = "",
+    val senderType: String = "USER",
+    val message: String = "",
+    val imageUrl: String? = null,
+    val isRead: Boolean = false,
+    val createdAt: String = ""
+)
+
+// ── Wallet Models ───────────────────────────────────────
+
+@Serializable
+data class Wallet(
+    val id: String = "",
+    val userId: String = "",
+    val balance: Double = 0.0,
+    val transactions: List<WalletTransaction> = emptyList()
+)
+
+@Serializable
+data class WalletTransaction(
+    val id: String = "",
+    val walletId: String = "",
+    val type: String = "",
+    val amount: Double = 0.0,
+    val description: String = "",
+    val referenceId: String? = null,
+    val createdAt: String = ""
+)
+
+@Serializable
+data class WalletPayResponse(
+    val balance: Double = 0.0,
+    val amountPaid: Double = 0.0
+)
+
+@Serializable
+data class WalletTopUpResponse(
+    val balance: Double = 0.0
+)
+
+// ── Support Ticket Models ───────────────────────────────
+
+@Serializable
+data class SupportTicket(
+    val id: String = "",
+    val userId: String = "",
+    val bookingId: String? = null,
+    val subject: String = "",
+    val category: String = "OTHER",
+    val status: String = "OPEN",
+    val priority: String = "MEDIUM",
+    val messages: List<TicketMessage> = emptyList(),
+    val createdAt: String = "",
+    val updatedAt: String = ""
+)
+
+@Serializable
+data class TicketMessage(
+    val id: String = "",
+    val ticketId: String = "",
+    val senderId: String = "",
+    val isStaff: Boolean = false,
+    val message: String = "",
+    val imageUrl: String? = null,
+    val createdAt: String = ""
+)
+
+// ── ETA Models ──────────────────────────────────────────
+
+@Serializable
+data class EtaResponse(
+    val status: String = "",
+    val etaMinutes: Int = 0,
+    val statusMessage: String = "",
+    val driverName: String? = null,
+    val driverPhone: String? = null,
+    val driverLocation: LatLng? = null
+)
+
+// ── Invoice Models ──────────────────────────────────────
+
+@Serializable
+data class Invoice(
+    val id: String = "",
+    val bookingId: String = "",
+    val userId: String = "",
+    val invoiceNumber: String = "",
+    val subtotal: Double = 0.0,
+    val tax: Double = 0.0,
+    val discount: Double = 0.0,
+    val total: Double = 0.0,
+    val taxRate: Double = 0.06,
+    val currency: String = "MYR",
+    val issuedAt: String = ""
+)
+
+@Serializable
+data class InvoiceDetail(
+    val invoice: Invoice = Invoice(),
+    val booking: InvoiceBooking = InvoiceBooking(),
+    val customer: InvoiceCustomer = InvoiceCustomer(),
+    val company: InvoiceCompany = InvoiceCompany()
+)
+
+@Serializable
+data class InvoiceBooking(
+    val id: String = "",
+    val vehicleType: String = "",
+    val distance: Double = 0.0,
+    val duration: Int = 0,
+    val status: String = "",
+    val paymentMethod: String = "",
+    val createdAt: String = "",
+    val deliveredAt: String? = null,
+    val pickupAddress: Address = Address(),
+    val deliveryAddress: Address = Address(),
+    val driver: InvoiceDriver? = null
+)
+
+@Serializable
+data class InvoiceDriver(
+    val name: String = "",
+    val phone: String = "",
+    val vehicleNumber: String = ""
+)
+
+@Serializable
+data class InvoiceCustomer(
+    val name: String = "",
+    val email: String = "",
+    val phone: String = ""
+)
+
+@Serializable
+data class InvoiceCompany(
+    val name: String = "",
+    val registration: String = "",
+    val sstNo: String = "",
+    val address: String = "",
+    val phone: String = "",
+    val email: String = ""
+)
+
+// ── Rating Request ──────────────────────────────────────
+
+@Serializable
+data class RatingRequest(
+    val rating: Int,
+    val review: String? = null,
+    val tags: List<String> = emptyList(),
+    val tipAmount: Double = 0.0
 )

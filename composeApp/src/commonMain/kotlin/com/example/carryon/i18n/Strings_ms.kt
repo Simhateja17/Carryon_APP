@@ -22,10 +22,10 @@ object MsStrings : AppStrings {
     override val notifications = "Pemberitahuan"
 
     // ── Navigation ──
-    override val navSearch = "Cari"
-    override val navMessages = "Mesej"
     override val navHome = "Utama"
-    override val navProfile = "Profil"
+    override val navOrders = "Pesanan"
+    override val navPayments = "Pembayaran"
+    override val navAccount = "Akaun"
 
     // ── Welcome Screen ──
     override val welcome = "Selamat Datang"
@@ -338,4 +338,68 @@ object MsStrings : AppStrings {
 
     // ── Language Selection Dialog ──
     override val selectYourLanguage = "Pilih Bahasa Anda"
+
+    // ── Wallet Screen ──
+    override val walletTitle = "Dompet Saya"
+    override val walletBalance = "Baki Dompet"
+    override val topUp = "Tambah Nilai"
+    override val topUpWallet = "Tambah Nilai Dompet"
+    override val enterAmount = "Masukkan jumlah (RM)"
+    override val transactionHistory = "Sejarah Transaksi"
+    override val noTransactions = "Tiada transaksi lagi"
+
+    // ── Chat Screen ──
+    override val chatWithDriver = "Sembang dengan pemandu"
+    override val typeMessage = "Taip mesej..."
+    override val send = "Hantar"
+    override val noMessagesYet = "Tiada mesej lagi"
+    override val startConversation = "Hantar mesej untuk memulakan perbualan"
+
+    // ── Support Screen ──
+    override val supportTitle = "Bantuan & Sokongan"
+    override val noTickets = "Tiada tiket sokongan"
+    override val noTicketsSubtitle = "Perlukan bantuan? Buat tiket"
+    override val createTicket = "Buat Tiket Sokongan"
+    override val categoryLabel = "Kategori"
+    override val subjectLabel = "Subjek"
+    override val describeIssue = "Terangkan isu anda..."
+    override val deliveryIssue = "Penghantaran"
+    override val paymentIssueCat = "Pembayaran"
+    override val driverComplaint = "Pemandu"
+    override val refundRequest = "Bayaran Balik"
+    override val appBug = "Pepijat Aplikasi"
+    override val otherCategory = "Lain-lain"
+    override val closeTicket = "Tutup"
+    override val typeReply = "Taip balasan anda..."
+
+    // ── Promo Screen ──
+    override val promoAndReferrals = "Promosi & Rujukan"
+    override val promoCodes = "Kod Promosi"
+    override val referrals = "Rujukan"
+    override val noCoupons = "Tiada kupon tersedia"
+    override val yourReferralCode = "Kod Rujukan Anda"
+    override val shareAndEarn = "Kongsi dengan rakan dan dapatkan RM 5 setiap seorang apabila mereka daftar dan tempah"
+    override val totalReferrals = "Jumlah Rujukan"
+    override val totalEarned = "Jumlah Pendapatan"
+    override val haveReferralCode = "Ada kod rujukan?"
+    override val enterReferralCode = "Masukkan kod"
+    override val apply = "Guna"
+
+    // ── Invoice Screen ──
+    override val invoiceTitle = "Invois"
+    override val taxInvoice = "INVOIS CUKAI"
+    override val billTo = "BIL KEPADA"
+    override val invoiceDate = "TARIKH"
+    override val tripDetails = "Butiran Perjalanan"
+    override val driverLabel = "Pemandu"
+    override val priceBreakdown = "Pecahan Harga"
+    override val subtotal = "Jumlah Kecil"
+    override val discountLabel = "Diskaun"
+    override val totalAmount = "Jumlah"
+
+    // ── Delivery Verification ──
+    override val verifyDelivery = "Sahkan Penghantaran"
+    override val enterDeliveryOtp = "Masukkan OTP penghantaran"
+    override val deliveryVerified = "Penghantaran berjaya disahkan!"
+    override val viewInvoice = "Lihat Invois"
 }

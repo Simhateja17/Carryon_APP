@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.icon_help
 import carryon.composeapp.generated.resources.icon_messages_menu
@@ -49,6 +49,8 @@ fun ProfileScreen(
     onNavigateToTrackShipment: () -> Unit,
     onNavigateToDriverRating: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToPromo: () -> Unit = {},
     onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -93,8 +95,9 @@ fun ProfileScreen(
         bottomBar = {
             BottomNavigationBar(
                 selectedIndex = 3,
-                onNavigateToHistory = onNavigateToHistory,
-                onNavigateToHome = onBack
+                onNavigateToHome = onBack,
+                onNavigateToOrders = onNavigateToOrders,
+                onNavigateToWallet = onNavigateToWallet
             )
         }
     ) { paddingValues ->
@@ -186,7 +189,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(100.dp)
-                        .clickable { },
+                        .clickable { onNavigateToPromo() },
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFC107))
                 ) {
@@ -222,7 +225,9 @@ fun ProfileScreen(
             HorizontalDivider(color = Color(0xFFF0F0F0))
             ProfileMenuItem(iconRes = Res.drawable.icon_settings_menu, title = strings.settings, onClick = onNavigateToSettings)
             HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = strings.referYourFriend, onClick = { })
+            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = strings.referYourFriend, onClick = onNavigateToPromo)
+            HorizontalDivider(color = Color(0xFFF0F0F0))
+            ProfileMenuItem(iconRes = Res.drawable.icon_logout_shield, title = strings.walletTitle, onClick = onNavigateToWallet)
             HorizontalDivider(color = Color(0xFFF0F0F0))
             ProfileMenuItem(
                 iconRes = Res.drawable.icon_logout_hammer,
@@ -284,18 +289,20 @@ private fun ProfileMenuItem(
 @Composable
 private fun BottomNavigationBar(
     selectedIndex: Int,
-    onNavigateToHistory: () -> Unit = {},
-    onNavigateToHome: () -> Unit = {}
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToOrders: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, "Search"),
-            Pair(Res.drawable.icon_messages, "Messages"),
-            Pair(Res.drawable.icon_home, "Home"),
-            Pair(Res.drawable.icon_profile, "Profile")
+            Pair(Res.drawable.icon_home, strings.navHome),
+            Pair(Res.drawable.icon_timer, strings.navOrders),
+            Pair(Res.drawable.payment_icon, strings.navPayments),
+            Pair(Res.drawable.icon_people, strings.navAccount)
         )
 
         items.forEachIndexed { index, (iconRes, label) ->
@@ -311,8 +318,9 @@ private fun BottomNavigationBar(
                 selected = selectedIndex == index,
                 onClick = {
                     when (index) {
-                        1 -> onNavigateToHistory()
-                        2 -> onNavigateToHome()
+                        0 -> onNavigateToHome()
+                        1 -> onNavigateToOrders()
+                        2 -> onNavigateToWallet()
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(

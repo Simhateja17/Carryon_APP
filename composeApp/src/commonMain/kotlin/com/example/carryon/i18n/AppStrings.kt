@@ -22,10 +22,10 @@ interface AppStrings {
     val notifications: String get() = "Notifications"
 
     // ── Navigation ──
-    val navSearch: String get() = "Search"
-    val navMessages: String get() = "Messages"
     val navHome: String get() = "Home"
-    val navProfile: String get() = "Profile"
+    val navOrders: String get() = "Orders"
+    val navPayments: String get() = "Payments"
+    val navAccount: String get() = "Account"
 
     // ── Welcome Screen ──
     val welcome: String get() = "Welcome"
@@ -338,4 +338,68 @@ interface AppStrings {
 
     // ── Language Selection Dialog ──
     val selectYourLanguage: String get() = "Select Your Language"
+
+    // ── Wallet Screen ──
+    val walletTitle: String get() = "My Wallet"
+    val walletBalance: String get() = "Wallet Balance"
+    val topUp: String get() = "Top Up"
+    val topUpWallet: String get() = "Top Up Wallet"
+    val enterAmount: String get() = "Enter amount (RM)"
+    val transactionHistory: String get() = "Transaction History"
+    val noTransactions: String get() = "No transactions yet"
+
+    // ── Chat Screen ──
+    val chatWithDriver: String get() = "Chat with driver"
+    val typeMessage: String get() = "Type a message..."
+    val send: String get() = "Send"
+    val noMessagesYet: String get() = "No messages yet"
+    val startConversation: String get() = "Send a message to start the conversation"
+
+    // ── Support Screen ──
+    val supportTitle: String get() = "Help & Support"
+    val noTickets: String get() = "No support tickets"
+    val noTicketsSubtitle: String get() = "Need help? Create a ticket"
+    val createTicket: String get() = "Create Support Ticket"
+    val categoryLabel: String get() = "Category"
+    val subjectLabel: String get() = "Subject"
+    val describeIssue: String get() = "Describe your issue..."
+    val deliveryIssue: String get() = "Delivery"
+    val paymentIssueCat: String get() = "Payment"
+    val driverComplaint: String get() = "Driver"
+    val refundRequest: String get() = "Refund"
+    val appBug: String get() = "App Bug"
+    val otherCategory: String get() = "Other"
+    val closeTicket: String get() = "Close"
+    val typeReply: String get() = "Type your reply..."
+
+    // ── Promo Screen ──
+    val promoAndReferrals: String get() = "Promos & Referrals"
+    val promoCodes: String get() = "Promo Codes"
+    val referrals: String get() = "Referrals"
+    val noCoupons: String get() = "No coupons available"
+    val yourReferralCode: String get() = "Your Referral Code"
+    val shareAndEarn: String get() = "Share with friends and earn RM 5 each when they sign up and book"
+    val totalReferrals: String get() = "Total Referrals"
+    val totalEarned: String get() = "Total Earned"
+    val haveReferralCode: String get() = "Have a referral code?"
+    val enterReferralCode: String get() = "Enter code"
+    val apply: String get() = "Apply"
+
+    // ── Invoice Screen ──
+    val invoiceTitle: String get() = "Invoice"
+    val taxInvoice: String get() = "TAX INVOICE"
+    val billTo: String get() = "BILL TO"
+    val invoiceDate: String get() = "DATE"
+    val tripDetails: String get() = "Trip Details"
+    val driverLabel: String get() = "Driver"
+    val priceBreakdown: String get() = "Price Breakdown"
+    val subtotal: String get() = "Subtotal"
+    val discountLabel: String get() = "Discount"
+    val totalAmount: String get() = "Total"
+
+    // ── Delivery Verification ──
+    val verifyDelivery: String get() = "Verify Delivery"
+    val enterDeliveryOtp: String get() = "Enter delivery OTP"
+    val deliveryVerified: String get() = "Delivery verified successfully!"
+    val viewInvoice: String get() = "View Invoice"
 }

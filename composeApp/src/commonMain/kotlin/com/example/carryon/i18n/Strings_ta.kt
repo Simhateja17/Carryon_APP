@@ -22,10 +22,10 @@ object TaStrings : AppStrings {
     override val notifications = "அறிவிப்புகள்"
 
     // ── Navigation ──
-    override val navSearch = "தேடு"
-    override val navMessages = "செய்திகள்"
     override val navHome = "முகப்பு"
-    override val navProfile = "சுயவிவரம்"
+    override val navOrders = "ஆர்டர்கள்"
+    override val navPayments = "பணம்"
+    override val navAccount = "கணக்கு"
 
     // ── Welcome Screen ──
     override val welcome = "வரவேற்கிறோம்"
@@ -338,4 +338,68 @@ object TaStrings : AppStrings {
 
     // ── Language Selection Dialog ──
     override val selectYourLanguage = "உங்கள் மொழியைத் தேர்வு செய்யவும்"
+
+    // ── Wallet Screen ──
+    override val walletTitle = "எனது பணப்பை"
+    override val walletBalance = "பணப்பை இருப்பு"
+    override val topUp = "டாப் அப்"
+    override val topUpWallet = "பணப்பையை டாப் அப் செய்க"
+    override val enterAmount = "தொகையை உள்ளிடவும் (RM)"
+    override val transactionHistory = "பரிவர்த்தனை வரலாறு"
+    override val noTransactions = "பரிவர்த்தனைகள் இல்லை"
+
+    // ── Chat Screen ──
+    override val chatWithDriver = "ஓட்டுநருடன் அரட்டை"
+    override val typeMessage = "செய்தி தட்டச்சு செய்க..."
+    override val send = "அனுப்பு"
+    override val noMessagesYet = "இன்னும் செய்திகள் இல்லை"
+    override val startConversation = "உரையாடலைத் தொடங்க செய்தி அனுப்பவும்"
+
+    // ── Support Screen ──
+    override val supportTitle = "உதவி & ஆதரவு"
+    override val noTickets = "ஆதரவு டிக்கெட்டுகள் இல்லை"
+    override val noTicketsSubtitle = "உதவி தேவையா? டிக்கெட் உருவாக்கவும்"
+    override val createTicket = "ஆதரவு டிக்கெட் உருவாக்கு"
+    override val categoryLabel = "வகை"
+    override val subjectLabel = "தலைப்பு"
+    override val describeIssue = "உங்கள் சிக்கலை விவரிக்கவும்..."
+    override val deliveryIssue = "டெலிவரி"
+    override val paymentIssueCat = "கட்டணம்"
+    override val driverComplaint = "ஓட்டுநர்"
+    override val refundRequest = "பணத்திரும்பப்பெறுதல்"
+    override val appBug = "பிழை"
+    override val otherCategory = "மற்றவை"
+    override val closeTicket = "மூடு"
+    override val typeReply = "பதிலை தட்டச்சு செய்க..."
+
+    // ── Promo Screen ──
+    override val promoAndReferrals = "சலுகைகள் & பரிந்துரைகள்"
+    override val promoCodes = "சலுகை குறியீடுகள்"
+    override val referrals = "பரிந்துரைகள்"
+    override val noCoupons = "குப்பன்கள் கிடைக்கவில்லை"
+    override val yourReferralCode = "உங்கள் பரிந்துரை குறியீடு"
+    override val shareAndEarn = "நண்பர்களுடன் பகிர்ந்து RM 5 பெறுங்கள்"
+    override val totalReferrals = "மொத்த பரிந்துரைகள்"
+    override val totalEarned = "மொத்த வருமானம்"
+    override val haveReferralCode = "பரிந்துரை குறியீடு உள்ளதா?"
+    override val enterReferralCode = "குறியீடு உள்ளிடவும்"
+    override val apply = "பயன்படுத்து"
+
+    // ── Invoice Screen ──
+    override val invoiceTitle = "விலைப்பட்டியல்"
+    override val taxInvoice = "வரி விலைப்பட்டியல்"
+    override val billTo = "பில் பெறுநர்"
+    override val invoiceDate = "தேதி"
+    override val tripDetails = "பயண விவரங்கள்"
+    override val driverLabel = "ஓட்டுநர்"
+    override val priceBreakdown = "விலை விவரம்"
+    override val subtotal = "உப மொத்தம்"
+    override val discountLabel = "தள்ளுபடி"
+    override val totalAmount = "மொத்தம்"
+
+    // ── Delivery Verification ──
+    override val verifyDelivery = "டெலிவரியை சரிபார்க்கவும்"
+    override val enterDeliveryOtp = "டெலிவரி OTP உள்ளிடவும்"
+    override val deliveryVerified = "டெலிவரி வெற்றிகரமாக சரிபார்க்கப்பட்டது!"
+    override val viewInvoice = "விலைப்பட்டியல் காண்க"
 }

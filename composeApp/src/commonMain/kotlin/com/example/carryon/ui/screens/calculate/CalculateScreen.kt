@@ -25,9 +25,9 @@ import carryon.composeapp.generated.resources.icon_boxes
 import carryon.composeapp.generated.resources.icon_documents
 import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.calc_products
 import carryon.composeapp.generated.resources.calc_boxes
@@ -57,7 +57,6 @@ fun CalculateScreen(
         )
     }
     
-    var selectedTab by remember { mutableStateOf(0) } // 0 = Domestic, 1 = International
     var selectedPackageType by remember { mutableStateOf(packageTypes[2]) }
     var fromAddress by remember { mutableStateOf("") }
     var destinationAddress by remember { mutableStateOf("") }
@@ -131,7 +130,7 @@ fun CalculateScreen(
                 ) {
                     Text(strings.freeCheck, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-                BottomNavigationBar(selectedIndex = 2)
+                BottomNavigationBar(selectedIndex = 0)
             }
         }
     ) { paddingValues ->
@@ -171,58 +170,7 @@ fun CalculateScreen(
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            // Domestic / International Tabs
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .background(PrimaryBlueSurface, RoundedCornerShape(10.dp))
-                    .padding(4.dp)
-            ) {
-                Row {
-                    // Domestic Tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                if (selectedTab == 0) PrimaryBlue else Color.Transparent
-                            )
-                            .clickable { selectedTab = 0 }
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = strings.domestic,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (selectedTab == 0) Color.White else TextSecondary
-                        )
-                    }
-
-                    // International Tab
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                if (selectedTab == 1) PrimaryBlue else Color.Transparent
-                            )
-                            .clickable { selectedTab = 1 }
-                            .padding(vertical = 12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = strings.international,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (selectedTab == 1) Color.White else TextSecondary
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             // What are you sending?
             Text(
@@ -509,12 +457,12 @@ private fun BottomNavigationBar(selectedIndex: Int) {
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, strings.navSearch),
-            Pair(Res.drawable.icon_messages, strings.navMessages),
             Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_profile, strings.navProfile)
+            Pair(Res.drawable.icon_timer, strings.navOrders),
+            Pair(Res.drawable.payment_icon, strings.navPayments),
+            Pair(Res.drawable.icon_people, strings.navAccount)
         )
-        
+
         items.forEachIndexed { index, (iconRes, label) ->
             NavigationBarItem(
                 icon = {
@@ -528,7 +476,7 @@ private fun BottomNavigationBar(selectedIndex: Int) {
                 selected = selectedIndex == index,
                 onClick = { },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent
+                    indicatorColor = if (selectedIndex == index) PrimaryBlueSurface else Color.Transparent
                 )
             )
         }

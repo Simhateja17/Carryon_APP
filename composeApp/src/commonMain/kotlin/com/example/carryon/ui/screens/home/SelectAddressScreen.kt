@@ -23,9 +23,9 @@ import carryon.composeapp.generated.resources.location_pin
 import carryon.composeapp.generated.resources.to_pin
 import carryon.composeapp.generated.resources.ellipse_to
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
@@ -54,7 +54,7 @@ fun SelectAddressScreen(
 ) {
     var from by remember { mutableStateOf(initialFrom) }
     var to by remember { mutableStateOf(initialTo) }
-    var selectedNavItem by remember { mutableStateOf(2) }
+    var selectedNavItem by remember { mutableStateOf(0) }
 
     // Map state — centered on user's real location once obtained
     var mapConfig by remember { mutableStateOf(MapConfig()) }
@@ -170,7 +170,7 @@ fun SelectAddressScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
                     ) { Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
                     NavigationBar(containerColor = Color.White, tonalElevation = 0.dp) {
-                        val items = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
+                        val items = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
                         items.forEachIndexed { index, (iconRes, label) ->
                             NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = selectedNavItem == index, onClick = { selectedNavItem = index }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (selectedNavItem == index) PrimaryBlueSurface else Color.Transparent))
                         }

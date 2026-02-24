@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.map_background
 import carryon.composeapp.generated.resources.image_3
 import org.jetbrains.compose.resources.painterResource
@@ -36,7 +36,13 @@ fun DeliveryDetailsScreen(
     orderId: String = "560023",
     onBack: () -> Unit = {},
     onDelivered: () -> Unit = {},
-    onUnsuccessful: () -> Unit = {}
+    onUnsuccessful: () -> Unit = {},
+    onChatWithDriver: () -> Unit = {},
+    onViewInvoice: () -> Unit = {},
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToOrders: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val strings = LocalStrings.current
     var selectedTab by remember { mutableStateOf(0) }
@@ -50,12 +56,19 @@ fun DeliveryDetailsScreen(
                         Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = { IconButton(onClick = { }) { Text("☰", fontSize = 22.sp, color = TextPrimary) } },
+                navigationIcon = { IconButton(onClick = onBack) { Text("☰", fontSize = 22.sp, color = TextPrimary) } },
                 actions = { IconButton(onClick = { }) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
-        bottomBar = { DeliveryDetailsBottomNav() },
+        bottomBar = {
+            DeliveryDetailsBottomNav(
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToOrders = onNavigateToOrders,
+                onNavigateToWallet = onNavigateToWallet,
+                onNavigateToProfile = onNavigateToProfile
+            )
+        },
         containerColor = Color.White
     ) { paddingValues ->
         Column(
@@ -176,7 +189,28 @@ fun DeliveryDetailsScreen(
                     Text("150", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
 
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Chat & Invoice Buttons
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = onChatWithDriver,
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
+                    ) { Text(strings.chatWithDriver, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PrimaryBlue) }
+
+                    OutlinedButton(
+                        onClick = onViewInvoice,
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
+                    ) { Text(strings.viewInvoice, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = PrimaryBlue) }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Action Buttons
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -219,12 +253,29 @@ private fun DeliveryTimelineItem(icon: String, label: String, location: String, 
 }
 
 @Composable
-private fun DeliveryDetailsBottomNav() {
+private fun DeliveryDetailsBottomNav(
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToOrders: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
+) {
     val strings = LocalStrings.current
     NavigationBar(containerColor = Color.White, tonalElevation = 8.dp) {
-        val items = listOf(Pair(Res.drawable.icon_search, strings.navSearch), Pair(Res.drawable.icon_messages, strings.navMessages), Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_profile, strings.navProfile))
+        val items = listOf(Pair(Res.drawable.icon_home, strings.navHome), Pair(Res.drawable.icon_timer, strings.navOrders), Pair(Res.drawable.payment_icon, strings.navPayments), Pair(Res.drawable.icon_people, strings.navAccount))
         items.forEachIndexed { index, (iconRes, label) ->
-            NavigationBarItem(icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) }, selected = index == 2, onClick = { }, colors = NavigationBarItemDefaults.colors(indicatorColor = if (index == 2) PrimaryBlueSurface else Color.Transparent))
+            NavigationBarItem(
+                icon = { Image(painter = painterResource(iconRes), contentDescription = label, modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) },
+                selected = index == 0,
+                onClick = {
+                    when (index) {
+                        0 -> onNavigateToHome()
+                        1 -> onNavigateToOrders()
+                        2 -> onNavigateToWallet()
+                        3 -> onNavigateToProfile()
+                    }
+                },
+                colors = NavigationBarItemDefaults.colors(indicatorColor = if (index == 0) PrimaryBlueSurface else Color.Transparent)
+            )
         }
     }
 }

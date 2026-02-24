@@ -22,10 +22,10 @@ object ZhStrings : AppStrings {
     override val notifications = "通知"
 
     // ── Navigation ──
-    override val navSearch = "搜索"
-    override val navMessages = "消息"
     override val navHome = "首页"
-    override val navProfile = "个人资料"
+    override val navOrders = "订单"
+    override val navPayments = "支付"
+    override val navAccount = "账户"
 
     // ── Welcome Screen ──
     override val welcome = "欢迎"
@@ -338,4 +338,68 @@ object ZhStrings : AppStrings {
 
     // ── Language Selection Dialog ──
     override val selectYourLanguage = "选择您的语言"
+
+    // ── Wallet Screen ──
+    override val walletTitle = "我的钱包"
+    override val walletBalance = "钱包余额"
+    override val topUp = "充值"
+    override val topUpWallet = "钱包充值"
+    override val enterAmount = "输入金额 (RM)"
+    override val transactionHistory = "交易记录"
+    override val noTransactions = "暂无交易"
+
+    // ── Chat Screen ──
+    override val chatWithDriver = "与司机聊天"
+    override val typeMessage = "输入消息..."
+    override val send = "发送"
+    override val noMessagesYet = "暂无消息"
+    override val startConversation = "发送消息开始对话"
+
+    // ── Support Screen ──
+    override val supportTitle = "帮助与支持"
+    override val noTickets = "没有支持工单"
+    override val noTicketsSubtitle = "需要帮助？创建工单"
+    override val createTicket = "创建支持工单"
+    override val categoryLabel = "类别"
+    override val subjectLabel = "主题"
+    override val describeIssue = "描述您的问题..."
+    override val deliveryIssue = "配送"
+    override val paymentIssueCat = "支付"
+    override val driverComplaint = "司机"
+    override val refundRequest = "退款"
+    override val appBug = "应用故障"
+    override val otherCategory = "其他"
+    override val closeTicket = "关闭"
+    override val typeReply = "输入回复..."
+
+    // ── Promo Screen ──
+    override val promoAndReferrals = "优惠与推荐"
+    override val promoCodes = "优惠码"
+    override val referrals = "推荐"
+    override val noCoupons = "暂无优惠券"
+    override val yourReferralCode = "您的推荐码"
+    override val shareAndEarn = "与朋友分享，双方注册并下单后各获 RM 5"
+    override val totalReferrals = "总推荐数"
+    override val totalEarned = "总收入"
+    override val haveReferralCode = "有推荐码？"
+    override val enterReferralCode = "输入推荐码"
+    override val apply = "使用"
+
+    // ── Invoice Screen ──
+    override val invoiceTitle = "发票"
+    override val taxInvoice = "税务发票"
+    override val billTo = "收票人"
+    override val invoiceDate = "日期"
+    override val tripDetails = "行程详情"
+    override val driverLabel = "司机"
+    override val priceBreakdown = "价格明细"
+    override val subtotal = "小计"
+    override val discountLabel = "折扣"
+    override val totalAmount = "总计"
+
+    // ── Delivery Verification ──
+    override val verifyDelivery = "验证配送"
+    override val enterDeliveryOtp = "输入配送 OTP"
+    override val deliveryVerified = "配送验证成功！"
+    override val viewInvoice = "查看发票"
 }

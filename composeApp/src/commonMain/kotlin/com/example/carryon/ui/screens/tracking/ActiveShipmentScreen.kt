@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.map_background
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
@@ -35,7 +35,10 @@ import com.example.carryon.i18n.LocalStrings
 fun ActiveShipmentScreen(
     onTrackShipments: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToHistory: () -> Unit = {}
+    onNavigateToOrders: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onChatWithDriver: (String, String) -> Unit = { _, _ -> }
 ) {
     val strings = LocalStrings.current
     var shareWithNeighbors by remember { mutableStateOf(true) }
@@ -86,7 +89,9 @@ fun ActiveShipmentScreen(
         bottomBar = {
             ActiveShipmentBottomNav(
                 onNavigateToHome = onNavigateToHome,
-                onNavigateToHistory = onNavigateToHistory
+                onNavigateToOrders = onNavigateToOrders,
+                onNavigateToWallet = onNavigateToWallet,
+                onNavigateToProfile = onNavigateToProfile
             )
         },
         containerColor = Color.White
@@ -241,6 +246,26 @@ fun ActiveShipmentScreen(
 
                 Spacer(modifier = Modifier.height(28.dp))
 
+                // Chat with Driver Button
+                OutlinedButton(
+                    onClick = { onChatWithDriver("560023", "Sara") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
+                ) {
+                    Text(
+                        text = strings.chatWithDriver,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryBlue
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 // Track Shipments Button
                 Button(
                     onClick = onTrackShipments,
@@ -269,7 +294,9 @@ fun ActiveShipmentScreen(
 @Composable
 private fun ActiveShipmentBottomNav(
     onNavigateToHome: () -> Unit,
-    onNavigateToHistory: () -> Unit = {}
+    onNavigateToOrders: () -> Unit = {},
+    onNavigateToWallet: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
     val strings = LocalStrings.current
     NavigationBar(
@@ -277,10 +304,10 @@ private fun ActiveShipmentBottomNav(
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, strings.navSearch),
-            Pair(Res.drawable.icon_messages, strings.navMessages),
             Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_profile, strings.navProfile)
+            Pair(Res.drawable.icon_timer, strings.navOrders),
+            Pair(Res.drawable.payment_icon, strings.navPayments),
+            Pair(Res.drawable.icon_people, strings.navAccount)
         )
 
         items.forEachIndexed { index, (iconRes, label) ->
@@ -293,15 +320,17 @@ private fun ActiveShipmentBottomNav(
                         contentScale = ContentScale.Fit
                     )
                 },
-                selected = index == 2,
+                selected = index == 0,
                 onClick = {
                     when (index) {
-                        1 -> onNavigateToHistory()
-                        2 -> onNavigateToHome()
+                        0 -> onNavigateToHome()
+                        1 -> onNavigateToOrders()
+                        2 -> onNavigateToWallet()
+                        3 -> onNavigateToProfile()
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (index == 2) PrimaryBlueSurface else Color.Transparent
+                    indicatorColor = if (index == 0) PrimaryBlueSurface else Color.Transparent
                 )
             )
         }

@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_messages
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_search
+import carryon.composeapp.generated.resources.payment_icon
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.vehicle_truck_new
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.ui.theme.*
@@ -158,10 +158,10 @@ private fun ReadyToBookBottomNav() {
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Pair(Res.drawable.icon_search, strings.navSearch),
-            Pair(Res.drawable.icon_messages, strings.navMessages),
             Pair(Res.drawable.icon_home, strings.navHome),
-            Pair(Res.drawable.icon_profile, strings.navProfile)
+            Pair(Res.drawable.icon_timer, strings.navOrders),
+            Pair(Res.drawable.payment_icon, strings.navPayments),
+            Pair(Res.drawable.icon_people, strings.navAccount)
         )
 
         items.forEachIndexed { index, (iconRes, label) ->
@@ -174,10 +174,10 @@ private fun ReadyToBookBottomNav() {
                         contentScale = ContentScale.Fit
                     )
                 },
-                selected = index == 2,
+                selected = index == 0,
                 onClick = { },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (index == 2) PrimaryBlueSurface else Color.Transparent
+                    indicatorColor = if (index == 0) PrimaryBlueSurface else Color.Transparent
                 )
             )
         }
