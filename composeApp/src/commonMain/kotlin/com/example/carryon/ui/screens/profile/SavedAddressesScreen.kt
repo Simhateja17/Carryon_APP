@@ -1,6 +1,5 @@
 package com.example.carryon.ui.screens.profile
 
-import kotlin.random.Random
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.carryon.data.model.Address
 import com.example.carryon.data.model.AddressType
 import com.example.carryon.data.model.MapConfig
-import com.example.carryon.data.model.PlaceResult
+import com.example.carryon.data.network.AddressApi
 import com.example.carryon.data.network.LocationApi
 import com.example.carryon.ui.components.MapViewComposable
 import com.example.carryon.ui.components.MapMarker
@@ -37,9 +36,32 @@ fun SavedAddressesScreen(
     val strings = LocalStrings.current
     var showAddDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var isSaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     
-    // TODO: Load saved addresses from API
     val addresses = remember { mutableStateListOf<Address>() }
+
+    // Load saved addresses from API
+    LaunchedEffect(Unit) {
+        AddressApi.getAddresses()
+            .onSuccess { list ->
+                addresses.clear()
+                addresses.addAll(list)
+            }
+            .onFailure { errorMessage = it.message }
+        isLoading = false
+    }
+
+    // Show error as snackbar
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            errorMessage = null
+        }
+    }
     
     Scaffold(
         topBar = {
@@ -55,6 +77,7 @@ fun SavedAddressesScreen(
                 )
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
@@ -65,7 +88,16 @@ fun SavedAddressesScreen(
             }
         }
     ) { paddingValues ->
-        if (addresses.isEmpty()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryOrange)
+            }
+        } else if (addresses.isEmpty()) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -123,8 +155,16 @@ fun SavedAddressesScreen(
         AddAddressDialog(
             onDismiss = { showAddDialog = false },
             onSave = { newAddress ->
-                addresses.add(newAddress)
                 showAddDialog = false
+                isSaving = true
+                scope.launch {
+                    AddressApi.createAddress(newAddress)
+                        .onSuccess { created ->
+                            addresses.add(created)
+                        }
+                        .onFailure { errorMessage = it.message }
+                    isSaving = false
+                }
             }
         )
     }
@@ -138,8 +178,15 @@ fun SavedAddressesScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        addresses.removeAll { it.id == addressId }
+                        val idToDelete = addressId
                         showDeleteDialog = null
+                        scope.launch {
+                            AddressApi.deleteAddress(idToDelete)
+                                .onSuccess {
+                                    addresses.removeAll { it.id == idToDelete }
+                                }
+                                .onFailure { errorMessage = it.message }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
                 ) {
@@ -410,7 +457,6 @@ private fun AddAddressDialog(
                         if (label.isNotBlank() && address.isNotBlank()) {
                             onSave(
                                 Address(
-                                    id = Random.nextInt(100000, 999999).toString(),
                                     label = label,
                                     address = address,
                                     landmark = landmark,

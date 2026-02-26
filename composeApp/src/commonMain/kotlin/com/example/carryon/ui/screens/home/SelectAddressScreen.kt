@@ -37,6 +37,7 @@ import com.example.carryon.data.model.AutocompleteResult
 import com.example.carryon.data.model.MapConfig
 import com.example.carryon.data.model.NearbyPlace
 import com.example.carryon.data.model.PlaceResult
+import com.example.carryon.data.model.RouteResult
 import com.example.carryon.data.network.LocationApi
 import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.Job
@@ -69,6 +70,8 @@ fun SelectAddressScreen(
     var isLoadingNearby by remember { mutableStateOf(false) }
     var fromPlace by remember { mutableStateOf<PlaceResult?>(null) }
     var toPlace by remember { mutableStateOf<PlaceResult?>(null) }
+    var routeResult by remember { mutableStateOf<RouteResult?>(null) }
+    var isLoadingRoute by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     var searchJob by remember { mutableStateOf<Job?>(null) }
@@ -110,6 +113,56 @@ fun SelectAddressScreen(
             mapConfig = config
         }
         requestLocation()
+        // Geocode initial addresses passed from HomeScreen
+        if (initialFrom.isNotBlank() && fromPlace == null) {
+            LocationApi.geocode(initialFrom).onSuccess { geocoded ->
+                if (geocoded != null) {
+                    fromPlace = PlaceResult(
+                        placeId = geocoded.placeId,
+                        label = geocoded.title,
+                        address = geocoded.address,
+                        latitude = geocoded.lat,
+                        longitude = geocoded.lng
+                    )
+                    centerLat = geocoded.lat
+                    centerLng = geocoded.lng
+                    mapZoom = 14.0
+                }
+            }
+        }
+        if (initialTo.isNotBlank() && toPlace == null) {
+            LocationApi.geocode(initialTo).onSuccess { geocoded ->
+                if (geocoded != null) {
+                    toPlace = PlaceResult(
+                        placeId = geocoded.placeId,
+                        label = geocoded.title,
+                        address = geocoded.address,
+                        latitude = geocoded.lat,
+                        longitude = geocoded.lng
+                    )
+                }
+            }
+        }
+    }
+
+    // Calculate route whenever both places are set
+    LaunchedEffect(fromPlace, toPlace) {
+        val from = fromPlace
+        val to = toPlace
+        if (from != null && to != null) {
+            isLoadingRoute = true
+            LocationApi.calculateRoute(
+                originLat = from.latitude, originLng = from.longitude,
+                destLat = to.latitude, destLng = to.longitude
+            ).onSuccess { route ->
+                routeResult = route
+            }.onFailure {
+                routeResult = null
+            }
+            isLoadingRoute = false
+        } else {
+            routeResult = null
+        }
     }
 
     // Build markers list
@@ -172,36 +225,46 @@ fun SelectAddressScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White)) {
-            // Interactive Map
-            MapViewComposable(
-                modifier = Modifier.fillMaxWidth().height(200.dp),
-                styleUrl = mapConfig.styleUrl,
-                centerLat = centerLat,
-                centerLng = centerLng,
-                zoom = mapZoom,
-                markers = markers,
-                onMapClick = { lat, lng ->
-                    // Reverse geocode the tapped location
-                    scope.launch {
-                        LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
-                            if (place != null) {
-                                if (isSearchingFrom) {
-                                    from = place.label
-                                    fromPlace = place
-                                    centerLat = place.latitude
-                                    centerLng = place.longitude
-                                } else {
-                                    to = place.label
-                                    toPlace = place
-                                    centerLat = place.latitude
-                                    centerLng = place.longitude
+            // Interactive Map with route
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+                MapViewComposable(
+                    modifier = Modifier.fillMaxSize(),
+                    styleUrl = mapConfig.styleUrl,
+                    centerLat = centerLat,
+                    centerLng = centerLng,
+                    zoom = mapZoom,
+                    markers = markers,
+                    routeGeometry = routeResult?.geometry,
+                    onMapClick = { lat, lng ->
+                        // Reverse geocode the tapped location
+                        scope.launch {
+                            LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
+                                if (place != null) {
+                                    if (isSearchingFrom) {
+                                        from = place.label
+                                        fromPlace = place
+                                        centerLat = place.latitude
+                                        centerLng = place.longitude
+                                    } else {
+                                        to = place.label
+                                        toPlace = place
+                                        centerLat = place.latitude
+                                        centerLng = place.longitude
+                                    }
+                                    mapZoom = 15.0
                                 }
-                                mapZoom = 15.0
                             }
                         }
                     }
+                )
+                if (isLoadingRoute) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center).size(32.dp),
+                        color = PrimaryBlue,
+                        strokeWidth = 3.dp
+                    )
                 }
-            )
+            }
 
             // Bottom sheet
             Column(
