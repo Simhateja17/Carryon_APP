@@ -2,8 +2,6 @@ package com.example.carryon.ui.screens.tracking
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,22 +10,25 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.map_background
 import org.jetbrains.compose.resources.painterResource
 import com.example.carryon.data.network.BookingApi
 import com.example.carryon.data.model.Booking
 import com.example.carryon.data.model.BookingStatus
+import com.example.carryon.data.model.MapConfig
+import com.example.carryon.data.network.LocationApi
+import com.example.carryon.ui.components.MapViewComposable
+import com.example.carryon.ui.components.MapMarker
+import com.example.carryon.ui.components.MarkerColor
 import com.example.carryon.ui.theme.*
 import com.example.carryon.i18n.LocalStrings
+import kotlinx.coroutines.launch
 
 private fun formatISODate(isoDate: String): String {
     return try {
@@ -68,14 +69,47 @@ fun ActiveShipmentScreen(
     var activeBooking by remember { mutableStateOf<Booking?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var shareWithNeighbors by remember { mutableStateOf(true) }
+    var mapConfig by remember { mutableStateOf(MapConfig()) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
+        LocationApi.getMapConfig().onSuccess { config -> mapConfig = config }
         BookingApi.getBookings().onSuccess { response ->
             activeBooking = response.data?.firstOrNull {
                 it.status != BookingStatus.DELIVERED && it.status != BookingStatus.CANCELLED
             }
         }
         isLoading = false
+    }
+
+    // Derived map state from booking coordinates
+    val pickupLat = activeBooking?.pickupAddress?.latitude ?: 0.0
+    val pickupLng = activeBooking?.pickupAddress?.longitude ?: 0.0
+    val deliveryLat = activeBooking?.deliveryAddress?.latitude ?: 0.0
+    val deliveryLng = activeBooking?.deliveryAddress?.longitude ?: 0.0
+
+    // Center between the two points, or pickup if only one is available
+    val mapCenterLat = if (pickupLat != 0.0 && deliveryLat != 0.0) (pickupLat + deliveryLat) / 2 else pickupLat
+    val mapCenterLng = if (pickupLng != 0.0 && deliveryLng != 0.0) (pickupLng + deliveryLng) / 2 else pickupLng
+
+    val mapMarkers = remember(activeBooking) {
+        buildList {
+            if (pickupLat != 0.0 || pickupLng != 0.0) {
+                add(MapMarker("pickup", pickupLat, pickupLng, "Pickup", MarkerColor.BLUE))
+            }
+            if (deliveryLat != 0.0 || deliveryLng != 0.0) {
+                add(MapMarker("delivery", deliveryLat, deliveryLng, "Delivery", MarkerColor.GREEN))
+            }
+        }
+    }
+
+    var routeGeometry by remember { mutableStateOf<List<com.example.carryon.data.model.LatLng>?>(null) }
+    LaunchedEffect(activeBooking) {
+        if (pickupLat != 0.0 && deliveryLat != 0.0) {
+            LocationApi.calculateRoute(pickupLat, pickupLng, deliveryLat, deliveryLng).onSuccess { route ->
+                routeGeometry = route.geometry
+            }
+        }
     }
 
     val etaText = activeBooking?.eta?.let { "$it min  ●●●" } ?: "—  ●●●"
@@ -147,17 +181,14 @@ fun ActiveShipmentScreen(
                     .fillMaxWidth()
                     .height(220.dp)
             ) {
-                Image(
-                    painter = painterResource(Res.drawable.map_background),
-                    contentDescription = "Route Map",
+                MapViewComposable(
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0x33000000))
+                    styleUrl = mapConfig.styleUrl,
+                    centerLat = mapCenterLat,
+                    centerLng = mapCenterLng,
+                    zoom = if (mapCenterLat != 0.0) 10.0 else 2.0,
+                    markers = mapMarkers,
+                    routeGeometry = routeGeometry
                 )
 
                 // ETA label

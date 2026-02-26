@@ -61,6 +61,10 @@ fun RequestForRideScreen(
     var isCreatingBooking by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    var senderName by remember { mutableStateOf("") }
+    var receiverName by remember { mutableStateOf("") }
+    var receiverPhone by remember { mutableStateOf("") }
+
     // Fetch vehicle prices from API
     LaunchedEffect(vehicleType) {
         isLoadingVehicles = true
@@ -162,22 +166,22 @@ fun RequestForRideScreen(
                                     address = pickupAddress,
                                     latitude = pickupLat,
                                     longitude = pickupLng,
-                                    contactName = "Sender", // Default, can be updated later
+                                    contactName = senderName.ifBlank { "Sender" },
                                     contactPhone = ""
                                 ),
                                 deliveryAddress = CreateAddressData(
                                     address = deliveryAddress,
                                     latitude = deliveryLat,
                                     longitude = deliveryLng,
-                                    contactName = "Receiver",
-                                    contactPhone = ""
+                                    contactName = receiverName.ifBlank { "Receiver" },
+                                    contactPhone = receiverPhone
                                 ),
                                 vehicleType = vehicleTypeApi,
                                 paymentMethod = paymentMethodApi,
-                                senderName = "Sender",
+                                senderName = senderName.ifBlank { "Sender" },
                                 senderPhone = "",
-                                receiverName = "Receiver",
-                                receiverPhone = ""
+                                receiverName = receiverName.ifBlank { "Receiver" },
+                                receiverPhone = receiverPhone
                             )
                             
                             BookingApi.createBooking(request)
@@ -356,6 +360,68 @@ fun RequestForRideScreen(
                     Text("RM ${(estimatedPrice + taxAmount).toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Sender & Receiver details
+            Text(strings.senderName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = senderName,
+                onValueChange = { senderName = it },
+                placeholder = { Text("e.g. Ahmad", color = Color.LightGray, fontSize = 13.sp) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryBlue,
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color(0xFFF8F8F8),
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                )
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(strings.receiverName, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = receiverName,
+                onValueChange = { receiverName = it },
+                placeholder = { Text("e.g. Mei Ling", color = Color.LightGray, fontSize = 13.sp) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryBlue,
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color(0xFFF8F8F8),
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                )
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(strings.recipientContactNumber, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = receiverPhone,
+                onValueChange = { receiverPhone = it },
+                placeholder = { Text("1X-XXXXXXXX", color = Color.LightGray, fontSize = 13.sp) },
+                prefix = { Text("+60 ", color = Color.Black, fontSize = 13.sp) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PrimaryBlue,
+                    unfocusedBorderColor = Color(0xFFE0E0E0),
+                    focusedContainerColor = Color(0xFFF8F8F8),
+                    unfocusedContainerColor = Color(0xFFF8F8F8),
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                )
+            )
 
             Spacer(modifier = Modifier.height(20.dp))
 
