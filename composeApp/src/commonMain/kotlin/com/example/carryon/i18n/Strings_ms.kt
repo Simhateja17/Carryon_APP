@@ -298,7 +298,7 @@ object MsStrings : AppStrings {
     override val faqTrackDelivery = "Bagaimana cara menjejak penghantaran saya?"
     override val faqTrackDeliveryAnswer = "Setelah tempahan anda disahkan dan pemandu ditugaskan, anda boleh menjejak penghantaran secara langsung di skrin penjejakan."
     override val faqPaymentMethods = "Apakah kaedah pembayaran yang diterima?"
-    override val faqPaymentMethodsAnswer = "Kami menerima Tunai, UPI, Kad Kredit/Debit, dan pembayaran Dompet."
+    override val faqPaymentMethodsAnswer = "Kami menerima Tunai, DuitNow, Kad Kredit/Debit, dan pembayaran Dompet."
     override val faqCancelBooking = "Bagaimana cara membatalkan tempahan?"
     override val faqCancelBookingAnswer = "Anda boleh membatalkan tempahan dari skrin penjejakan sebelum pemandu mengambil bungkusan anda. Caj pembatalan mungkin dikenakan."
     override val faqDamagedPackage = "Bagaimana jika bungkusan saya rosak?"

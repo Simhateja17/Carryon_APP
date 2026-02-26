@@ -38,6 +38,13 @@ fun SenderReceiverScreen(
     var receiverName by remember { mutableStateOf("") }
     var recipientContact by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    
+    // Validation error states
+    var senderNameError by remember { mutableStateOf(false) }
+    var receiverNameError by remember { mutableStateOf(false) }
+    var recipientContactError by remember { mutableStateOf(false) }
+    var hasAttemptedSubmit by remember { mutableStateOf(false) }
+    
     val strings = LocalStrings.current
 
     Scaffold(
@@ -99,27 +106,36 @@ fun SenderReceiverScreen(
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.paymentType, value = paymentType, placeholder = "e.g. Cash, Card", onValueChange = { paymentType = it })
             Spacer(modifier = Modifier.height(14.dp))
-            BookingInputField(label = strings.senderName, value = senderName, placeholder = "e.g. Phoebe", onValueChange = { senderName = it })
+            BookingInputField(label = strings.senderName, value = senderName, placeholder = "e.g. Ahmad", onValueChange = { senderName = it; if (hasAttemptedSubmit) senderNameError = it.isBlank() }, isError = senderNameError, errorMessage = "Sender name is required")
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.overallTrack, value = overallTrack, placeholder = "Track ID", onValueChange = { overallTrack = it })
             Spacer(modifier = Modifier.height(14.dp))
-            BookingInputField(label = strings.receiverName, value = receiverName, placeholder = "e.g. Paul", onValueChange = { receiverName = it })
+            BookingInputField(label = strings.receiverName, value = receiverName, placeholder = "e.g. Mei Ling", onValueChange = { receiverName = it; if (hasAttemptedSubmit) receiverNameError = it.isBlank() }, isError = receiverNameError, errorMessage = "Receiver name is required")
             Spacer(modifier = Modifier.height(14.dp))
-            PhoneInputField(label = strings.recipientContactNumber, value = recipientContact, onValueChange = { recipientContact = it })
+            PhoneInputField(label = strings.recipientContactNumber, value = recipientContact, onValueChange = { recipientContact = it; if (hasAttemptedSubmit) recipientContactError = it.isBlank() }, isError = recipientContactError, errorMessage = "Contact number is required")
             Spacer(modifier = Modifier.height(14.dp))
-            BookingInputField(label = strings.address, value = address, placeholder = "e.g. Vill.Chalishin", onValueChange = { address = it })
+            BookingInputField(label = strings.address, value = address, placeholder = "e.g. Jalan Bukit Bintang, KL", onValueChange = { address = it })
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    onNext(
-                        senderName.ifBlank { "Phoebe" },
-                        recipientContact.ifBlank { "028607329" },
-                        receiverName.ifBlank { "Paul" },
-                        recipientContact.ifBlank { "028607329" },
-                        request
-                    )
+                    hasAttemptedSubmit = true
+                    // Validate required fields
+                    senderNameError = senderName.isBlank()
+                    receiverNameError = receiverName.isBlank()
+                    recipientContactError = recipientContact.isBlank()
+                    
+                    // Only proceed if all required fields are filled
+                    if (!senderNameError && !receiverNameError && !recipientContactError) {
+                        onNext(
+                            senderName,
+                            recipientContact,
+                            receiverName,
+                            recipientContact,
+                            request
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(14.dp),
@@ -134,7 +150,14 @@ fun SenderReceiverScreen(
 }
 
 @Composable
-private fun BookingInputField(label: String, value: String, placeholder: String, onValueChange: (String) -> Unit) {
+private fun BookingInputField(
+    label: String, 
+    value: String, 
+    placeholder: String, 
+    onValueChange: (String) -> Unit,
+    isError: Boolean = false,
+    errorMessage: String = ""
+) {
     Column {
         Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -144,9 +167,11 @@ private fun BookingInputField(label: String, value: String, placeholder: String,
             placeholder = { Text(placeholder, color = Color.LightGray, fontSize = 13.sp) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
+            isError = isError,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PrimaryBlue,
-                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedBorderColor = if (isError) Color.Red else PrimaryBlue,
+                unfocusedBorderColor = if (isError) Color.Red else Color(0xFFE0E0E0),
+                errorBorderColor = Color.Red,
                 focusedContainerColor = Color(0xFFF8F8F8),
                 unfocusedContainerColor = Color(0xFFF8F8F8),
                 focusedTextColor = Color.Black,
@@ -154,11 +179,21 @@ private fun BookingInputField(label: String, value: String, placeholder: String,
             ),
             singleLine = true
         )
+        if (isError && errorMessage.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(errorMessage, fontSize = 11.sp, color = Color.Red)
+        }
     }
 }
 
 @Composable
-private fun PhoneInputField(label: String, value: String, onValueChange: (String) -> Unit) {
+private fun PhoneInputField(
+    label: String, 
+    value: String, 
+    onValueChange: (String) -> Unit,
+    isError: Boolean = false,
+    errorMessage: String = ""
+) {
     Column {
         Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
         Spacer(modifier = Modifier.height(6.dp))
@@ -169,9 +204,11 @@ private fun PhoneInputField(label: String, value: String, onValueChange: (String
             prefix = { Text("+60 ", color = androidx.compose.ui.graphics.Color.Black, fontSize = 13.sp) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
+            isError = isError,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = PrimaryBlue,
-                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedBorderColor = if (isError) Color.Red else PrimaryBlue,
+                unfocusedBorderColor = if (isError) Color.Red else Color(0xFFE0E0E0),
+                errorBorderColor = Color.Red,
                 focusedContainerColor = Color(0xFFF8F8F8),
                 unfocusedContainerColor = Color(0xFFF8F8F8),
                 focusedTextColor = androidx.compose.ui.graphics.Color.Black,
@@ -180,5 +217,9 @@ private fun PhoneInputField(label: String, value: String, onValueChange: (String
             singleLine = true,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
         )
+        if (isError && errorMessage.isNotBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(errorMessage, fontSize = 11.sp, color = Color.Red)
+        }
     }
 }

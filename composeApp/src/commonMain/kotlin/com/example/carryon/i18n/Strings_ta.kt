@@ -298,7 +298,7 @@ object TaStrings : AppStrings {
     override val faqTrackDelivery = "என் டெலிவரியை எப்படி கண்காணிப்பது?"
     override val faqTrackDeliveryAnswer = "உங்கள் பதிவு உறுதிப்படுத்தப்பட்டு ஓட்டுநர் நியமிக்கப்பட்டவுடன், கண்காணிப்பு திரையில் நேரடியாகக் கண்காணிக்கலாம்."
     override val faqPaymentMethods = "எந்த கட்டண முறைகள் ஏற்றுக்கொள்ளப்படுகின்றன?"
-    override val faqPaymentMethodsAnswer = "பணம், UPI, கிரெடிட்/டெபிட் கார்டுகள் மற்றும் வாலட் கட்டணங்களை ஏற்கிறோம்."
+    override val faqPaymentMethodsAnswer = "பணம், DuitNow, கிரெடிட்/டெபிட் கார்டுகள் மற்றும் வாலட் கட்டணங்களை ஏற்கிறோம்."
     override val faqCancelBooking = "பதிவை எவ்வாறு ரத்து செய்வது?"
     override val faqCancelBookingAnswer = "ஓட்டுநர் உங்கள் பொருளை எடுக்கும் முன் கண்காணிப்பு திரையிலிருந்து பதிவை ரத்து செய்யலாம். ரத்து கட்டணம் விதிக்கப்படலாம்."
     override val faqDamagedPackage = "என் பொருள் சேதமடைந்தால் என்ன செய்வது?"

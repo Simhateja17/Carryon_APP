@@ -56,11 +56,15 @@ fun CalculateScreen(
     var selectedPackageType by remember { mutableStateOf(packageTypes[2]) }
     var fromAddress by remember { mutableStateOf("") }
     var destinationAddress by remember { mutableStateOf("") }
-    var selectedDeliveryOption by remember { mutableStateOf("Jne Express") }
+    var selectedDeliveryOption by remember { mutableStateOf("Express") }
     var itemWeight by remember { mutableStateOf("") }
     var showDeliveryOptions by remember { mutableStateOf(false) }
     
-    val deliveryOptions = listOf("Jne Express", "Standard", "Economy", "Same Day")
+    var fromAddressError by remember { mutableStateOf(false) }
+    var destinationAddressError by remember { mutableStateOf(false) }
+    var itemWeightError by remember { mutableStateOf(false) }
+    
+    val deliveryOptions = listOf("Express", "Standard", "Economy", "Same Day")
     
     Scaffold(
         topBar = {
@@ -105,12 +109,18 @@ fun CalculateScreen(
                 // Sticky Book Now button
                 Button(
                     onClick = {
-                        onFreeCheck(
-                            fromAddress.ifBlank { "North Bekasi" },
-                            destinationAddress.ifBlank { "Bandung" },
-                            selectedDeliveryOption,
-                            itemWeight.ifBlank { "1Kg" }
-                        )
+                        fromAddressError = fromAddress.isBlank()
+                        destinationAddressError = destinationAddress.isBlank()
+                        itemWeightError = itemWeight.isBlank()
+                        
+                        if (!fromAddressError && !destinationAddressError && !itemWeightError) {
+                            onFreeCheck(
+                                fromAddress,
+                                destinationAddress,
+                                selectedDeliveryOption,
+                                itemWeight
+                            )
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -237,8 +247,10 @@ fun CalculateScreen(
 
             OutlinedTextField(
                 value = fromAddress,
-                onValueChange = { fromAddress = it },
+                onValueChange = { fromAddress = it; fromAddressError = false },
                 placeholder = { Text(strings.addAddressPlaceholder, color = Color.LightGray) },
+                isError = fromAddressError,
+                supportingText = if (fromAddressError) {{ Text(strings.required, color = Color(0xFFD32F2F)) }} else null,
                 trailingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.calc_map),
@@ -252,8 +264,8 @@ fun CalculateScreen(
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = if (fromAddressError) Color(0xFFD32F2F) else Color.LightGray,
+                    unfocusedBorderColor = if (fromAddressError) Color(0xFFD32F2F) else Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
                     unfocusedContainerColor = Color(0xFFF8F8F8),
                     focusedTextColor = Color.Black,
@@ -276,8 +288,10 @@ fun CalculateScreen(
 
             OutlinedTextField(
                 value = destinationAddress,
-                onValueChange = { destinationAddress = it },
+                onValueChange = { destinationAddress = it; destinationAddressError = false },
                 placeholder = { Text(strings.addAddressPlaceholder, color = Color.LightGray) },
+                isError = destinationAddressError,
+                supportingText = if (destinationAddressError) {{ Text(strings.required, color = Color(0xFFD32F2F)) }} else null,
                 trailingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.calc_map),
@@ -291,8 +305,8 @@ fun CalculateScreen(
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = if (destinationAddressError) Color(0xFFD32F2F) else Color.LightGray,
+                    unfocusedBorderColor = if (destinationAddressError) Color(0xFFD32F2F) else Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
                     unfocusedContainerColor = Color(0xFFF8F8F8),
                     focusedTextColor = Color.Black,
@@ -371,15 +385,17 @@ fun CalculateScreen(
 
             OutlinedTextField(
                 value = itemWeight,
-                onValueChange = { itemWeight = it },
+                onValueChange = { itemWeight = it; itemWeightError = false },
                 placeholder = { Text(strings.kilogram, color = Color.LightGray) },
+                isError = itemWeightError,
+                supportingText = if (itemWeightError) {{ Text(strings.required, color = Color(0xFFD32F2F)) }} else null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.LightGray,
-                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = if (itemWeightError) Color(0xFFD32F2F) else Color.LightGray,
+                    unfocusedBorderColor = if (itemWeightError) Color(0xFFD32F2F) else Color.LightGray,
                     focusedContainerColor = Color(0xFFF8F8F8),
                     unfocusedContainerColor = Color(0xFFF8F8F8),
                     focusedTextColor = Color.Black,

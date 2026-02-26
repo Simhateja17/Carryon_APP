@@ -65,7 +65,7 @@ fun OrderDetailScreen(
     val paymentMethodText = when (booking?.paymentMethod) {
         PaymentMethod.WALLET -> "Wallet"
         PaymentMethod.CARD   -> "Card"
-        PaymentMethod.UPI    -> "UPI"
+        PaymentMethod.DUITNOW -> "DuitNow"
         else                 -> "Cash"
     }
     val bookingStatus = booking?.status ?: BookingStatus.DELIVERED

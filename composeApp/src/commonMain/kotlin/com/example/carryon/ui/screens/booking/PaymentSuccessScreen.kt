@@ -23,10 +23,15 @@ import com.example.carryon.i18n.LocalStrings
 
 @Composable
 fun PaymentSuccessScreen(
-    amount: Int = 220,
+    amount: Double,
     onContinue: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val displayAmount = if (amount == amount.toLong().toDouble()) {
+        amount.toLong().toString()
+    } else {
+        String.format("%.2f", amount)
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -57,7 +62,7 @@ fun PaymentSuccessScreen(
 
         // ── AMOUNT ──
         Text(
-            "RM $amount",
+            "RM $displayAmount",
             fontSize = 52.sp,
             fontWeight = FontWeight.Bold,
             color = PrimaryBlue,

@@ -22,8 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.*
 import com.example.carryon.data.network.LocationApi
+import com.example.carryon.data.network.BookingApi
+import com.example.carryon.data.network.CreateBookingRequest
+import com.example.carryon.data.network.CreateAddressData
 import com.example.carryon.ui.theme.*
 import com.example.carryon.i18n.LocalStrings
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,73 +36,181 @@ fun RequestForRideScreen(
     vehicleType: String = "",
     pickupAddress: String = "",
     deliveryAddress: String = "",
-    onContinue: () -> Unit,
+    onContinue: (bookingId: String, amount: Double) -> Unit,
     onBack: () -> Unit
 ) {
     var selectedPayment by remember { mutableStateOf("cash") }
     val strings = LocalStrings.current
+    val scope = rememberCoroutineScope()
 
-    val vehicleBasePrice = when (vehicleType) {
-        "Bike"        -> 8.0
-        "Car (2-Seat)" -> 15.0
-        "Car (4-Seat)" -> 20.0
-        "Mini Van"    -> 30.0
-        "Truck"       -> 45.0
-        "Open Truck"  -> 40.0
-        else          -> 15.0
+    // Vehicle pricing from API
+    var basePrice by remember { mutableStateOf(15.0) }
+    var pricePerKm by remember { mutableStateOf(2.0) }
+    var isLoadingVehicles by remember { mutableStateOf(true) }
+
+    // Geocoded coordinates
+    var pickupLat by remember { mutableStateOf(0.0) }
+    var pickupLng by remember { mutableStateOf(0.0) }
+    var deliveryLat by remember { mutableStateOf(0.0) }
+    var deliveryLng by remember { mutableStateOf(0.0) }
+
+    var estimatedPrice by remember { mutableStateOf(basePrice) }
+    var taxAmount by remember { mutableStateOf(kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0) }
+    var distanceKm by remember { mutableStateOf(0.0) }
+    var isCalculating by remember { mutableStateOf(pickupAddress.isNotBlank() && deliveryAddress.isNotBlank()) }
+    var isCreatingBooking by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Fetch vehicle prices from API
+    LaunchedEffect(vehicleType) {
+        isLoadingVehicles = true
+        BookingApi.getVehicles().onSuccess { response ->
+            val vehicles = response.data ?: emptyList()
+            // Map vehicle type to API vehicle
+            val vehicleTypeMapping = mapOf(
+                "Bike" to "bike",
+                "Car (2-Seat)" to "auto",
+                "Car (4-Seat)" to "car",
+                "Mini Van" to "mini truck",
+                "Truck" to "truck",
+                "Open Truck" to "truck"
+            )
+            val apiType = vehicleTypeMapping[vehicleType] ?: vehicleType.lowercase()
+            val vehicle = vehicles.find { it.type.lowercase() == apiType }
+            if (vehicle != null) {
+                basePrice = vehicle.basePrice
+                pricePerKm = vehicle.pricePerKm
+            }
+        }
+        isLoadingVehicles = false
     }
 
-    var estimatedPrice by remember { mutableStateOf(vehicleBasePrice) }
-    var taxAmount     by remember { mutableStateOf(kotlin.math.round(vehicleBasePrice * 0.06 * 100).toDouble() / 100.0) }
-    var distanceKm    by remember { mutableStateOf(0.0) }
-    var isCalculating by remember { mutableStateOf(pickupAddress.isNotBlank() && deliveryAddress.isNotBlank()) }
-
-    LaunchedEffect(pickupAddress, deliveryAddress) {
+    // Calculate price based on distance
+    LaunchedEffect(pickupAddress, deliveryAddress, basePrice, pricePerKm) {
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
-            estimatedPrice = vehicleBasePrice
-            taxAmount = kotlin.math.round(vehicleBasePrice * 0.06 * 100).toDouble() / 100.0
+            estimatedPrice = basePrice
+            taxAmount = kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0
             isCalculating = false
             return@LaunchedEffect
         }
         isCalculating = true
-        val pickupGeo   = LocationApi.geocode(pickupAddress).getOrNull()
+        val pickupGeo = LocationApi.geocode(pickupAddress).getOrNull()
         val deliveryGeo = LocationApi.geocode(deliveryAddress).getOrNull()
         if (pickupGeo != null && deliveryGeo != null) {
+            pickupLat = pickupGeo.lat
+            pickupLng = pickupGeo.lng
+            deliveryLat = deliveryGeo.lat
+            deliveryLng = deliveryGeo.lng
+
             val route = LocationApi.calculateRoute(
                 pickupGeo.lat, pickupGeo.lng,
                 deliveryGeo.lat, deliveryGeo.lng
             ).getOrNull()
             if (route != null && route.distance > 0) {
                 distanceKm = route.distance
-                val base = vehicleBasePrice + (route.distance * 2.0)
-                estimatedPrice = kotlin.math.round(base * 100).toDouble() / 100.0
-                taxAmount      = kotlin.math.round(base * 0.06 * 100).toDouble() / 100.0
+                val calculatedPrice = basePrice + (route.distance * pricePerKm)
+                estimatedPrice = kotlin.math.round(calculatedPrice * 100).toDouble() / 100.0
+                taxAmount = kotlin.math.round(calculatedPrice * 0.06 * 100).toDouble() / 100.0
             }
         }
         isCalculating = false
     }
 
     val vehicleImageRes = when (vehicleType) {
-        "Bike"         -> Res.drawable.bike
+        "Bike" -> Res.drawable.bike
         "Car (2-Seat)" -> Res.drawable.car_two_seater
         "Car (4-Seat)" -> Res.drawable.car_4_seater
-        "Mini Van"     -> Res.drawable.mini_van
-        "Truck"        -> Res.drawable.truck
-        "Open Truck"   -> Res.drawable.open_truck
-        else           -> Res.drawable.car_mustang
+        "Mini Van" -> Res.drawable.mini_van
+        "Truck" -> Res.drawable.truck
+        "Open Truck" -> Res.drawable.open_truck
+        else -> Res.drawable.car_mustang
     }
     val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
+
+    // Map payment selection to API format
+    val paymentMethodApi = when (selectedPayment) {
+        "cash" -> "CASH"
+        "card" -> "CARD"
+        "wallet" -> "DUITNOW"
+        else -> "CASH"
+    }
+
+    // Map vehicle type to API format
+    val vehicleTypeApi = when (vehicleType) {
+        "Bike" -> "BIKE"
+        "Car (2-Seat)" -> "AUTO"
+        "Car (4-Seat)" -> "CAR"
+        "Mini Van" -> "MINI_TRUCK"
+        "Truck" -> "TRUCK"
+        "Open Truck" -> "TRUCK"
+        else -> "CAR"
+    }
 
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
             Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Button(
-                    onClick = onContinue,
+                    onClick = {
+                        if (isCreatingBooking || isCalculating) return@Button
+                        scope.launch {
+                            isCreatingBooking = true
+                            errorMessage = null
+                            
+                            val request = CreateBookingRequest(
+                                pickupAddress = CreateAddressData(
+                                    address = pickupAddress,
+                                    latitude = pickupLat,
+                                    longitude = pickupLng,
+                                    contactName = "Sender", // Default, can be updated later
+                                    contactPhone = ""
+                                ),
+                                deliveryAddress = CreateAddressData(
+                                    address = deliveryAddress,
+                                    latitude = deliveryLat,
+                                    longitude = deliveryLng,
+                                    contactName = "Receiver",
+                                    contactPhone = ""
+                                ),
+                                vehicleType = vehicleTypeApi,
+                                paymentMethod = paymentMethodApi,
+                                senderName = "Sender",
+                                senderPhone = "",
+                                receiverName = "Receiver",
+                                receiverPhone = ""
+                            )
+                            
+                            BookingApi.createBooking(request)
+                                .onSuccess { response ->
+                                    val booking = response.data
+                                    if (booking != null) {
+                                        val totalAmount = estimatedPrice + taxAmount
+                                        onContinue(booking.id, totalAmount)
+                                    } else {
+                                        errorMessage = "Failed to create booking"
+                                    }
+                                }
+                                .onFailure { e ->
+                                    errorMessage = e.message ?: "Failed to create booking"
+                                }
+                            isCreatingBooking = false
+                        }
+                    },
+                    enabled = !isCreatingBooking && !isCalculating && pickupAddress.isNotBlank() && deliveryAddress.isNotBlank(),
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                ) { Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
+                ) {
+                    if (isCreatingBooking) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
         },
         topBar = {
@@ -134,6 +246,22 @@ fun RequestForRideScreen(
                 Text(strings.requestForRide, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             }
             Spacer(modifier = Modifier.height(20.dp))
+
+            // Error message
+            errorMessage?.let { error ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))
+                ) {
+                    Text(
+                        error,
+                        modifier = Modifier.padding(12.dp),
+                        color = Color(0xFFC62828),
+                        fontSize = 13.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             // Route section
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -208,7 +336,7 @@ fun RequestForRideScreen(
             // Charge section
             Text(strings.charge, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             Spacer(modifier = Modifier.height(10.dp))
-            if (isCalculating) {
+            if (isCalculating || isLoadingVehicles) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryBlue, strokeWidth = 2.dp)
             } else {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -219,6 +347,13 @@ fun RequestForRideScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.taxPercent, fontSize = 14.sp, color = TextSecondary)
                     Text("RM ${taxAmount.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider(color = Color(0xFFE0E0E0))
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(strings.totalAmount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                    Text("RM ${(estimatedPrice + taxAmount).toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
             }
 

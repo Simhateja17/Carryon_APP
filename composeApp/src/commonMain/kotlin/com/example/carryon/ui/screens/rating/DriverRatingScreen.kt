@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DriverRatingScreen(
-    driverName: String = "Josh Knight",
+    driverName: String,
     bookingId: String = "",
     onSubmit: () -> Unit,
     onBack: () -> Unit

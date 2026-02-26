@@ -12,6 +12,31 @@ private data class VerifyDeliveryRequest(val otp: String, val deliveryProofUrl: 
 @Serializable
 private data class CancelRequest(val reason: String? = null)
 
+@Serializable
+data class CreateBookingRequest(
+    val pickupAddress: CreateAddressData,
+    val deliveryAddress: CreateAddressData,
+    val vehicleType: String,
+    val paymentMethod: String = "CASH",
+    val scheduledTime: String? = null,
+    val promoCode: String? = null,
+    val senderName: String,
+    val senderPhone: String,
+    val receiverName: String,
+    val receiverPhone: String,
+    val notes: String? = null
+)
+
+@Serializable
+data class CreateAddressData(
+    val address: String,
+    val latitude: Double,
+    val longitude: Double,
+    val contactName: String,
+    val contactPhone: String,
+    val landmark: String = ""
+)
+
 object BookingApi {
     private val client get() = HttpClientFactory.client
 
@@ -40,5 +65,16 @@ object BookingApi {
             contentType(ContentType.Application.Json)
             setBody(CancelRequest(reason))
         }.body()
+    }
+
+    suspend fun createBooking(request: CreateBookingRequest): Result<ApiResponse<Booking>> = runCatching {
+        client.post("/api/bookings") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    }
+
+    suspend fun getVehicles(): Result<ApiResponse<List<Vehicle>>> = runCatching {
+        client.get("/api/vehicles").body()
     }
 }

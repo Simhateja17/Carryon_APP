@@ -298,7 +298,7 @@ interface AppStrings {
     val faqTrackDelivery: String get() = "How do I track my delivery?"
     val faqTrackDeliveryAnswer: String get() = "Once your booking is confirmed and a driver is assigned, you can track the delivery in real-time on the tracking screen."
     val faqPaymentMethods: String get() = "What payment methods are accepted?"
-    val faqPaymentMethodsAnswer: String get() = "We accept Cash, UPI, Credit/Debit Cards, and Wallet payments."
+    val faqPaymentMethodsAnswer: String get() = "We accept Cash, DuitNow, Credit/Debit Cards, and Wallet payments."
     val faqCancelBooking: String get() = "How do I cancel a booking?"
     val faqCancelBookingAnswer: String get() = "You can cancel a booking from the tracking screen before the driver picks up your package. Cancellation charges may apply."
     val faqDamagedPackage: String get() = "What if my package is damaged?"
@@ -317,6 +317,8 @@ interface AppStrings {
     val deliveryOption: String get() = "Delivery Option"
     val kilogram: String get() = "Kilogram"
     val freeCheck: String get() = "Free Check"
+    val required: String get() = "This field is required"
+    val calculating: String get() = "Calculating..."
 
     // ── History Screen ──
     val deliveryInProgress: String get() = "You have 1 delivery in progress"

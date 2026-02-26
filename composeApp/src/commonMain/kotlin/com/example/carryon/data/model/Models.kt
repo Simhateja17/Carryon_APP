@@ -36,6 +36,7 @@ enum class AddressType {
 @Serializable
 data class Vehicle(
     val id: String,
+    val type: String = "",
     val name: String,
     val description: String,
     val capacity: String,
@@ -85,7 +86,7 @@ enum class BookingStatus {
 
 @Serializable
 enum class PaymentMethod {
-    CASH, UPI, CARD, WALLET
+    CASH, DUITNOW, CARD, WALLET
 }
 
 @Serializable

@@ -40,7 +40,7 @@ fun DetailsScreen(
     onBack: () -> Unit
 ) {
     var itemType by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("5") }
+    var quantity by remember { mutableStateOf("") }
     var payer by remember { mutableStateOf("me") }
     var paymentType by remember { mutableStateOf("") }
     var paymentDropdownExpanded by remember { mutableStateOf(false) }

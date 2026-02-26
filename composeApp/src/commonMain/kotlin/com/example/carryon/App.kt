@@ -67,10 +67,10 @@ sealed class AppScreen {
     data object Calculate : AppScreen()
     data object History : AppScreen()
     data object TrackShipment : AppScreen()
-    data object TrackingLive : AppScreen()
+    data class TrackingLive(val bookingId: String) : AppScreen()
     data object Orders : AppScreen()
     data class PackageDetails(val orderId: String) : AppScreen()
-    data class Booking(val pickup: String, val delivery: String, val packageType: String) : AppScreen()
+    data class Booking(val pickup: String, val delivery: String, val packageType: String, val pickupLat: Double = 0.0, val pickupLng: Double = 0.0, val deliveryLat: Double = 0.0, val deliveryLng: Double = 0.0) : AppScreen()
     data class DriverRating(val driverName: String, val bookingId: String = "") : AppScreen()
     data object ReadyToBook : AppScreen()
     data object ActiveShipment : AppScreen()
@@ -78,9 +78,33 @@ sealed class AppScreen {
     data object EditProfile : AppScreen()
     data object SavedAddresses : AppScreen()
     data object Help : AppScreen()
-    data class SenderReceiver(val bookingId: String) : AppScreen()
-    data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
-    data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
+    data class SenderReceiver(
+        val pickupAddress: String = "",
+        val deliveryAddress: String = "",
+        val vehicleType: String = "",
+        val price: Double = 0.0,
+        val paymentMethod: String = "CASH",
+        val pickupLat: Double = 0.0,
+        val pickupLng: Double = 0.0,
+        val deliveryLat: Double = 0.0,
+        val deliveryLng: Double = 0.0
+    ) : AppScreen()
+    data class BookingPayment(
+        val pickupAddress: String = "",
+        val deliveryAddress: String = "",
+        val vehicleType: String = "",
+        val totalAmount: Double = 0.0,
+        val paymentMethod: String = "CASH",
+        val senderName: String = "",
+        val senderPhone: String = "",
+        val receiverName: String = "",
+        val receiverPhone: String = "",
+        val pickupLat: Double = 0.0,
+        val pickupLng: Double = 0.0,
+        val deliveryLat: Double = 0.0,
+        val deliveryLng: Double = 0.0
+    ) : AppScreen()
+    data class PaymentSuccess(val bookingId: String, val amount: Double = 0.0) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
     data class Details(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
     data class RequestForRide(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
@@ -197,7 +221,7 @@ fun App() {
                     onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
                     onNavigateToTrackShipment = { currentScreen = AppScreen.TrackShipment },
-                    onNavigateToDriverRating = { currentScreen = AppScreen.DriverRating("Josh Knight") },
+                    onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
                     onNavigateToPromo = { currentScreen = AppScreen.Promo },
@@ -239,13 +263,14 @@ fun App() {
             is AppScreen.TrackShipment -> {
                 TrackShipmentScreen(
                     onSearch = { },
-                    onViewDetails = { _ ->
-                        currentScreen = AppScreen.TrackingLive
+                    onViewDetails = { bookingId ->
+                        currentScreen = AppScreen.TrackingLive(bookingId)
                     }
                 )
             }
             is AppScreen.TrackingLive -> {
                 TrackingLiveScreen(
+                    bookingId = screen.bookingId,
                     onBack = { currentScreen = AppScreen.TrackShipment }
                 )
             }
@@ -261,7 +286,7 @@ fun App() {
                 PackageDetailsScreen(
                     orderId = screen.orderId,
                     onBack = { currentScreen = AppScreen.Orders },
-                    onRateDriver = { currentScreen = AppScreen.DriverRating("Josh Knight") }
+                    onRateDriver = { driverName -> currentScreen = AppScreen.DriverRating(driverName, screen.orderId) }
                 )
             }
             is AppScreen.Booking -> {
@@ -269,24 +294,70 @@ fun App() {
                     pickupAddress = screen.pickup,
                     deliveryAddress = screen.delivery,
                     packageType = screen.packageType,
-                    onConfirmBooking = { bookingId -> currentScreen = AppScreen.SenderReceiver(bookingId) },
+                    pickupLat = screen.pickupLat,
+                    pickupLng = screen.pickupLng,
+                    deliveryLat = screen.deliveryLat,
+                    deliveryLng = screen.deliveryLng,
+                    onConfirmBooking = { vehicleType, price, paymentMethod ->
+                        currentScreen = AppScreen.SenderReceiver(
+                            pickupAddress = screen.pickup,
+                            deliveryAddress = screen.delivery,
+                            vehicleType = vehicleType,
+                            price = price,
+                            paymentMethod = paymentMethod,
+                            pickupLat = screen.pickupLat,
+                            pickupLng = screen.pickupLng,
+                            deliveryLat = screen.deliveryLat,
+                            deliveryLng = screen.deliveryLng
+                        )
+                    },
                     onBack = { currentScreen = AppScreen.Calculate }
                 )
             }
             is AppScreen.SenderReceiver -> {
                 SenderReceiverScreen(
                     onBack = { currentScreen = AppScreen.Calculate },
-                    onNext = { _, _, _, _, _ ->
-                        currentScreen = AppScreen.BookingPayment(screen.bookingId)
+                    onNext = { senderName, senderPhone, receiverName, receiverPhone, _ ->
+                        currentScreen = AppScreen.BookingPayment(
+                            pickupAddress = screen.pickupAddress,
+                            deliveryAddress = screen.deliveryAddress,
+                            vehicleType = screen.vehicleType,
+                            totalAmount = screen.price,
+                            paymentMethod = screen.paymentMethod,
+                            senderName = senderName,
+                            senderPhone = senderPhone,
+                            receiverName = receiverName,
+                            receiverPhone = receiverPhone,
+                            pickupLat = screen.pickupLat,
+                            pickupLng = screen.pickupLng,
+                            deliveryLat = screen.deliveryLat,
+                            deliveryLng = screen.deliveryLng
+                        )
                     }
                 )
             }
             is AppScreen.BookingPayment -> {
                 PaymentScreen(
-                    totalAmount = screen.totalAmount,
-                    onBack = { currentScreen = AppScreen.SenderReceiver(screen.bookingId) },
-                    onConfirmPayment = { _ ->
-                        currentScreen = AppScreen.PaymentSuccess(screen.bookingId, screen.totalAmount)
+                    totalAmount = screen.totalAmount.toInt(),
+                    onBack = { 
+                        currentScreen = AppScreen.SenderReceiver(
+                            pickupAddress = screen.pickupAddress,
+                            deliveryAddress = screen.deliveryAddress,
+                            vehicleType = screen.vehicleType,
+                            price = screen.totalAmount,
+                            paymentMethod = screen.paymentMethod,
+                            pickupLat = screen.pickupLat,
+                            pickupLng = screen.pickupLng,
+                            deliveryLat = screen.deliveryLat,
+                            deliveryLng = screen.deliveryLng
+                        )
+                    },
+                    onConfirmPayment = { paymentMethod ->
+                        // Navigate to payment success - actual booking creation happens there or via a coroutine
+                        currentScreen = AppScreen.PaymentSuccess(
+                            bookingId = "", // Will be populated after API call
+                            amount = screen.totalAmount
+                        )
                     }
                 )
             }
@@ -350,7 +421,9 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickupAddress = screen.pickup,
                     deliveryAddress = screen.delivery,
-                    onContinue = { currentScreen = AppScreen.PaymentSuccess("booking", 220) },
+                    onContinue = { bookingId, amount ->
+                        currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
+                    },
                     onBack = { currentScreen = AppScreen.Details(screen.vehicleType, screen.pickup, screen.delivery) }
                 )
             }

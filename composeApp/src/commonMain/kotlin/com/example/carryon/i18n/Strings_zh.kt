@@ -298,7 +298,7 @@ object ZhStrings : AppStrings {
     override val faqTrackDelivery = "如何追踪我的配送？"
     override val faqTrackDeliveryAnswer = "一旦您的预订确认并且司机已分配，您就可以在追踪页面实时追踪配送状态。"
     override val faqPaymentMethods = "接受哪些付款方式？"
-    override val faqPaymentMethodsAnswer = "我们接受现金、UPI、信用卡/借记卡和钱包付款。"
+    override val faqPaymentMethodsAnswer = "我们接受现金、DuitNow、信用卡/借记卡和钱包付款。"
     override val faqCancelBooking = "如何取消预订？"
     override val faqCancelBookingAnswer = "在司机取走您的包裹之前，您可以在追踪页面取消预订。可能会收取取消费用。"
     override val faqDamagedPackage = "如果我的包裹损坏了怎么办？"

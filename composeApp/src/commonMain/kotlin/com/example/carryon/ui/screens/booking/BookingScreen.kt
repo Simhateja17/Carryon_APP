@@ -1,6 +1,5 @@
 package com.example.carryon.ui.screens.booking
 
-import kotlin.random.Random
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -35,14 +34,20 @@ import com.example.carryon.data.model.MapConfig
 import com.example.carryon.data.model.RouteResult
 import com.example.carryon.data.model.LatLng
 import com.example.carryon.data.network.LocationApi
+import com.example.carryon.data.network.BookingApi
+import com.example.carryon.data.model.Vehicle
 import kotlinx.coroutines.launch
 
 data class VehicleOption(
+    val id: String,
     val icon: String,
     val name: String,
     val description: String,
     val price: String,
-    val eta: String
+    val priceValue: Double,
+    val eta: String,
+    val basePrice: Double,
+    val pricePerKm: Double
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,24 +56,20 @@ fun BookingScreen(
     pickupAddress: String,
     deliveryAddress: String,
     packageType: String,
-    onConfirmBooking: (String) -> Unit,
+    pickupLat: Double = 0.0,
+    pickupLng: Double = 0.0,
+    deliveryLat: Double = 0.0,
+    deliveryLng: Double = 0.0,
+    onConfirmBooking: (vehicleType: String, price: Double, paymentMethod: String) -> Unit,
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
 
-    // Vehicle options — prices update after route is calculated
-    var vehicles by remember {
-        mutableStateOf(
-            listOf(
-                VehicleOption("🏍️", "Bike", strings.upToKg(10), "—", "—"),
-                VehicleOption("🛺", "Auto", strings.upToKg(50), "—", "—"),
-                VehicleOption("🚚", "Mini Truck", strings.upToKg(500), "—", "—"),
-                VehicleOption("🚛", "Truck", strings.upToKg(2000), "—", "—")
-            )
-        )
-    }
+    // Vehicle options — populated from API
+    var vehicles by remember { mutableStateOf<List<VehicleOption>>(emptyList()) }
+    var isLoadingVehicles by remember { mutableStateOf(true) }
 
-    var selectedVehicle by remember { mutableStateOf(vehicles[2]) }
+    var selectedVehicle by remember { mutableStateOf<VehicleOption?>(null) }
     var paymentType by remember { mutableStateOf("DuitNow") }
     var paidBy by remember { mutableStateOf("Me") }
 
@@ -78,13 +79,63 @@ fun BookingScreen(
     var isolineResult by remember { mutableStateOf<IsolineResult?>(null) }
     var isLoadingRoute by remember { mutableStateOf(false) }
 
-    // Coordinates — populated by geocoding user's pickup/delivery addresses
-    var pickupLat by remember { mutableStateOf(0.0) }
-    var pickupLng by remember { mutableStateOf(0.0) }
-    var deliveryLat by remember { mutableStateOf(0.0) }
-    var deliveryLng by remember { mutableStateOf(0.0) }
+    // Coordinates — can be passed in or geocoded
+    var currentPickupLat by remember { mutableStateOf(pickupLat) }
+    var currentPickupLng by remember { mutableStateOf(pickupLng) }
+    var currentDeliveryLat by remember { mutableStateOf(deliveryLat) }
+    var currentDeliveryLng by remember { mutableStateOf(deliveryLng) }
 
     val scope = rememberCoroutineScope()
+
+    // Fetch vehicles from API
+    LaunchedEffect(Unit) {
+        isLoadingVehicles = true
+        BookingApi.getVehicles().onSuccess { response ->
+            val apiVehicles = response.data ?: emptyList()
+            // Map API vehicles to VehicleOption with icons
+            val iconMap = mapOf(
+                "bike" to "🏍️",
+                "auto" to "🛺",
+                "mini truck" to "🚚",
+                "minitruck" to "🚚",
+                "truck" to "🚛",
+                "car" to "🚗"
+            )
+            vehicles = apiVehicles.map { v ->
+                VehicleOption(
+                    id = v.id,
+                    icon = iconMap[v.name.lowercase()] ?: "📦",
+                    name = v.name,
+                    description = v.description.ifBlank { v.capacity },
+                    price = "—",
+                    priceValue = 0.0,
+                    eta = "—",
+                    basePrice = v.basePrice,
+                    pricePerKm = v.pricePerKm
+                )
+            }
+            // Fallback to defaults if API returns empty
+            if (vehicles.isEmpty()) {
+                vehicles = listOf(
+                    VehicleOption("bike", "🏍️", "Bike", strings.upToKg(10), "—", 0.0, "—", 5.0, 1.5),
+                    VehicleOption("auto", "🛺", "Auto", strings.upToKg(50), "—", 0.0, "—", 10.0, 2.5),
+                    VehicleOption("minitruck", "🚚", "Mini Truck", strings.upToKg(500), "—", 0.0, "—", 30.0, 4.0),
+                    VehicleOption("truck", "🚛", "Truck", strings.upToKg(2000), "—", 0.0, "—", 60.0, 7.0)
+                )
+            }
+            selectedVehicle = vehicles.getOrNull(2) ?: vehicles.firstOrNull()
+        }.onFailure {
+            // Fallback defaults
+            vehicles = listOf(
+                VehicleOption("bike", "🏍️", "Bike", strings.upToKg(10), "—", 0.0, "—", 5.0, 1.5),
+                VehicleOption("auto", "🛺", "Auto", strings.upToKg(50), "—", 0.0, "—", 10.0, 2.5),
+                VehicleOption("minitruck", "🚚", "Mini Truck", strings.upToKg(500), "—", 0.0, "—", 30.0, 4.0),
+                VehicleOption("truck", "🚛", "Truck", strings.upToKg(2000), "—", 0.0, "—", 60.0, 7.0)
+            )
+            selectedVehicle = vehicles[2]
+        }
+        isLoadingVehicles = false
+    }
 
     // Load map config, geocode addresses, calculate route + isoline
     LaunchedEffect(Unit) {
@@ -92,50 +143,57 @@ fun BookingScreen(
             mapConfig = config
         }
 
-        // Geocode pickup address if it's not already coordinates
-        if (pickupAddress.isNotBlank()) {
+        // Geocode pickup address if coordinates not provided
+        if (currentPickupLat == 0.0 && pickupAddress.isNotBlank()) {
             LocationApi.geocode(pickupAddress).onSuccess { place ->
                 if (place != null) {
-                    pickupLat = place.lat
-                    pickupLng = place.lng
+                    currentPickupLat = place.lat
+                    currentPickupLng = place.lng
                 }
             }
         }
-        // Geocode delivery address
-        if (deliveryAddress.isNotBlank()) {
+        // Geocode delivery address if coordinates not provided
+        if (currentDeliveryLat == 0.0 && deliveryAddress.isNotBlank()) {
             LocationApi.geocode(deliveryAddress).onSuccess { place ->
                 if (place != null) {
-                    deliveryLat = place.lat
-                    deliveryLng = place.lng
+                    currentDeliveryLat = place.lat
+                    currentDeliveryLng = place.lng
                 }
             }
         }
+    }
 
+    // Calculate route when coordinates are ready
+    LaunchedEffect(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng, vehicles) {
+        if (currentPickupLat == 0.0 || currentDeliveryLat == 0.0 || vehicles.isEmpty()) return@LaunchedEffect
+        
         isLoadingRoute = true
-        LocationApi.calculateRoute(pickupLat, pickupLng, deliveryLat, deliveryLng).onSuccess { route ->
+        LocationApi.calculateRoute(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng).onSuccess { route ->
             routeResult = route
-            // Update vehicle prices based on route distance
+            // Update vehicle prices based on route distance using API-provided pricing
             val km = route.distance
             val mins = route.duration
-            vehicles = listOf(
-                VehicleOption("🏍️", "Bike", strings.upToKg(10), strings.rmAmount((5 + km * 1.5).toInt()), strings.minDuration(mins)),
-                VehicleOption("🛺", "Auto", strings.upToKg(50), strings.rmAmount((10 + km * 2.5).toInt()), strings.minDuration(mins + 5)),
-                VehicleOption("🚚", "Mini Truck", strings.upToKg(500), strings.rmAmount((30 + km * 4).toInt()), strings.minDuration(mins + 10)),
-                VehicleOption("🚛", "Truck", strings.upToKg(2000), strings.rmAmount((60 + km * 7).toInt()), strings.minDuration(mins + 15))
-            )
-            selectedVehicle = vehicles[2]
+            vehicles = vehicles.mapIndexed { index, v ->
+                val calculatedPrice = v.basePrice + (km * v.pricePerKm)
+                v.copy(
+                    price = strings.rmAmount(calculatedPrice.toInt()),
+                    priceValue = calculatedPrice,
+                    eta = strings.minDuration(mins + (index * 5))
+                )
+            }
+            selectedVehicle = vehicles.find { it.id == selectedVehicle?.id } ?: vehicles.getOrNull(2) ?: vehicles.firstOrNull()
         }
         // Fetch isoline: reachable within 15 min from pickup
-        LocationApi.getIsoline(pickupLat, pickupLng, 15).onSuccess { iso ->
+        LocationApi.getIsoline(currentPickupLat, currentPickupLng, 15).onSuccess { iso ->
             isolineResult = iso
         }
         isLoadingRoute = false
     }
 
-    val markers = remember {
+    val markers = remember(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng) {
         listOf(
-            MapMarker("pickup", pickupLat, pickupLng, strings.pickup, MarkerColor.BLUE),
-            MapMarker("delivery", deliveryLat, deliveryLng, strings.delivery, MarkerColor.GREEN)
+            MapMarker("pickup", currentPickupLat, currentPickupLng, strings.pickup, MarkerColor.BLUE),
+            MapMarker("delivery", currentDeliveryLat, currentDeliveryLng, strings.delivery, MarkerColor.GREEN)
         )
     }
 
@@ -172,15 +230,15 @@ fun BookingScreen(
                 MapViewComposable(
                     modifier = Modifier.fillMaxSize(),
                     styleUrl = mapConfig.styleUrl,
-                    centerLat = (pickupLat + deliveryLat) / 2,
-                    centerLng = (pickupLng + deliveryLng) / 2,
+                    centerLat = (currentPickupLat + currentDeliveryLat) / 2,
+                    centerLng = (currentPickupLng + currentDeliveryLng) / 2,
                     zoom = 11.0,
                     markers = markers,
                     routeGeometry = routeResult?.geometry,
                     polygonGeometry = isolineResult?.geometry
                 )
 
-                if (isLoadingRoute) {
+                if (isLoadingRoute || isLoadingVehicles) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center).size(32.dp),
                         color = PrimaryBlue,
@@ -191,48 +249,51 @@ fun BookingScreen(
 
             // Vehicle Info Card
             Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-                Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        // Vehicle image and name
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(Res.drawable.mask_group),
-                                contentDescription = "Vehicle",
-                                modifier = Modifier.size(64.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(selectedVehicle.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                Text(selectedVehicle.description, fontSize = 13.sp, color = TextSecondary)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-                        HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Route info from API
-                        if (routeResult != null) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                if (selectedVehicle != null) {
+                    val currentVehicle = selectedVehicle!!
+                    Card(modifier = Modifier.fillMaxWidth().padding(16.dp), shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = Color.White), elevation = CardDefaults.cardElevation(2.dp)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            // Vehicle image and name
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Image(
+                                    painter = painterResource(Res.drawable.mask_group),
+                                    contentDescription = "Vehicle",
+                                    modifier = Modifier.size(64.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Column {
-                                    Text(strings.distance, fontSize = 12.sp, color = TextSecondary)
-                                    Text("${routeResult!!.distance} km", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(strings.duration, fontSize = 12.sp, color = TextSecondary)
-                                    Text(strings.minDuration(routeResult!!.duration), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                    Text(currentVehicle.name, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                    Text(currentVehicle.description, fontSize = 13.sp, color = TextSecondary)
                                 }
                             }
+
                             Spacer(modifier = Modifier.height(12.dp))
                             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                             Spacer(modifier = Modifier.height(12.dp))
-                        }
 
-                        // Charge
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(strings.charge, fontSize = 14.sp, color = TextSecondary)
-                            Text(selectedVehicle.price, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                            // Route info from API
+                            if (routeResult != null) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Column {
+                                        Text(strings.distance, fontSize = 12.sp, color = TextSecondary)
+                                        Text("${routeResult!!.distance} km", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(strings.duration, fontSize = 12.sp, color = TextSecondary)
+                                        Text(strings.minDuration(routeResult!!.duration), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+
+                            // Charge
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(strings.charge, fontSize = 14.sp, color = TextSecondary)
+                                Text(currentVehicle.price, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                            }
                         }
                     }
                 }
@@ -364,10 +425,22 @@ fun BookingScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Button(
-                    onClick = { onConfirmBooking("BK${Random.nextInt(100000, 999999)}") },
+                    onClick = { 
+                        selectedVehicle?.let { vehicle ->
+                            // Map UI payment type to API payment method
+                            val apiPaymentMethod = when (paymentType) {
+                                "Cash" -> "CASH"
+                                "DuitNow" -> "DUITNOW"
+                                "Card" -> "CARD"
+                                else -> "WALLET"
+                            }
+                            onConfirmBooking(vehicle.name, vehicle.priceValue, apiPaymentMethod)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(52.dp),
                     shape = RoundedCornerShape(26.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    enabled = selectedVehicle != null && selectedVehicle!!.priceValue > 0
                 ) { Text("Next", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
 
                 Spacer(modifier = Modifier.height(24.dp))

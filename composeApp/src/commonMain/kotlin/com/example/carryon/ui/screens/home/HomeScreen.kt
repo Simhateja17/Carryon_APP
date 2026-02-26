@@ -44,6 +44,7 @@ import com.example.carryon.i18n.LocalStrings
 import com.example.carryon.data.model.AutocompleteResult
 import com.example.carryon.data.network.LocationApi
 import com.example.carryon.data.network.UserApi
+import com.example.carryon.data.network.BookingApi
 import com.example.carryon.data.network.getLanguage
 import com.example.carryon.data.network.saveLanguage
 import kotlinx.coroutines.Job
@@ -70,6 +71,11 @@ fun HomeScreen(
     var userLng by remember { mutableStateOf<Double?>(null) }
     var showLanguageModal by remember { mutableStateOf(false) }
 
+    // Vehicle pricing from API
+    data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val price: String)
+    var vehicleOptions by remember { mutableStateOf<List<VehicleOption>>(emptyList()) }
+    var isLoadingVehicles by remember { mutableStateOf(true) }
+
     val scope = rememberCoroutineScope()
 
     // Show language modal if user hasn't selected one yet
@@ -78,6 +84,51 @@ fun HomeScreen(
         if (savedLang.isNullOrEmpty()) {
             showLanguageModal = true
         }
+    }
+
+    // Fetch vehicle pricing from API
+    LaunchedEffect(Unit) {
+        isLoadingVehicles = true
+        val iconMap = mapOf(
+            "bike" to Res.drawable.bike,
+            "auto" to Res.drawable.car_two_seater,
+            "car" to Res.drawable.car_4_seater,
+            "mini truck" to Res.drawable.mini_van,
+            "minitruck" to Res.drawable.mini_van,
+            "truck" to Res.drawable.truck
+        )
+        val defaultVehicles = listOf(
+            VehicleOption(Res.drawable.bike, "Bike", "RM 8"),
+            VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "RM 15"),
+            VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "RM 20"),
+            VehicleOption(Res.drawable.mini_van, "Mini Van", "RM 30"),
+            VehicleOption(Res.drawable.truck, "Truck", "RM 45"),
+            VehicleOption(Res.drawable.open_truck, "Open Truck", "RM 40")
+        )
+        BookingApi.getVehicles()
+            .onSuccess { response ->
+                val apiVehicles = response.data ?: emptyList()
+                if (apiVehicles.isNotEmpty()) {
+                    vehicleOptions = apiVehicles.map { vehicle ->
+                        val icon = iconMap[vehicle.type.lowercase()] ?: Res.drawable.car_4_seater
+                        val displayName = when (vehicle.type.lowercase()) {
+                            "bike" -> "Bike"
+                            "auto" -> "Car (2-Seat)"
+                            "car" -> "Car (4-Seat)"
+                            "mini truck", "minitruck" -> "Mini Van"
+                            "truck" -> "Truck"
+                            else -> vehicle.type
+                        }
+                        VehicleOption(icon, displayName, "RM ${vehicle.basePrice.toInt()}")
+                    }
+                } else {
+                    vehicleOptions = defaultVehicles
+                }
+            }
+            .onFailure {
+                vehicleOptions = defaultVehicles
+            }
+        isLoadingVehicles = false
     }
 
     // Location permission + GPS fetch → reverse geocode → fill pickup
@@ -192,12 +243,12 @@ fun HomeScreen(
                 Column {
                     Button(
                         onClick = {
-                            if (pickupLocation.isNotBlank() && deliveryLocation.isNotBlank()) {
-                                val vehicles = listOf("Bike", "Car (2-Seat)", "Car (4-Seat)", "Mini Van", "Truck", "Open Truck")
-                                onNavigateToBooking(pickupLocation, deliveryLocation, vehicles[selectedVehicle])
+                            if (pickupLocation.isNotBlank() && deliveryLocation.isNotBlank() && vehicleOptions.isNotEmpty()) {
+                                val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: "Car (4-Seat)"
+                                onNavigateToBooking(pickupLocation, deliveryLocation, selectedVehicleName)
                             }
                         },
-                        enabled = pickupLocation.isNotBlank() && deliveryLocation.isNotBlank(),
+                        enabled = pickupLocation.isNotBlank() && deliveryLocation.isNotBlank() && vehicleOptions.isNotEmpty(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -368,17 +419,13 @@ fun HomeScreen(
             // Vehicle Type
             Text(strings.vehicleType, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(modifier = Modifier.height(10.dp))
-            data class VehicleOption(val iconRes: org.jetbrains.compose.resources.DrawableResource, val name: String, val price: String)
-            val vehicles = listOf(
-                VehicleOption(Res.drawable.bike, "Bike", "RM 8"),
-                VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "RM 15"),
-                VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "RM 20"),
-                VehicleOption(Res.drawable.mini_van, "Mini Van", "RM 30"),
-                VehicleOption(Res.drawable.truck, "Truck", "RM 45"),
-                VehicleOption(Res.drawable.open_truck, "Open Truck", "RM 40")
-            )
-            Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                vehicles.forEachIndexed { index, vehicle ->
+            if (isLoadingVehicles) {
+                Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp), color = PrimaryBlue, strokeWidth = 3.dp)
+                }
+            } else {
+                Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                     vehicleOptions.forEachIndexed { index, vehicle ->
                     Card(
                         modifier = Modifier.fillMaxWidth().clickable { selectedVehicle = index },
                         shape = RoundedCornerShape(14.dp),
@@ -408,6 +455,7 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
