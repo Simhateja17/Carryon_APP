@@ -34,7 +34,9 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun DetailsScreen(
     vehicleType: String = "",
-    onContinue: (vehicleType: String) -> Unit,
+    pickup: String = "",
+    delivery: String = "",
+    onContinue: (vehicleType: String, pickup: String, delivery: String) -> Unit,
     onBack: () -> Unit
 ) {
     var itemType by remember { mutableStateOf("") }
@@ -43,7 +45,7 @@ fun DetailsScreen(
     var paymentType by remember { mutableStateOf("") }
     var paymentDropdownExpanded by remember { mutableStateOf(false) }
     val paymentOptions = listOf("Cash", "DuitNow QR", "Touch 'n Go eWallet", "GrabPay", "FPX Online Banking", "Credit / Debit Card")
-    var recipientName by remember { mutableStateOf("Donald Duck") }
+    var recipientName by remember { mutableStateOf("") }
     var recipientPhone by remember { mutableStateOf("") }
     val strings = LocalStrings.current
 
@@ -78,10 +80,11 @@ fun DetailsScreen(
     )
 
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
             Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Button(
-                    onClick = { onContinue(vehicleType) },
+                    onClick = { onContinue(vehicleType, pickup, delivery) },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -96,7 +99,6 @@ fun DetailsScreen(
                         Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = { IconButton(onClick = onBack) { Text("☰", fontSize = 22.sp, color = TextPrimary) } },
                 actions = { IconButton(onClick = {}) { Text("🔔", fontSize = 20.sp) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )

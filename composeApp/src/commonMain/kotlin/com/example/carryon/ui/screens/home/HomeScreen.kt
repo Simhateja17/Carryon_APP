@@ -30,7 +30,6 @@ import carryon.composeapp.generated.resources.clip_path_group_1
 import carryon.composeapp.generated.resources.mask_group
 import carryon.composeapp.generated.resources.rectangle_22
 import carryon.composeapp.generated.resources.ellipse_4
-import androidx.compose.ui.graphics.Brush
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.car_two_seater
@@ -167,6 +166,7 @@ fun HomeScreen(
     }
 
     Scaffold(
+        containerColor = Color.White,
         topBar = {
             TopAppBar(
                 title = {
@@ -178,9 +178,6 @@ fun HomeScreen(
                         Text("Carry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                         Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { }) { Text("☰", fontSize = 22.sp, color = TextPrimary) }
                 },
                 actions = {
                     IconButton(onClick = { }) {
@@ -211,7 +208,7 @@ fun HomeScreen(
     ) { paddingValues ->
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
-                .background(Brush.verticalGradient(listOf(Color(0xFF2F80ED), Color.White)))
+                .background(Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
             // Banner: "We are Ready to Serve" with background image
@@ -287,7 +284,7 @@ fun HomeScreen(
                 DropdownMenu(
                     expanded = showPickupSuggestions && pickupSuggestions.isNotEmpty(),
                     onDismissRequest = { showPickupSuggestions = false },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().background(Color.White)
                 ) {
                     pickupSuggestions.take(5).forEach { place ->
                         DropdownMenuItem(
@@ -304,7 +301,11 @@ fun HomeScreen(
                                 pickupLocation = place.title
                                 showPickupSuggestions = false
                                 pickupSuggestions = emptyList()
-                            }
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TextPrimary,
+                                leadingIconColor = TextPrimary
+                            )
                         )
                         HorizontalDivider(color = Color(0xFFF0F0F0))
                     }
@@ -334,7 +335,7 @@ fun HomeScreen(
                 DropdownMenu(
                     expanded = showDeliverySuggestions && deliverySuggestions.isNotEmpty(),
                     onDismissRequest = { showDeliverySuggestions = false },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().background(Color.White)
                 ) {
                     deliverySuggestions.take(5).forEach { place ->
                         DropdownMenuItem(
@@ -351,7 +352,11 @@ fun HomeScreen(
                                 deliveryLocation = place.title
                                 showDeliverySuggestions = false
                                 deliverySuggestions = emptyList()
-                            }
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = TextPrimary,
+                                leadingIconColor = TextPrimary
+                            )
                         )
                         HorizontalDivider(color = Color(0xFFF0F0F0))
                     }

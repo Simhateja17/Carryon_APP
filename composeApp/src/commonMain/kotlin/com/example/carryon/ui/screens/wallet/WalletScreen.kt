@@ -212,7 +212,7 @@ fun WalletScreen(
 
             // Transaction History
             item {
-                Text(strings.transactionHistory, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(strings.transactionHistory, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
             val transactions = wallet?.transactions ?: emptyList()

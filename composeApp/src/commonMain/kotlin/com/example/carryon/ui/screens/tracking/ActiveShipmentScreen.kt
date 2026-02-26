@@ -23,8 +23,40 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.map_background
 import org.jetbrains.compose.resources.painterResource
+import com.example.carryon.data.network.BookingApi
+import com.example.carryon.data.model.Booking
+import com.example.carryon.data.model.BookingStatus
 import com.example.carryon.ui.theme.*
 import com.example.carryon.i18n.LocalStrings
+
+private fun formatISODate(isoDate: String): String {
+    return try {
+        val parts = isoDate.split("T")
+        if (parts.size < 2) return isoDate
+        val datePart = parts[0].split("-")
+        val timePart = parts[1].take(5).split(":")
+        if (datePart.size < 3 || timePart.size < 2) return isoDate
+        val year = datePart[0].takeLast(2)
+        val month = when (datePart[1].toIntOrNull() ?: 0) {
+            1 -> "Jan"; 2 -> "Feb"; 3 -> "Mar"; 4 -> "Apr"
+            5 -> "May"; 6 -> "Jun"; 7 -> "Jul"; 8 -> "Aug"
+            9 -> "Sep"; 10 -> "Oct"; 11 -> "Nov"; 12 -> "Dec"
+            else -> datePart[1]
+        }
+        val day = datePart[2].toIntOrNull()?.toString() ?: datePart[2]
+        val hour = timePart[0].toIntOrNull() ?: 0
+        val minute = timePart[1]
+        val ampm = if (hour < 12) "am" else "pm"
+        val hour12 = when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        "$hour12:$minute $ampm | $day $month $year"
+    } catch (e: Exception) {
+        isoDate
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +65,34 @@ fun ActiveShipmentScreen(
     onChatWithDriver: (String, String) -> Unit = { _, _ -> }
 ) {
     val strings = LocalStrings.current
+    var activeBooking by remember { mutableStateOf<Booking?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
     var shareWithNeighbors by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        BookingApi.getBookings().onSuccess { response ->
+            activeBooking = response.data?.firstOrNull {
+                it.status != BookingStatus.DELIVERED && it.status != BookingStatus.CANCELLED
+            }
+        }
+        isLoading = false
+    }
+
+    val etaText = activeBooking?.eta?.let { "$it min  ●●●" } ?: "—  ●●●"
+    val orderId = activeBooking?.id ?: "—"
+    val pickupAddress = activeBooking?.pickupAddress?.address ?: "—"
+    val recipientName = activeBooking?.deliveryAddress?.contactName?.ifBlank {
+        activeBooking?.deliveryAddress?.label
+    } ?: "—"
+    val dispatchedText = activeBooking?.createdAt?.let { formatISODate(it) } ?: "—"
+    val deliverByText = activeBooking?.scheduledTime?.let { formatISODate(it) }
+        ?: activeBooking?.let {
+            if (it.duration > 0) {
+                // Approximate: createdAt + duration minutes
+                "~${it.duration} min from dispatch"
+            } else "—"
+        } ?: "—"
+    val driverName = activeBooking?.driver?.name ?: "Driver"
 
     Scaffold(
         topBar = {
@@ -56,11 +115,6 @@ fun ActiveShipmentScreen(
                             fontWeight = FontWeight.Bold,
                             color = PrimaryBlueDark
                         )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { }) {
-                        Text("☰", fontSize = 22.sp, color = TextPrimary)
                     }
                 },
                 actions = {
@@ -100,14 +154,13 @@ fun ActiveShipmentScreen(
                     contentScale = ContentScale.Crop
                 )
 
-                // Route overlay line (visual indicator)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color(0x33000000))
                 )
 
-                // From/To pin labels
+                // ETA label
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
@@ -119,7 +172,7 @@ fun ActiveShipmentScreen(
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Text(
-                            text = "13 min  ●●●",
+                            text = etaText,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextPrimary
@@ -168,84 +221,92 @@ fun ActiveShipmentScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Divider
                 Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Customer Name
-                Text(
-                    text = "Sara",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Order Info
-                Text(
-                    text = "order: 560023 | #33, Brook-field, 560013",
-                    fontSize = 13.sp,
-                    color = TextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Dispatched / Deliver by Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(
-                            text = strings.dispatched,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "4:30 pm | 23 Jan 24",
-                            fontSize = 13.sp,
-                            color = TextSecondary
-                        )
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue)
                     }
-
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = strings.deliverBy,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "8:30 pm | 24 Jan 24",
-                            fontSize = 13.sp,
-                            color = TextSecondary
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(28.dp))
-
-                // Chat with Driver Button
-                OutlinedButton(
-                    onClick = { onChatWithDriver("560023", "Sara") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
-                ) {
+                } else {
+                    // Recipient name
                     Text(
-                        text = strings.chatWithDriver,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = PrimaryBlue
+                        text = recipientName,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Order Info
+                    Text(
+                        text = "order: $orderId | $pickupAddress",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Dispatched / Deliver by Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = strings.dispatched,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = dispatchedText,
+                                fontSize = 13.sp,
+                                color = TextSecondary
+                            )
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = strings.deliverBy,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = deliverByText,
+                                fontSize = 13.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    // Chat with Driver Button
+                    OutlinedButton(
+                        onClick = { onChatWithDriver(orderId, driverName) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(54.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
+                    ) {
+                        Text(
+                            text = strings.chatWithDriver,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PrimaryBlue
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))

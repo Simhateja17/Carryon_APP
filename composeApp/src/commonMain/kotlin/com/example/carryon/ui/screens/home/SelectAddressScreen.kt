@@ -49,7 +49,7 @@ fun SelectAddressScreen(
     initialFrom: String = "",
     initialTo: String = "",
     vehicleType: String = "",
-    onNext: (vehicleType: String) -> Unit,
+    onNext: (vehicleType: String, pickup: String, delivery: String) -> Unit,
     onBack: () -> Unit
 ) {
     var from by remember { mutableStateOf(initialFrom) }
@@ -154,7 +154,6 @@ fun SelectAddressScreen(
                         Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = { IconButton(onClick = onBack) { Text("☰", fontSize = 22.sp, color = TextPrimary) } },
                 actions = { IconButton(onClick = {}) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -163,7 +162,7 @@ fun SelectAddressScreen(
             Surface(shadowElevation = 8.dp, color = Color.White) {
                 Column {
                     Button(
-                        onClick = { onNext(vehicleType) },
+                        onClick = { onNext(vehicleType, from, to) },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -234,7 +233,7 @@ fun SelectAddressScreen(
                         leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
                         singleLine = true
                     )
                     DropdownMenu(
@@ -297,7 +296,7 @@ fun SelectAddressScreen(
                         leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
                         singleLine = true
                     )
                     DropdownMenu(

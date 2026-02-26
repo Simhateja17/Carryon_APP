@@ -48,7 +48,6 @@ fun DeliveryDetailsScreen(
                         Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = { IconButton(onClick = onBack) { Text("☰", fontSize = 22.sp, color = TextPrimary) } },
                 actions = { IconButton(onClick = { }) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -90,7 +89,7 @@ fun DeliveryDetailsScreen(
                     trailingIcon = { Text("▼", fontSize = 12.sp, color = TextSecondary) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.LightGray, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color(0xFFF8F8F8), unfocusedContainerColor = Color(0xFFF8F8F8))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Color.LightGray, unfocusedBorderColor = Color.LightGray, focusedContainerColor = Color(0xFFF8F8F8), unfocusedContainerColor = Color(0xFFF8F8F8), focusedTextColor = Color.Black, unfocusedTextColor = Color.Black)
                 )
             }
 

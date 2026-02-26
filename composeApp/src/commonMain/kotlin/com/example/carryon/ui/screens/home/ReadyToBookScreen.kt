@@ -50,11 +50,6 @@ fun ReadyToBookScreen(
                         )
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = { }) {
-                        Text("☰", fontSize = 22.sp, color = TextPrimary)
-                    }
-                },
                 actions = {
                     IconButton(onClick = { }) {
                         Image(

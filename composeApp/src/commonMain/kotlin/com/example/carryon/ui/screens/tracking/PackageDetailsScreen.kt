@@ -74,11 +74,6 @@ fun PackageDetailsScreen(
                         )
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = { }) {
-                        Text("☰", fontSize = 20.sp)
-                    }
-                },
                 actions = {
                     IconButton(onClick = { }) {
                         Image(

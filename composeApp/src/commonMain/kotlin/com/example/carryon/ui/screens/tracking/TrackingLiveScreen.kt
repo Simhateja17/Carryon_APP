@@ -112,11 +112,6 @@ fun TrackingLiveScreen(
                         Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("☰", fontSize = 22.sp, color = TextPrimary)
-                    }
-                },
                 actions = {
                     IconButton(onClick = {}) {
                         Image(

@@ -82,8 +82,8 @@ sealed class AppScreen {
     data class BookingPayment(val bookingId: String, val totalAmount: Int = 220) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Int = 220) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
-    data class Details(val vehicleType: String = "") : AppScreen()
-    data class RequestForRide(val vehicleType: String = "") : AppScreen()
+    data class Details(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
+    data class RequestForRide(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
     data object Settings : AppScreen()
     // New screens
     data object Wallet : AppScreen()
@@ -332,22 +332,26 @@ fun App() {
                     initialFrom = screen.pickup,
                     initialTo = screen.delivery,
                     vehicleType = screen.vehicleType,
-                    onNext = { vt -> currentScreen = AppScreen.Details(vt) },
+                    onNext = { vt, pickup, delivery -> currentScreen = AppScreen.Details(vt, pickup, delivery) },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.Details -> {
                 DetailsScreen(
                     vehicleType = screen.vehicleType,
-                    onContinue = { vt -> currentScreen = AppScreen.RequestForRide(vt) },
+                    pickup = screen.pickup,
+                    delivery = screen.delivery,
+                    onContinue = { vt, pickup, delivery -> currentScreen = AppScreen.RequestForRide(vt, pickup, delivery) },
                     onBack = { currentScreen = AppScreen.SelectAddress() }
                 )
             }
             is AppScreen.RequestForRide -> {
                 RequestForRideScreen(
                     vehicleType = screen.vehicleType,
+                    pickupAddress = screen.pickup,
+                    deliveryAddress = screen.delivery,
                     onContinue = { currentScreen = AppScreen.PaymentSuccess("booking", 220) },
-                    onBack = { currentScreen = AppScreen.Details() }
+                    onBack = { currentScreen = AppScreen.Details(screen.vehicleType, screen.pickup, screen.delivery) }
                 )
             }
             is AppScreen.Settings -> {

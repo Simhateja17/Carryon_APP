@@ -30,6 +30,7 @@ import carryon.composeapp.generated.resources.icon_logout_shield
 import carryon.composeapp.generated.resources.icon_logout_hammer
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+import com.example.carryon.data.network.UserApi
 import com.example.carryon.ui.theme.*
 import com.example.carryon.i18n.LocalStrings
 
@@ -51,7 +52,12 @@ fun ProfileScreen(
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
+    var userName by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        UserApi.getProfile().onSuccess { user -> userName = user.name }
+    }
     Scaffold(
+        containerColor = Color.White,
         topBar = {
             TopAppBar(
                 title = {
@@ -66,11 +72,6 @@ fun ProfileScreen(
                             color = PrimaryBlue,
                             fontStyle = FontStyle.Italic
                         )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Text("☰", fontSize = 20.sp)
                     }
                 },
                 actions = {
@@ -112,7 +113,7 @@ fun ProfileScreen(
                         color = TextPrimary
                     )
                     Text(
-                        text = "Devansh Chauhan",
+                        text = userName,
                         fontSize = 18.sp,
                         color = TextSecondary
                     )
