@@ -107,7 +107,15 @@ sealed class AppScreen {
     data class PaymentSuccess(val bookingId: String, val amount: Double = 0.0) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
     data class Details(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
-    data class RequestForRide(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
+    data class RequestForRide(
+        val vehicleType: String = "",
+        val pickup: String = "",
+        val delivery: String = "",
+        val senderName: String = "",
+        val senderPhone: String = "",
+        val receiverName: String = "",
+        val receiverPhone: String = ""
+    ) : AppScreen()
     data object Settings : AppScreen()
     // New screens
     data object Wallet : AppScreen()
@@ -412,7 +420,9 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery -> currentScreen = AppScreen.RequestForRide(vt, pickup, delivery) },
+                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone -> 
+                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone) 
+                    },
                     onBack = { currentScreen = AppScreen.SelectAddress() }
                 )
             }
@@ -421,6 +431,10 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickupAddress = screen.pickup,
                     deliveryAddress = screen.delivery,
+                    senderName = screen.senderName,
+                    senderPhone = screen.senderPhone,
+                    receiverName = screen.receiverName,
+                    receiverPhone = screen.receiverPhone,
                     onContinue = { bookingId, amount ->
                         currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
                     },

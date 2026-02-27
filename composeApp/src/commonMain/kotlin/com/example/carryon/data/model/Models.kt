@@ -68,6 +68,10 @@ data class Booking(
     val deliveryProofUrl: String? = null,
     val deliveredAt: String? = null,
     val eta: Int? = null,
+    val senderName: String = "",
+    val senderPhone: String = "",
+    val receiverName: String = "",
+    val receiverPhone: String = "",
     val createdAt: String = "",
     val updatedAt: String = ""
 )

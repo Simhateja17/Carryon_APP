@@ -26,6 +26,7 @@ import com.example.carryon.ui.theme.*
 import com.example.carryon.ui.components.rememberCameraCapture
 import com.example.carryon.ui.components.decodeImageBytes
 import com.example.carryon.data.network.UploadApi
+import com.example.carryon.data.network.UserApi
 import com.example.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -36,7 +37,7 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String) -> Unit,
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
     onBack: () -> Unit
 ) {
     var itemType by remember { mutableStateOf("") }
@@ -45,16 +46,27 @@ fun DetailsScreen(
     var paymentType by remember { mutableStateOf("") }
     var paymentDropdownExpanded by remember { mutableStateOf(false) }
     val paymentOptions = listOf("Cash", "DuitNow QR", "Touch 'n Go eWallet", "GrabPay", "FPX Online Banking", "Credit / Debit Card")
+    var senderName by remember { mutableStateOf("") }
+    var senderPhone by remember { mutableStateOf("") }
     var recipientName by remember { mutableStateOf("") }
     var recipientPhone by remember { mutableStateOf("") }
     val strings = LocalStrings.current
+    val scope = rememberCoroutineScope()
+
+    // Fetch user profile to pre-fill sender name
+    LaunchedEffect(Unit) {
+        UserApi.getProfile().onSuccess { user ->
+            if (senderName.isBlank()) {
+                senderName = user.name
+            }
+        }
+    }
 
     // Camera capture state
     var capturedImageBytes by remember { mutableStateOf<ByteArray?>(null) }
     var packageImageUrl by remember { mutableStateOf<String?>(null) }
     var isUploading by remember { mutableStateOf(false) }
     var uploadError by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
 
     val launchCamera = rememberCameraCapture(
         onImageCaptured = { bytes ->
@@ -82,12 +94,24 @@ fun DetailsScreen(
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
+            val isFormValid = itemType.isNotBlank() && 
+                quantity.isNotBlank() && 
+                paymentType.isNotBlank() && 
+                senderName.isNotBlank() &&
+                senderPhone.isNotBlank() &&
+                recipientName.isNotBlank() && 
+                recipientPhone.isNotBlank()
+            
             Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Button(
-                    onClick = { onContinue(vehicleType, pickup, delivery) },
+                    onClick = { onContinue(vehicleType, pickup, delivery, senderName, senderPhone, recipientName, recipientPhone) },
+                    enabled = isFormValid,
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryBlue,
+                        disabledContainerColor = PrimaryBlue.copy(alpha = 0.5f)
+                    )
                 ) { Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
             }
         },
@@ -236,6 +260,49 @@ fun DetailsScreen(
                     }
                 }
             }
+
+            // Sender Name
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(strings.sendersName, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Spacer(modifier = Modifier.height(6.dp))
+            OutlinedTextField(
+                value = senderName,
+                onValueChange = { senderName = it },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true
+            )
+
+            // Sender Phone
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(strings.sendersNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+            Spacer(modifier = Modifier.height(6.dp))
+            OutlinedTextField(
+                value = senderPhone,
+                onValueChange = { senderPhone = it },
+                placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
+                prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = Color(0xFFF6F9FA),
+                    focusedContainerColor = Color(0xFFF6F9FA),
+                    unfocusedBorderColor = Color(0xFFDCE8E9),
+                    focusedBorderColor = PrimaryBlue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
+            )
 
             // Recipient Names
             Spacer(modifier = Modifier.height(16.dp))

@@ -24,7 +24,10 @@ data class CreateBookingRequest(
     val senderPhone: String,
     val receiverName: String,
     val receiverPhone: String,
-    val notes: String? = null
+    val notes: String? = null,
+    val estimatedPrice: Double = 0.0,
+    val distance: Double = 0.0,
+    val duration: Int = 0
 )
 
 @Serializable
