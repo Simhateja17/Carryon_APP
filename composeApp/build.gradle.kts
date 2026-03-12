@@ -32,6 +32,9 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.credentials)
+            implementation(libs.credentials.play.services)
+            implementation(libs.googleid)
             implementation("org.maplibre.gl:android-sdk:11.8.0")
             implementation("com.google.android.gms:play-services-location:21.3.0")
         }
@@ -53,6 +56,9 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
+            // Supabase
+            implementation(libs.supabase.auth.kt)
+            implementation(libs.supabase.compose.auth)
             // Kotlinx
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
@@ -71,11 +77,11 @@ compose.resources {
 }
 
 android {
-    namespace = "com.example.carryon"
+    namespace = "com.company.carryon"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.example.carryon"
+        applicationId = "com.company.carryon"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1

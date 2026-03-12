@@ -5,6 +5,9 @@ struct iOSApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    // Handle Supabase OAuth callback deep links
+                }
         }
     }
 }
