@@ -22,3 +22,6 @@ node_modules/
 # Backend secrets
 backend/.env
 backend/node_modules/
+
+# Firebase
+google-services.json
