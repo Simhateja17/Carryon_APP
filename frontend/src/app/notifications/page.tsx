@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { sendNotification } from "@/lib/api";
+import { sendNotification, type SendNotificationResult } from "@/lib/api";
 
 const NOTIFICATION_TYPES = [
   { value: "PROMO", label: "Promotion" },
@@ -21,7 +21,7 @@ export default function SendNotificationPage() {
   const [type, setType] = useState("PROMO");
   const [audience, setAudience] = useState<"all" | "online">("all");
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ sent: number; driversCount: number } | null>(null);
+  const [result, setResult] = useState<SendNotificationResult | null>(null);
   const [error, setError] = useState("");
 
   async function handleSend(e: React.FormEvent) {
@@ -126,10 +126,20 @@ export default function SendNotificationPage() {
         </button>
 
         {result && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
             <p className="text-sm text-green-800 font-medium">
-              Notification sent to {result.driversCount} driver{result.driversCount !== 1 ? "s" : ""}
+              Notification saved for {result.driversCount} driver{result.driversCount !== 1 ? "s" : ""}
             </p>
+            {result.push && (
+              <div className="text-sm text-green-700 space-y-1">
+                <p>Push notifications: {result.push.delivered} delivered, {result.push.failed} failed</p>
+                {result.push.driversWithoutToken > 0 && (
+                  <p className="text-yellow-700">
+                    {result.push.driversWithoutToken} driver{result.push.driversWithoutToken !== 1 ? "s" : ""} did not receive push (no FCM token registered — they need to open the app and go online)
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

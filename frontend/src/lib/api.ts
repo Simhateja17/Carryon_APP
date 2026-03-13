@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://carryon-backend-wb3t.onrender.com";
 
 export async function apiFetch<T>(
   path: string,
@@ -35,10 +35,69 @@ export interface Driver {
   phone: string;
   isOnline: boolean;
   isVerified: boolean;
+  verificationStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
   totalTrips: number;
   rating: number;
   hasFcmToken: boolean;
   createdAt: string;
+}
+
+export interface DriverListItem {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  photo: string | null;
+  isOnline: boolean;
+  isVerified: boolean;
+  verificationStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
+  rating: number;
+  totalTrips: number;
+  emergencyContact: string;
+  createdAt: string;
+  documentsCount: number;
+  documentsApproved: number;
+  hasVehicle: boolean;
+  vehicleSummary: string | null;
+}
+
+export interface DriverDocument {
+  id: string;
+  driverId: string;
+  type: "DRIVERS_LICENSE" | "VEHICLE_REGISTRATION" | "INSURANCE" | "PROFILE_PHOTO" | "ID_PROOF";
+  imageUrl: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  rejectionReason: string | null;
+  uploadedAt: string;
+}
+
+export interface DriverVehicle {
+  id: string;
+  driverId: string;
+  type: "BIKE" | "CAR" | "VAN" | "TRUCK";
+  make: string;
+  model: string;
+  year: number;
+  licensePlate: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface DriverDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  photo: string | null;
+  rating: number;
+  totalTrips: number;
+  isOnline: boolean;
+  isVerified: boolean;
+  verificationStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
+  emergencyContact: string;
+  createdAt: string;
+  documents: DriverDocument[];
+  vehicle: DriverVehicle | null;
 }
 
 export interface Notification {
@@ -81,12 +140,68 @@ export async function getNotifications(page = 1) {
   }>(`/api/admin/notifications?page=${page}`);
 }
 
+export interface PushResult {
+  attempted: number;
+  delivered: number;
+  failed: number;
+  driversWithoutToken: number;
+}
+
+export interface SendNotificationResult {
+  sent: number;
+  audience: string;
+  driversCount: number;
+  push?: PushResult;
+}
+
 export async function sendNotification(payload: SendNotificationPayload) {
   return apiFetch<{
     success: boolean;
-    data: { sent: number; audience: string; driversCount: number };
+    data: SendNotificationResult;
   }>("/api/admin/notifications/send", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+// ── Admin Driver Management ──────────────────────────────────
+
+export async function getAdminDrivers() {
+  return apiFetch<{ success: boolean; data: DriverListItem[] }>(
+    "/api/admin/drivers"
+  );
+}
+
+export async function getDriverDetail(id: string) {
+  return apiFetch<{ success: boolean; data: DriverDetail }>(
+    `/api/admin/drivers/${id}`
+  );
+}
+
+export async function reviewDocument(
+  driverId: string,
+  docId: string,
+  status: "APPROVED" | "REJECTED",
+  rejectionReason?: string
+) {
+  return apiFetch<{ success: boolean; data: DriverDocument }>(
+    `/api/admin/drivers/${driverId}/documents/${docId}/review`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ status, rejectionReason }),
+    }
+  );
+}
+
+export async function updateDriverVerification(
+  driverId: string,
+  verificationStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED"
+) {
+  return apiFetch<{ success: boolean; data: DriverDetail }>(
+    `/api/admin/drivers/${driverId}/verify`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ verificationStatus }),
+    }
+  );
 }
