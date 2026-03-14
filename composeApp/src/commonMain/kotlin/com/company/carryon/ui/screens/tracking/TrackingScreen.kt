@@ -24,6 +24,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class TrackingStatus(
@@ -64,13 +65,46 @@ fun TrackingScreen(
     var booking by remember { mutableStateOf<Booking?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var showRatingDialog by remember { mutableStateOf(false) }
+    var driverFoundEvent by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // Initial load
     LaunchedEffect(bookingId) {
         BookingApi.getBooking(bookingId).onSuccess { response ->
             booking = response.data
         }
         isLoading = false
+    }
+
+    // Poll while searching for a driver
+    LaunchedEffect(bookingId) {
+        while (booking?.status == BookingStatus.SEARCHING_DRIVER
+                || booking?.status == BookingStatus.PENDING
+                || booking == null) {
+            delay(8000L)
+            BookingApi.getBooking(bookingId).onSuccess { response ->
+                val newBooking = response.data
+                if (newBooking != null) {
+                    val wasSearching = booking?.status == BookingStatus.SEARCHING_DRIVER
+                            || booking?.status == BookingStatus.PENDING
+                    val nowAssigned = newBooking.status == BookingStatus.DRIVER_ASSIGNED
+                    if (wasSearching && nowAssigned) {
+                        driverFoundEvent = true
+                    }
+                    booking = newBooking
+                }
+            }
+        }
+    }
+
+    // Show Snackbar when driver is found
+    LaunchedEffect(driverFoundEvent) {
+        if (driverFoundEvent) {
+            val name = booking?.driver?.name?.ifBlank { "Driver" } ?: "Driver"
+            snackbarHostState.showSnackbar("Driver found! $name is on the way to pickup.")
+            driverFoundEvent = false
+        }
     }
 
     val currentStatus = booking?.status ?: BookingStatus.PENDING
@@ -96,6 +130,7 @@ fun TrackingScreen(
     val vehicleType = booking?.vehicleType ?: "—"
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
