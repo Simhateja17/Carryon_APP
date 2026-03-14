@@ -41,6 +41,27 @@ fun OtpScreen(
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
 
+    fun verifyOtp() {
+        if (otpValue.length == 6) {
+            isLoading = true
+            errorMessage = null
+            scope.launch {
+                AuthApi.verifyOtp(email, otpValue, mode, name).fold(
+                    onSuccess = { authResponse ->
+                        saveToken(authResponse.token)
+                        onVerifySuccess()
+                    },
+                    onFailure = { e ->
+                        isLoading = false
+                        errorMessage = e.message ?: strings.verificationFailed
+                    }
+                )
+            }
+        } else {
+            errorMessage = strings.pleaseEnter6DigitCode
+        }
+    }
+
     // Countdown timer
     LaunchedEffect(resendTimer) {
         if (resendTimer > 0) {
@@ -63,16 +84,31 @@ fun OtpScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Back Arrow
-            Text(
-                text = "<",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                modifier = Modifier
-                    .clickable { onBack() }
-                    .padding(8.dp)
-            )
+            // Top bar: Back Arrow + Continue button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "<",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier
+                        .clickable { onBack() }
+                        .padding(8.dp)
+                )
+                Text(
+                    text = strings.next,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (otpValue.length == 6 && !isLoading) PrimaryBlue else Color.LightGray,
+                    modifier = Modifier
+                        .clickable(enabled = otpValue.length == 6 && !isLoading) { verifyOtp() }
+                        .padding(8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -217,26 +253,7 @@ fun OtpScreen(
 
             // Next Button
             Button(
-                onClick = {
-                    if (otpValue.length == 6) {
-                        isLoading = true
-                        errorMessage = null
-                        scope.launch {
-                            AuthApi.verifyOtp(email, otpValue, mode, name).fold(
-                                onSuccess = { authResponse ->
-                                    saveToken(authResponse.token)
-                                    onVerifySuccess()
-                                },
-                                onFailure = { e ->
-                                    isLoading = false
-                                    errorMessage = e.message ?: strings.verificationFailed
-                                }
-                            )
-                        }
-                    } else {
-                        errorMessage = strings.pleaseEnter6DigitCode
-                    }
-                },
+                onClick = { verifyOtp() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
