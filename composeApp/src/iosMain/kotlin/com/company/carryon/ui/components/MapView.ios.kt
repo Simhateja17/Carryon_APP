@@ -1,16 +1,17 @@
 package com.company.carryon.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.interop.UIKitView
 import com.company.carryon.data.model.LatLng
+import kotlinx.cinterop.ExperimentalForeignApi
+import platform.CoreLocation.CLLocationCoordinate2DMake
+import platform.MapKit.MKAnnotationProtocol
+import platform.MapKit.MKCoordinateRegionMakeWithDistance
+import platform.MapKit.MKMapView
+import platform.MapKit.MKPointAnnotation
 
+@OptIn(ExperimentalForeignApi::class)
 @Composable
 actual fun MapViewComposable(
     modifier: Modifier,
@@ -23,16 +24,44 @@ actual fun MapViewComposable(
     polygonGeometry: List<LatLng>?,
     onMapClick: ((Double, Double) -> Unit)?
 ) {
-    // iOS MapLibre integration placeholder
-    // Will be replaced with real MLNMapView implementation later
-    Box(
-        modifier = modifier.background(Color(0xFFE8EAF6)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Map View\n(${centerLat.toString().take(8)}, ${centerLng.toString().take(8)})",
-            color = Color.Gray,
-            textAlign = TextAlign.Center
-        )
+    UIKitView(
+        factory = {
+            MKMapView().apply {
+                showsUserLocation = true
+            }
+        },
+        modifier = modifier,
+        update = { mapView ->
+            // Set the region based on center and zoom
+            val zoomMeters = 40_000_000.0 / pow2(zoom)
+            val center = CLLocationCoordinate2DMake(centerLat, centerLng)
+            val region = MKCoordinateRegionMakeWithDistance(center, zoomMeters, zoomMeters)
+            mapView.setRegion(region, animated = true)
+
+            // Clear existing custom annotations
+            val existingAnnotations = mapView.annotations
+                .filterIsInstance<MKPointAnnotation>()
+            if (existingAnnotations.isNotEmpty()) {
+                @Suppress("UNCHECKED_CAST")
+                mapView.removeAnnotations(existingAnnotations as List<MKAnnotationProtocol>)
+            }
+
+            // Add markers
+            for (marker in markers) {
+                val annotation = MKPointAnnotation()
+                annotation.setCoordinate(CLLocationCoordinate2DMake(marker.lat, marker.lng))
+                annotation.setTitle(marker.title)
+                mapView.addAnnotation(annotation)
+            }
+        }
+    )
+}
+
+private fun pow2(exp: Double): Double {
+    var result = 1.0
+    val intExp = exp.toInt()
+    for (i in 0 until intExp) {
+        result *= 2.0
     }
+    return result
 }
