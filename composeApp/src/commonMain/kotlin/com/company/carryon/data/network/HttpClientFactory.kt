@@ -1,5 +1,6 @@
 package com.company.carryon.data.network
 
+import io.github.jan.supabase.auth.auth
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -16,6 +17,27 @@ object HttpClientFactory {
         isLenient = true
     }
 
+    /**
+     * Gets the current valid access token.
+     * Tries the live Supabase session first (which handles auto-refresh),
+     * falls back to the stored token.
+     */
+    private fun getCurrentAccessToken(): String? {
+        return try {
+            val session = SupabaseConfig.client.auth.currentSessionOrNull()
+            val token = session?.accessToken
+            if (token != null) {
+                // Save the fresh token so it's available for non-HTTP uses too
+                saveToken(token)
+                token
+            } else {
+                getToken()
+            }
+        } catch (_: Exception) {
+            getToken()
+        }
+    }
+
     val client: HttpClient by lazy {
         HttpClient {
             install(ContentNegotiation) {
@@ -28,7 +50,7 @@ object HttpClientFactory {
             }
             defaultRequest {
                 url(apiBaseUrl())
-                getToken()?.let { headers.append("Authorization", "Bearer $it") }
+                getCurrentAccessToken()?.let { headers.append("Authorization", "Bearer $it") }
             }
             HttpResponseValidator {
                 validateResponse { response ->

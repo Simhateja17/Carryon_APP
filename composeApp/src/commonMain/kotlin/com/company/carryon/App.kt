@@ -51,9 +51,11 @@ import com.company.carryon.ui.screens.invoice.InvoiceScreen
 import com.company.carryon.ui.screens.profile.EditProfileScreen
 import com.company.carryon.ui.screens.profile.SavedAddressesScreen
 import com.company.carryon.ui.screens.help.HelpScreen
-import com.company.carryon.data.network.getToken
 import com.company.carryon.data.network.clearToken
 import com.company.carryon.data.network.getLanguage
+import com.company.carryon.data.network.SupabaseConfig
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 
 // Simple screen state for iOS compatibility
 sealed class AppScreen {
@@ -131,6 +133,7 @@ sealed class AppScreen {
 fun App() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
+    val scope = rememberCoroutineScope()
 
     val showBottomBar = currentScreen !is AppScreen.Splash &&
         currentScreen !is AppScreen.Welcome &&
@@ -172,9 +175,8 @@ fun App() {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
-                    onSplashComplete = {
-                        currentScreen = if (getToken() != null) AppScreen.Home else AppScreen.Welcome
-                    }
+                    onLoggedIn = { currentScreen = AppScreen.Home },
+                    onNotLoggedIn = { currentScreen = AppScreen.Welcome }
                 )
             }
             is AppScreen.Welcome -> {
@@ -234,7 +236,13 @@ fun App() {
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
                     onNavigateToPromo = { currentScreen = AppScreen.Promo },
-                    onLogout = { clearToken(); currentScreen = AppScreen.Welcome },
+                    onLogout = {
+                        clearToken()
+                        scope.launch {
+                            try { SupabaseConfig.client.auth.signOut() } catch (_: Exception) { }
+                        }
+                        currentScreen = AppScreen.Welcome
+                    },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }

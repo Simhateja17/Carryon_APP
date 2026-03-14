@@ -140,11 +140,20 @@ export async function getNotifications(page = 1) {
   }>(`/api/admin/notifications?page=${page}`);
 }
 
+export interface DriverRef {
+  id: string;
+  name: string;
+  email: string;
+}
+
 export interface PushResult {
   attempted: number;
   delivered: number;
   failed: number;
   driversWithoutToken: number;
+  deliveredDrivers: DriverRef[];
+  failedDrivers: DriverRef[];
+  noTokenDrivers: DriverRef[];
 }
 
 export interface SendNotificationResult {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { sendNotification, type SendNotificationResult } from "@/lib/api";
+import { sendNotification, type SendNotificationResult, type DriverRef } from "@/lib/api";
 
 const NOTIFICATION_TYPES = [
   { value: "PROMO", label: "Promotion" },
@@ -126,19 +126,41 @@ export default function SendNotificationPage() {
         </button>
 
         {result && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
-            <p className="text-sm text-green-800 font-medium">
-              Notification saved for {result.driversCount} driver{result.driversCount !== 1 ? "s" : ""}
-            </p>
-            {result.push && (
-              <div className="text-sm text-green-700 space-y-1">
-                <p>Push notifications: {result.push.delivered} delivered, {result.push.failed} failed</p>
-                {result.push.driversWithoutToken > 0 && (
-                  <p className="text-yellow-700">
-                    {result.push.driversWithoutToken} driver{result.push.driversWithoutToken !== 1 ? "s" : ""} did not receive push (no FCM token registered — they need to open the app and go online)
-                  </p>
-                )}
-              </div>
+          <div className="space-y-3">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800 font-medium">
+                Notification saved for {result.driversCount} driver{result.driversCount !== 1 ? "s" : ""}
+              </p>
+              {result.push && (
+                <p className="text-sm text-green-700 mt-1">
+                  Push: {result.push.delivered} delivered, {result.push.failed} failed
+                  {result.push.driversWithoutToken > 0 && `, ${result.push.driversWithoutToken} no token`}
+                </p>
+              )}
+            </div>
+
+            {result.push && result.push.deliveredDrivers.length > 0 && (
+              <DriverList
+                title="Delivered"
+                drivers={result.push.deliveredDrivers}
+                colorClass="green"
+              />
+            )}
+
+            {result.push && result.push.failedDrivers.length > 0 && (
+              <DriverList
+                title="Push failed"
+                drivers={result.push.failedDrivers}
+                colorClass="red"
+              />
+            )}
+
+            {result.push && result.push.noTokenDrivers.length > 0 && (
+              <DriverList
+                title="No FCM token (notification saved, no push)"
+                drivers={result.push.noTokenDrivers}
+                colorClass="yellow"
+              />
             )}
           </div>
         )}
@@ -149,6 +171,41 @@ export default function SendNotificationPage() {
           </div>
         )}
       </form>
+    </div>
+  );
+}
+
+type ColorClass = "green" | "red" | "yellow";
+
+const colorMap: Record<ColorClass, { border: string; header: string; row: string; title: string }> = {
+  green:  { border: "border-green-200",  header: "bg-green-100 text-green-800",  row: "text-green-900",  title: "text-green-800"  },
+  red:    { border: "border-red-200",    header: "bg-red-100 text-red-800",      row: "text-red-900",    title: "text-red-800"    },
+  yellow: { border: "border-yellow-200", header: "bg-yellow-100 text-yellow-800",row: "text-yellow-900", title: "text-yellow-800" },
+};
+
+function DriverList({ title, drivers, colorClass }: { title: string; drivers: DriverRef[]; colorClass: ColorClass }) {
+  const c = colorMap[colorClass];
+  return (
+    <div className={`border ${c.border} rounded-lg overflow-hidden`}>
+      <div className={`px-4 py-2 text-xs font-semibold uppercase tracking-wide ${c.header}`}>
+        {title} ({drivers.length})
+      </div>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-xs">
+            <th className="px-4 py-2 text-left font-medium">Name</th>
+            <th className="px-4 py-2 text-left font-medium">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          {drivers.map((d) => (
+            <tr key={d.id} className="border-b border-gray-50 last:border-0">
+              <td className={`px-4 py-2 ${c.row}`}>{d.name}</td>
+              <td className={`px-4 py-2 ${c.row} opacity-75`}>{d.email}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
