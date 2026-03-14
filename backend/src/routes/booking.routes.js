@@ -2,6 +2,10 @@ const { Router } = require('express');
 const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { AppError } = require('../middleware/errorHandler');
+const { sendPushNotifications } = require('../lib/firebase');
+const { haversineKm } = require('../lib/distance');
+
+const DRIVER_SEARCH_RADIUS_KM = 10;
 
 const router = Router();
 router.use(authenticate);
@@ -71,9 +75,30 @@ router.post('/', async (req, res, next) => {
           duration: duration || 0,
           paymentMethod: paymentMethod || 'CASH',
           otp: generateDeliveryOtp(),
+          status: 'SEARCHING_DRIVER',
         },
         include: bookingIncludes,
       });
+    });
+
+    // Fire-and-forget FCM push to nearby online drivers
+    prisma.driver.findMany({
+      where: { isOnline: true, fcmToken: { not: null } },
+      select: { fcmToken: true, currentLatitude: true, currentLongitude: true },
+    }).then((drivers) => {
+      const pickupLat = booking.pickupAddress.latitude;
+      const pickupLng = booking.pickupAddress.longitude;
+      const nearbyTokens = drivers
+        .filter(d => haversineKm(pickupLat, pickupLng, d.currentLatitude, d.currentLongitude) <= DRIVER_SEARCH_RADIUS_KM)
+        .map(d => d.fcmToken);
+      if (nearbyTokens.length === 0) return;
+      return sendPushNotifications(
+        nearbyTokens,
+        { title: 'New Ride Request!', body: 'A new delivery job is available near you.' },
+        { type: 'JOB_REQUEST', bookingId: booking.id }
+      );
+    }).catch((err) => {
+      console.error('[booking] FCM push to drivers failed:', err);
     });
 
     res.status(201).json({ success: true, data: booking });

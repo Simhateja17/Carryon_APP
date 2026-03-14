@@ -2,6 +2,9 @@ const { Router } = require('express');
 const prisma = require('../lib/prisma');
 const { authenticateDriver, requireDriver } = require('../middleware/driverAuth');
 const { AppError } = require('../middleware/errorHandler');
+const { haversineKm } = require('../lib/distance');
+
+const DRIVER_SEARCH_RADIUS_KM = 10;
 
 const router = Router();
 router.use(authenticateDriver, requireDriver);
@@ -151,8 +154,14 @@ router.get('/incoming', async (req, res, next) => {
       take: 10,
     });
 
-    // Return the most recent one as the "incoming request"
-    const job = bookings.length > 0 ? toDeliveryJob(bookings[0]) : null;
+    const driverLat = req.driver.currentLatitude;
+    const driverLng = req.driver.currentLongitude;
+    const nearby = bookings.filter(b =>
+      haversineKm(driverLat, driverLng, b.pickupAddress.latitude, b.pickupAddress.longitude)
+      <= DRIVER_SEARCH_RADIUS_KM
+    );
+
+    const job = nearby.length > 0 ? toDeliveryJob(nearby[0]) : null;
     res.json({ success: true, data: job });
   } catch (err) {
     next(err);
@@ -186,6 +195,15 @@ router.post('/:id/accept', async (req, res, next) => {
       where: { id: req.params.id },
       data: { driverId: req.driver.id, status: 'DRIVER_ASSIGNED' },
       include: bookingInclude,
+    });
+
+    await prisma.driverNotification.create({
+      data: {
+        driverId: req.driver.id,
+        title: 'Job Accepted',
+        message: `You accepted job ${req.params.id.slice(0, 8)}. Head to pickup.`,
+        type: 'JOB_UPDATE',
+      },
     });
 
     res.json({ success: true, data: toDeliveryJob(updated) });
