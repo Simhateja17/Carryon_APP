@@ -20,6 +20,7 @@ import carryon.composeapp.generated.resources.thankyou_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 
 @Composable
 fun PaymentSuccessScreen(
@@ -30,7 +31,7 @@ fun PaymentSuccessScreen(
     val displayAmount = if (amount == amount.toLong().toDouble()) {
         amount.toLong().toString()
     } else {
-        String.format("%.2f", amount)
+        amount.formatDecimal(2)
     }
     Column(
         modifier = Modifier

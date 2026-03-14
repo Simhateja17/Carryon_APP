@@ -223,6 +223,8 @@ object ZhStrings : AppStrings {
     override val noOrdersFound = "未找到订单"
     override val ordersWillAppearHere = "您的订单将显示在这里"
     override val findingDriver = "正在寻找司机"
+    override val searchingDriverSubtitle = "请稍等，我们正在为您连接附近的司机"
+    override val cancelBooking = "取消预订"
 
     // ── Profile Screen ──
     override val hiThere = "您好！"
@@ -396,6 +398,13 @@ object ZhStrings : AppStrings {
     override val subtotal = "小计"
     override val discountLabel = "折扣"
     override val totalAmount = "总计"
+
+    // ── Driver Approaching Screen ──
+    override val driverOnTheWayStatus = "司机正在赶来"
+    override val driverArrivedStatus = "司机已到达！"
+    override val shareOtpWithDriver = "将此代码分享给您的司机"
+    override val yourDeliveryCode = "您的取件代码"
+    override val packagePickedUpTracking = "包裹已取走！正在追踪配送..."
 
     // ── Delivery Verification ──
     override val verifyDelivery = "验证配送"

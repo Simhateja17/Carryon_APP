@@ -22,6 +22,7 @@ import com.company.carryon.data.model.ReferralInfo
 import com.company.carryon.data.network.PromoApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -139,7 +140,7 @@ fun PromoScreen(
                                 )
                                 StatCard(
                                     title = strings.totalEarned,
-                                    value = "RM ${String.format("%.0f", referralInfo?.totalEarned ?: 0.0)}",
+                                    value = "RM ${(referralInfo?.totalEarned ?: 0.0).formatDecimal(0)}",
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -219,7 +220,7 @@ private fun CouponCard(coupon: Coupon, onApply: () -> Unit) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         if (coupon.discountType == "PERCENTAGE") "${coupon.discountValue.toInt()}% OFF"
-                        else "RM ${String.format("%.0f", coupon.discountValue)} OFF",
+                        else "RM ${coupon.discountValue.formatDecimal(0)} OFF",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = PrimaryBlue
@@ -242,11 +243,11 @@ private fun CouponCard(coupon: Coupon, onApply: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row {
                     if (coupon.minOrderValue > 0) {
-                        Text("Min. RM ${String.format("%.0f", coupon.minOrderValue)}", fontSize = 12.sp, color = TextSecondary)
+                        Text("Min. RM ${coupon.minOrderValue.formatDecimal(0)}", fontSize = 12.sp, color = TextSecondary)
                         Spacer(modifier = Modifier.width(12.dp))
                     }
                     coupon.maxDiscount?.let {
-                        Text("Max discount RM ${String.format("%.0f", it)}", fontSize = 12.sp, color = TextSecondary)
+                        Text("Max discount RM ${it.formatDecimal(0)}", fontSize = 12.sp, color = TextSecondary)
                     }
                 }
             }

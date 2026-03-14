@@ -18,6 +18,7 @@ import com.company.carryon.data.model.InvoiceDetail
 import com.company.carryon.data.network.InvoiceApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,7 +132,7 @@ fun InvoiceScreen(
                                 Spacer(modifier = Modifier.height(8.dp))
                                 InvoiceRow(strings.vehicleType, detail.booking.vehicleType)
                                 Spacer(modifier = Modifier.height(8.dp))
-                                InvoiceRow(strings.distance, "${String.format("%.1f", detail.booking.distance)} km")
+                                InvoiceRow(strings.distance, "${detail.booking.distance.formatDecimal(1)} km")
                                 Spacer(modifier = Modifier.height(8.dp))
                                 InvoiceRow(strings.paymentMethod, detail.booking.paymentMethod)
 
@@ -154,13 +155,13 @@ fun InvoiceScreen(
                                 Text(strings.priceBreakdown, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                                 Spacer(modifier = Modifier.height(12.dp))
 
-                                PriceRow(strings.subtotal, "RM ${String.format("%.2f", detail.invoice.subtotal)}")
+                                PriceRow(strings.subtotal, "RM ${detail.invoice.subtotal.formatDecimal(2)}")
                                 Spacer(modifier = Modifier.height(8.dp))
-                                PriceRow("SST (${(detail.invoice.taxRate * 100).toInt()}%)", "RM ${String.format("%.2f", detail.invoice.tax)}")
+                                PriceRow("SST (${(detail.invoice.taxRate * 100).toInt()}%)", "RM ${detail.invoice.tax.formatDecimal(2)}")
 
                                 if (detail.invoice.discount > 0) {
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    PriceRow(strings.discountLabel, "- RM ${String.format("%.2f", detail.invoice.discount)}", color = SuccessGreen)
+                                    PriceRow(strings.discountLabel, "- RM ${detail.invoice.discount.formatDecimal(2)}", color = SuccessGreen)
                                 }
 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -170,7 +171,7 @@ fun InvoiceScreen(
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text(strings.totalAmount, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                     Text(
-                                        "${detail.invoice.currency} ${String.format("%.2f", detail.invoice.total)}",
+                                        "${detail.invoice.currency} ${detail.invoice.total.formatDecimal(2)}",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryBlue

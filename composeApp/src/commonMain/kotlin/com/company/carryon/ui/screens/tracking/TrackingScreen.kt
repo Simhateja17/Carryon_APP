@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.data.model.Booking
@@ -125,7 +126,7 @@ fun TrackingScreen(
     }
 
     val driverName = booking?.driver?.name?.ifBlank { "—" } ?: "—"
-    val driverRating = booking?.driver?.rating?.let { String.format("%.1f", it) } ?: "—"
+    val driverRating = booking?.driver?.rating?.let { it.formatDecimal(1) } ?: "—"
     val etaMinutes = booking?.eta?.let { "$it min" } ?: strings.estimatedDelivery
     val vehicleType = booking?.vehicleType ?: "—"
 
@@ -639,7 +640,7 @@ private fun RatingDialog(
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("⭐ ${String.format("%.1f", driverRating)}", fontSize = 14.sp, color = StarYellow)
+                    Text("⭐ $driverRating", fontSize = 14.sp, color = StarYellow)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

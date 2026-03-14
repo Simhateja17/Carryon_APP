@@ -223,6 +223,8 @@ object MsStrings : AppStrings {
     override val noOrdersFound = "Tiada pesanan dijumpai"
     override val ordersWillAppearHere = "Pesanan anda akan dipaparkan di sini"
     override val findingDriver = "Mencari Pemandu"
+    override val searchingDriverSubtitle = "Sila tunggu sementara kami menghubungkan anda dengan pemandu berdekatan"
+    override val cancelBooking = "Batal Tempahan"
 
     // ── Profile Screen ──
     override val hiThere = "Hai!"
@@ -396,6 +398,13 @@ object MsStrings : AppStrings {
     override val subtotal = "Jumlah Kecil"
     override val discountLabel = "Diskaun"
     override val totalAmount = "Jumlah"
+
+    // ── Driver Approaching Screen ──
+    override val driverOnTheWayStatus = "Pemandu sedang dalam perjalanan"
+    override val driverArrivedStatus = "Pemandu telah tiba!"
+    override val shareOtpWithDriver = "Kongsi kod ini dengan pemandu anda"
+    override val yourDeliveryCode = "Kod Penghantaran Anda"
+    override val packagePickedUpTracking = "Pakej diambil! Menjejak penghantaran..."
 
     // ── Delivery Verification ──
     override val verifyDelivery = "Sahkan Penghantaran"

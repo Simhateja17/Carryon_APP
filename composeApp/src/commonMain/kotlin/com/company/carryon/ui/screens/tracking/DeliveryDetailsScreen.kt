@@ -24,6 +24,7 @@ import carryon.composeapp.generated.resources.image_3
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
@@ -299,7 +300,7 @@ fun DeliveryDetailsScreen(
                             Text(strings.deliveryFee, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "RM ${String.format("%.2f", if (currentBooking.finalPrice > 0) currentBooking.finalPrice else currentBooking.estimatedPrice)}", 
+                                "RM ${(if (currentBooking.finalPrice > 0) currentBooking.finalPrice else currentBooking.estimatedPrice).formatDecimal(2)}",
                                 fontSize = 14.sp, 
                                 fontWeight = FontWeight.Bold, 
                                 color = PrimaryBlue

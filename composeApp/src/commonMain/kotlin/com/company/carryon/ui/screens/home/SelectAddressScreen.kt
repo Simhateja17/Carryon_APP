@@ -40,6 +40,7 @@ import com.company.carryon.data.model.PlaceResult
 import com.company.carryon.data.model.RouteResult
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -423,7 +424,7 @@ fun SelectAddressScreen(
                 } else {
                     nearbyPlaces.take(6).forEach { place ->
                         val distanceText = if (place.distance >= 1000) {
-                            "${(place.distance / 1000).let { "%.1f".format(it) }}km"
+                            "${(place.distance / 1000.0).formatDecimal(1)}km"
                         } else {
                             "${place.distance.toInt()}m"
                         }

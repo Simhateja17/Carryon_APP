@@ -39,6 +39,8 @@ import com.company.carryon.ui.screens.tracking.DeliveryDetailsScreen
 import com.company.carryon.ui.screens.booking.SenderReceiverScreen
 import com.company.carryon.ui.screens.booking.PaymentScreen
 import com.company.carryon.ui.screens.booking.PaymentSuccessScreen
+import com.company.carryon.ui.screens.booking.SearchingDriverScreen
+import com.company.carryon.ui.screens.tracking.DriverApproachingScreen
 import com.company.carryon.ui.screens.home.SelectAddressScreen
 import com.company.carryon.ui.screens.booking.DetailsScreen
 import com.company.carryon.ui.screens.booking.RequestForRideScreen
@@ -107,6 +109,8 @@ sealed class AppScreen {
         val deliveryLng: Double = 0.0
     ) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Double = 0.0) : AppScreen()
+    data class SearchingDriver(val bookingId: String, val amount: Double = 0.0) : AppScreen()
+    data class DriverApproaching(val bookingId: String) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
     data class Details(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
     data class RequestForRide(
@@ -140,7 +144,9 @@ fun App() {
         currentScreen !is AppScreen.Login &&
         currentScreen !is AppScreen.Register &&
         currentScreen !is AppScreen.Otp &&
-        currentScreen !is AppScreen.PaymentSuccess
+        currentScreen !is AppScreen.PaymentSuccess &&
+        currentScreen !is AppScreen.SearchingDriver &&
+        currentScreen !is AppScreen.DriverApproaching
 
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
@@ -148,7 +154,8 @@ fun App() {
         is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment,
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
-        is AppScreen.BookingPayment -> 1
+        is AppScreen.BookingPayment, is AppScreen.SearchingDriver,
+        is AppScreen.DriverApproaching -> 1
         is AppScreen.Wallet, is AppScreen.Invoice -> 2
         is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses,
         is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support,
@@ -381,7 +388,22 @@ fun App() {
             is AppScreen.PaymentSuccess -> {
                 PaymentSuccessScreen(
                     amount = screen.amount,
-                    onContinue = { currentScreen = AppScreen.ActiveShipment }
+                    onContinue = { currentScreen = AppScreen.SearchingDriver(screen.bookingId, screen.amount) }
+                )
+            }
+            is AppScreen.SearchingDriver -> {
+                SearchingDriverScreen(
+                    bookingId = screen.bookingId,
+                    amount = screen.amount,
+                    onDriverFound = { currentScreen = AppScreen.DriverApproaching(screen.bookingId) },
+                    onCancel = { currentScreen = AppScreen.Home }
+                )
+            }
+            is AppScreen.DriverApproaching -> {
+                DriverApproachingScreen(
+                    bookingId = screen.bookingId,
+                    onPickupDone = { currentScreen = AppScreen.TrackingLive(screen.bookingId) },
+                    onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.DriverRating -> {

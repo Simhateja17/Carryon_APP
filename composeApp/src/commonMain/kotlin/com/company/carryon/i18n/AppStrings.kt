@@ -223,6 +223,8 @@ interface AppStrings {
     val noOrdersFound: String get() = "No orders found"
     val ordersWillAppearHere: String get() = "Your orders will appear here"
     val findingDriver: String get() = "Finding Driver"
+    val searchingDriverSubtitle: String get() = "Please wait while we connect you to a nearby driver"
+    val cancelBooking: String get() = "Cancel Booking"
 
     // ── Profile Screen ──
     val hiThere: String get() = "Hi There!"
@@ -398,6 +400,13 @@ interface AppStrings {
     val subtotal: String get() = "Subtotal"
     val discountLabel: String get() = "Discount"
     val totalAmount: String get() = "Total"
+
+    // ── Driver Approaching Screen ──
+    val driverOnTheWayStatus: String get() = "Driver is on the way"
+    val driverArrivedStatus: String get() = "Driver has arrived!"
+    val shareOtpWithDriver: String get() = "Share this code with your driver"
+    val yourDeliveryCode: String get() = "Your Delivery Code"
+    val packagePickedUpTracking: String get() = "Package picked up! Tracking delivery..."
 
     // ── Delivery Verification ──
     val verifyDelivery: String get() = "Verify Delivery"

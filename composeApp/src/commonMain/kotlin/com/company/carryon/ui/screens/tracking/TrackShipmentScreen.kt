@@ -34,6 +34,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
@@ -448,7 +449,7 @@ fun TrackShipmentScreen(
                                     color = Color.White.copy(alpha = 0.7f)
                                 )
                                 Text(
-                                    text = if (booking.distance > 0) "${String.format("%.1f", booking.distance)} km" else "—",
+                                    text = if (booking.distance > 0) "${booking.distance.formatDecimal(1)} km" else "—",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = Color.White

@@ -23,6 +23,7 @@ import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +80,7 @@ fun WalletScreen(
                         Text(strings.walletBalance, fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "RM ${String.format("%.2f", wallet?.balance ?: 0.0)}",
+                            text = "RM ${(wallet?.balance ?: 0.0).formatDecimal(2)}",
                             fontSize = 36.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -189,7 +190,7 @@ fun WalletScreen(
                                     scope.launch {
                                         WalletApi.topUp(amt).onSuccess { resp ->
                                             wallet = wallet?.copy(balance = resp.data?.balance ?: wallet!!.balance)
-                                            successMessage = "RM ${String.format("%.2f", amt)} added!"
+                                            successMessage = "RM ${amt.formatDecimal(2)} added!"
                                             topUpAmount = ""
                                             showTopUp = false
                                             // Refresh wallet
@@ -286,7 +287,7 @@ private fun TransactionItem(txn: WalletTransaction) {
             }
 
             Text(
-                text = "${if (txn.amount >= 0) "+" else ""}RM ${String.format("%.2f", kotlin.math.abs(txn.amount))}",
+                text = "${if (txn.amount >= 0) "+" else ""}RM ${kotlin.math.abs(txn.amount).formatDecimal(2)}",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (txn.amount >= 0) SuccessGreen else ErrorRed

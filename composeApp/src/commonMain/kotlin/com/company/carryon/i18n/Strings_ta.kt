@@ -223,6 +223,8 @@ object TaStrings : AppStrings {
     override val noOrdersFound = "ஆர்டர்கள் எதுவும் இல்லை"
     override val ordersWillAppearHere = "உங்கள் ஆர்டர்கள் இங்கே தோன்றும்"
     override val findingDriver = "ஓட்டுநர் தேடுகிறது"
+    override val searchingDriverSubtitle = "அருகிலுள்ள ஓட்டுநருடன் உங்களை இணைக்கும் வரை காத்திருக்கவும்"
+    override val cancelBooking = "பதிவை ரத்துசெய்"
 
     // ── Profile Screen ──
     override val hiThere = "வணக்கம்!"
@@ -396,6 +398,13 @@ object TaStrings : AppStrings {
     override val subtotal = "உப மொத்தம்"
     override val discountLabel = "தள்ளுபடி"
     override val totalAmount = "மொத்தம்"
+
+    // ── Driver Approaching Screen ──
+    override val driverOnTheWayStatus = "டிரைவர் வழியில் உள்ளார்"
+    override val driverArrivedStatus = "டிரைவர் வந்துவிட்டார்!"
+    override val shareOtpWithDriver = "இந்த குறியீட்டை உங்கள் டிரைவரிடம் பகிரவும்"
+    override val yourDeliveryCode = "உங்கள் டெலிவரி குறியீடு"
+    override val packagePickedUpTracking = "பொருள் எடுக்கப்பட்டது! டெலிவரியை கண்காணிக்கிறது..."
 
     // ── Delivery Verification ──
     override val verifyDelivery = "டெலிவரியை சரிபார்க்கவும்"
