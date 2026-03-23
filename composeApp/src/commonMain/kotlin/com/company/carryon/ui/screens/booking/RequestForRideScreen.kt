@@ -52,11 +52,12 @@ fun RequestForRideScreen(
     var pricePerKm by remember { mutableStateOf(2.0) }
     var isLoadingVehicles by remember { mutableStateOf(true) }
 
-    // Geocoded coordinates
-    var pickupLat by remember { mutableStateOf(0.0) }
-    var pickupLng by remember { mutableStateOf(0.0) }
-    var deliveryLat by remember { mutableStateOf(0.0) }
-    var deliveryLng by remember { mutableStateOf(0.0) }
+    // Geocoded coordinates (null = not yet geocoded)
+    var pickupLat by remember { mutableStateOf<Double?>(null) }
+    var pickupLng by remember { mutableStateOf<Double?>(null) }
+    var deliveryLat by remember { mutableStateOf<Double?>(null) }
+    var deliveryLng by remember { mutableStateOf<Double?>(null) }
+    var geocodeError by remember { mutableStateOf<String?>(null) }
 
     var estimatedPrice by remember { mutableStateOf(basePrice) }
     var taxAmount by remember { mutableStateOf(kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0) }
@@ -95,9 +96,11 @@ fun RequestForRideScreen(
             estimatedPrice = basePrice
             taxAmount = kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0
             isCalculating = false
+            geocodeError = null
             return@LaunchedEffect
         }
         isCalculating = true
+        geocodeError = null
         val pickupGeo = LocationApi.geocode(pickupAddress).getOrNull()
         val deliveryGeo = LocationApi.geocode(deliveryAddress).getOrNull()
         if (pickupGeo != null && deliveryGeo != null) {
@@ -116,6 +119,12 @@ fun RequestForRideScreen(
                 estimatedPrice = kotlin.math.round(calculatedPrice * 100).toDouble() / 100.0
                 taxAmount = kotlin.math.round(calculatedPrice * 0.06 * 100).toDouble() / 100.0
             }
+        } else {
+            geocodeError = "Could not determine location coordinates. Please check the addresses."
+            pickupLat = null
+            pickupLng = null
+            deliveryLat = null
+            deliveryLng = null
         }
         isCalculating = false
     }
@@ -157,22 +166,26 @@ fun RequestForRideScreen(
                 Button(
                     onClick = {
                         if (isCreatingBooking || isCalculating) return@Button
+                        if (pickupLat == null || pickupLng == null || deliveryLat == null || deliveryLng == null) {
+                            errorMessage = "Unable to determine location coordinates. Please go back and re-enter the addresses."
+                            return@Button
+                        }
                         scope.launch {
                             isCreatingBooking = true
                             errorMessage = null
-                            
+
                             val request = CreateBookingRequest(
                                 pickupAddress = CreateAddressData(
                                     address = pickupAddress,
-                                    latitude = pickupLat,
-                                    longitude = pickupLng,
+                                    latitude = pickupLat!!,
+                                    longitude = pickupLng!!,
                                     contactName = senderName,
                                     contactPhone = senderPhone
                                 ),
                                 deliveryAddress = CreateAddressData(
                                     address = deliveryAddress,
-                                    latitude = deliveryLat,
-                                    longitude = deliveryLng,
+                                    latitude = deliveryLat!!,
+                                    longitude = deliveryLng!!,
                                     contactName = receiverName,
                                     contactPhone = receiverPhone
                                 ),
@@ -203,7 +216,7 @@ fun RequestForRideScreen(
                             isCreatingBooking = false
                         }
                     },
-                    enabled = !isCreatingBooking && !isCalculating && pickupAddress.isNotBlank() && deliveryAddress.isNotBlank(),
+                    enabled = !isCreatingBooking && !isCalculating && pickupAddress.isNotBlank() && deliveryAddress.isNotBlank() && pickupLat != null && geocodeError == null,
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -254,8 +267,9 @@ fun RequestForRideScreen(
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Error message
-            errorMessage?.let { error ->
+            // Error messages
+            val displayError = errorMessage ?: geocodeError
+            displayError?.let { error ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEBEE))

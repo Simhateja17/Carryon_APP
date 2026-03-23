@@ -112,7 +112,13 @@ fun SenderReceiverScreen(
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.receiverName, value = receiverName, placeholder = "e.g. Mei Ling", onValueChange = { receiverName = it; if (hasAttemptedSubmit) receiverNameError = it.isBlank() }, isError = receiverNameError, errorMessage = "Receiver name is required")
             Spacer(modifier = Modifier.height(14.dp))
-            PhoneInputField(label = strings.recipientContactNumber, value = recipientContact, onValueChange = { recipientContact = it; if (hasAttemptedSubmit) recipientContactError = it.isBlank() }, isError = recipientContactError, errorMessage = "Contact number is required")
+            PhoneInputField(label = strings.recipientContactNumber, value = recipientContact, onValueChange = { newValue ->
+                // Only allow digits and dashes in phone input
+                recipientContact = newValue.filter { it.isDigit() || it == '-' }
+                if (hasAttemptedSubmit) {
+                    recipientContactError = recipientContact.isBlank() || recipientContact.filter { it.isDigit() }.length < 9
+                }
+            }, isError = recipientContactError, errorMessage = if (recipientContact.isBlank()) "Contact number is required" else "Enter a valid Malaysian phone number (at least 9 digits)")
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.address, value = address, placeholder = "e.g. Jalan Bukit Bintang, KL", onValueChange = { address = it })
 
@@ -124,7 +130,7 @@ fun SenderReceiverScreen(
                     // Validate required fields
                     senderNameError = senderName.isBlank()
                     receiverNameError = receiverName.isBlank()
-                    recipientContactError = recipientContact.isBlank()
+                    recipientContactError = recipientContact.isBlank() || recipientContact.filter { it.isDigit() }.length < 9
                     
                     // Only proceed if all required fields are filled
                     if (!senderNameError && !receiverNameError && !recipientContactError) {

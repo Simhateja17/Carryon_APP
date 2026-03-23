@@ -53,8 +53,11 @@ fun ProfileScreen(
 ) {
     val strings = LocalStrings.current
     var userName by remember { mutableStateOf("") }
+    var profileError by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        UserApi.getProfile().onSuccess { user -> userName = user.name }
+        UserApi.getProfile()
+            .onSuccess { user -> userName = user.name; profileError = false }
+            .onFailure { profileError = true }
     }
     Scaffold(
         containerColor = Color.White,
@@ -113,9 +116,9 @@ fun ProfileScreen(
                         color = TextPrimary
                     )
                     Text(
-                        text = userName,
+                        text = if (profileError) "Unable to load profile" else userName.ifEmpty { "Loading..." },
                         fontSize = 18.sp,
-                        color = TextSecondary
+                        color = if (profileError) Color(0xFFE53935) else TextSecondary
                     )
                 }
 

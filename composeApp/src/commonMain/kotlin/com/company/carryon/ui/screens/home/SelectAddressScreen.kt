@@ -324,7 +324,7 @@ fun SelectAddressScreen(
                                     searchResults = emptyList()
                                     showSearchResults = false
                                     scope.launch {
-                                        LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
+                                        LocationApi.geocode(placeId = place.placeId).onSuccess { geocoded ->
                                             if (geocoded != null) {
                                                 fromPlace = PlaceResult(
                                                     placeId = geocoded.placeId,
@@ -387,7 +387,7 @@ fun SelectAddressScreen(
                                     searchResults = emptyList()
                                     showSearchResults = false
                                     scope.launch {
-                                        LocationApi.geocode(place.address.ifEmpty { selectedTitle }).onSuccess { geocoded ->
+                                        LocationApi.geocode(placeId = place.placeId).onSuccess { geocoded ->
                                             if (geocoded != null) {
                                                 toPlace = PlaceResult(
                                                     placeId = geocoded.placeId,

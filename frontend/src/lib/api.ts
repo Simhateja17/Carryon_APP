@@ -1,15 +1,23 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://carryon-backend-wb3t.onrender.com";
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || "";
 
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string>),
+  };
+
+  // Attach admin key for admin endpoints
+  if (path.startsWith("/api/admin") && ADMIN_KEY) {
+    headers["x-admin-key"] = ADMIN_KEY;
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!res.ok) {

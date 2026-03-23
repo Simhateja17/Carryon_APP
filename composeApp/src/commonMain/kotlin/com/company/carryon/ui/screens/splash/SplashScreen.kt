@@ -17,6 +17,8 @@ import com.company.carryon.data.network.SupabaseConfig
 import com.company.carryon.data.network.getToken
 import com.company.carryon.data.network.saveToken
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
 @Composable
@@ -25,32 +27,36 @@ fun SplashScreen(
     onNotLoggedIn: () -> Unit
 ) {
     LaunchedEffect(Unit) {
-        delay(2500)
-
-        // 1. Try restoring the Supabase session (handles token refresh automatically)
-        val hasValidSession = try {
-            val session = SupabaseConfig.client.auth.currentSessionOrNull()
-            if (session != null) {
-                // Save the (possibly refreshed) access token for API calls
-                saveToken(session.accessToken)
-                true
-            } else {
-                // Try to refresh if there's a stored session that needs refreshing
+        // Check auth and show splash for at least 800ms — run both in parallel
+        val minSplashMs = 800L
+        val hasValidSession = coroutineScope {
+            val authDeferred = async {
                 try {
-                    SupabaseConfig.client.auth.refreshCurrentSession()
-                    val refreshed = SupabaseConfig.client.auth.currentSessionOrNull()
-                    if (refreshed != null) {
-                        saveToken(refreshed.accessToken)
+                    val session = SupabaseConfig.client.auth.currentSessionOrNull()
+                    if (session != null) {
+                        saveToken(session.accessToken)
                         true
                     } else {
-                        false
+                        try {
+                            SupabaseConfig.client.auth.refreshCurrentSession()
+                            val refreshed = SupabaseConfig.client.auth.currentSessionOrNull()
+                            if (refreshed != null) {
+                                saveToken(refreshed.accessToken)
+                                true
+                            } else {
+                                false
+                            }
+                        } catch (_: Exception) {
+                            false
+                        }
                     }
                 } catch (_: Exception) {
                     false
                 }
             }
-        } catch (_: Exception) {
-            false
+            // Minimum splash display time
+            delay(minSplashMs)
+            authDeferred.await()
         }
 
         if (hasValidSession) {

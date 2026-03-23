@@ -47,11 +47,13 @@ fun ChatScreen(
             quickMessages = resp.data ?: emptyList()
         }
 
-        // Poll for messages
+        // Poll for messages — compare by last message ID to detect real changes
         while (true) {
             ChatApi.getMessages(bookingId).onSuccess { resp ->
                 val newMessages = resp.data ?: emptyList()
-                if (newMessages.size != messages.size) {
+                val currentLastId = messages.lastOrNull()?.id
+                val newLastId = newMessages.lastOrNull()?.id
+                if (newMessages.size != messages.size || currentLastId != newLastId) {
                     messages = newMessages
                 }
             }

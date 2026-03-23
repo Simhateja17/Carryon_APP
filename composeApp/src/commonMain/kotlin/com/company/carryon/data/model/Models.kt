@@ -175,7 +175,7 @@ data class LocationUpdate(
     val heading: Double = 0.0
 )
 
-// AWS Location Services models
+// Google Maps Platform models
 
 @Serializable
 data class PlaceResult(
@@ -232,7 +232,7 @@ data class UpdatePositionRequest(
     val longitude: Double
 )
 
-// AWS Location Services v2 models
+// Google Maps Platform v2 models
 
 @Serializable
 data class AutocompleteHighlight(
@@ -287,7 +287,8 @@ data class StaticMapResponse(
 
 @Serializable
 data class GeocodeRequest(
-    val address: String
+    val address: String = "",
+    val placeId: String? = null
 )
 
 @Serializable

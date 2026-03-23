@@ -20,6 +20,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 data class OrderItem(
     val id: String,
@@ -55,14 +56,17 @@ fun OrdersScreen(
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
         BookingApi.getBookings()
             .onSuccess { response ->
                 bookings = response.data ?: emptyList()
+                error = null
                 isLoading = false
             }
             .onFailure {
-                error = it.message
+                error = it.message ?: "Failed to load orders"
                 isLoading = false
             }
     }
@@ -135,7 +139,31 @@ fun OrdersScreen(
                         modifier = Modifier.fillMaxSize().padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(error ?: "Error loading orders", color = ErrorRed, fontSize = 14.sp)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(error ?: "Error loading orders", color = ErrorRed, fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Button(
+                                onClick = {
+                                    isLoading = true
+                                    error = null
+                                    scope.launch {
+                                        BookingApi.getBookings()
+                                            .onSuccess { response ->
+                                                bookings = response.data ?: emptyList()
+                                                error = null
+                                                isLoading = false
+                                            }
+                                            .onFailure {
+                                                error = it.message ?: "Failed to load orders"
+                                                isLoading = false
+                                            }
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                            ) {
+                                Text("Retry")
+                            }
+                        }
                     }
                 }
                 filteredOrders.isEmpty() -> {

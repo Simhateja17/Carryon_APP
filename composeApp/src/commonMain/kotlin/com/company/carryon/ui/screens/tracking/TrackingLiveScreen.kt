@@ -59,6 +59,8 @@ fun TrackingLiveScreen(
 
     // Track raw GPS history for snap-to-roads
     val gpsHistory = remember { mutableListOf<LatLng>() }
+    var trackingStale by remember { mutableStateOf(false) }
+    var consecutiveFailures by remember { mutableStateOf(0) }
 
     // Load booking data
     LaunchedEffect(bookingId) {
@@ -109,13 +111,23 @@ fun TrackingLiveScreen(
         
         while (true) {
             // Try to get real position from tracker
-            LocationApi.getPosition(driverId).onSuccess { pos ->
-                if (pos.latitude != 0.0 && pos.longitude != 0.0) {
-                    driverLat = pos.latitude
-                    driverLng = pos.longitude
-                    gpsHistory.add(LatLng(pos.latitude, pos.longitude))
+            LocationApi.getPosition(driverId)
+                .onSuccess { pos ->
+                    if (pos.latitude != 0.0 && pos.longitude != 0.0) {
+                        driverLat = pos.latitude
+                        driverLng = pos.longitude
+                        gpsHistory.add(LatLng(pos.latitude, pos.longitude))
+                        consecutiveFailures = 0
+                        trackingStale = false
+                    }
                 }
-            }
+                .onFailure {
+                    consecutiveFailures++
+                    // Show stale indicator after 3 consecutive failures (24s)
+                    if (consecutiveFailures >= 3) {
+                        trackingStale = true
+                    }
+                }
 
             // Snap GPS trail to roads for smooth display
             if (gpsHistory.size >= 2) {
@@ -244,6 +256,29 @@ fun TrackingLiveScreen(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
+                    }
+
+                    // Stale tracking warning
+                    if (trackingStale) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFFFF3E0))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Driver location may be outdated. Reconnecting...",
+                                fontSize = 12.sp,
+                                color = Color(0xFFE65100),
+                                modifier = Modifier.weight(1f)
+                            )
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                strokeWidth = 2.dp,
+                                color = Color(0xFFE65100)
+                            )
+                        }
                     }
 
                     // Interactive Map — fills remaining space

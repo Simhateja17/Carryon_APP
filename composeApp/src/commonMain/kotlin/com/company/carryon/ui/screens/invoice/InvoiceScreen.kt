@@ -35,13 +35,18 @@ fun InvoiceScreen(
 
     LaunchedEffect(bookingId) {
         // First generate invoice if it doesn't exist
-        InvoiceApi.generateInvoice(bookingId)
-        // Then fetch full detail
-        InvoiceApi.getInvoiceDetail(bookingId).onSuccess { resp ->
-            invoiceDetail = resp.data
-        }.onFailure {
-            errorMessage = it.message
+        val genResult = InvoiceApi.generateInvoice(bookingId)
+        if (genResult.isFailure) {
+            // Generation may fail if invoice already exists — continue to fetch
         }
+        // Then fetch full detail
+        InvoiceApi.getInvoiceDetail(bookingId)
+            .onSuccess { resp ->
+                invoiceDetail = resp.data
+            }
+            .onFailure {
+                errorMessage = it.message ?: "Failed to load invoice"
+            }
         isLoading = false
     }
 

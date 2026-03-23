@@ -97,10 +97,10 @@ object LocationApi {
         response.data ?: emptyList()
     }
 
-    suspend fun geocode(address: String): Result<GeocodedPlace?> = runCatching {
+    suspend fun geocode(address: String = "", placeId: String? = null): Result<GeocodedPlace?> = runCatching {
         val response = client.post("/api/location/geocode") {
             contentType(ContentType.Application.Json)
-            setBody(GeocodeRequest(address))
+            setBody(GeocodeRequest(address = address, placeId = placeId))
         }.body<ApiResponse<GeocodedPlace>>()
         response.data
     }

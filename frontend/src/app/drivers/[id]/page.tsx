@@ -50,6 +50,7 @@ export default function DriverDetailPage() {
   const [rejectDocId, setRejectDocId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function loadDriver() {
     try {
@@ -71,11 +72,12 @@ export default function DriverDetailPage() {
 
   async function handleApproveDoc(doc: DriverDocument) {
     setActionLoading(doc.id);
+    setActionError(null);
     try {
       await reviewDocument(driverId, doc.id, "APPROVED");
       await loadDriver();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to approve document");
+      setActionError(err instanceof Error ? err.message : "Failed to approve document");
     } finally {
       setActionLoading(null);
     }
@@ -84,13 +86,14 @@ export default function DriverDetailPage() {
   async function handleRejectDoc() {
     if (!rejectDocId || !rejectionReason.trim()) return;
     setActionLoading(rejectDocId);
+    setActionError(null);
     try {
       await reviewDocument(driverId, rejectDocId, "REJECTED", rejectionReason.trim());
       setRejectDocId(null);
       setRejectionReason("");
       await loadDriver();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to reject document");
+      setActionError(err instanceof Error ? err.message : "Failed to reject document");
     } finally {
       setActionLoading(null);
     }
@@ -98,11 +101,12 @@ export default function DriverDetailPage() {
 
   async function handleVerification(status: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED") {
     setActionLoading(`verify-${status}`);
+    setActionError(null);
     try {
       await updateDriverVerification(driverId, status);
       await loadDriver();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update verification");
+      setActionError(err instanceof Error ? err.message : "Failed to update verification");
     } finally {
       setActionLoading(null);
     }
@@ -110,8 +114,12 @@ export default function DriverDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading driver details...</div>
+      <div className="flex items-center justify-center h-64 gap-3">
+        <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        <span className="text-gray-500">Loading driver details...</span>
       </div>
     );
   }
@@ -159,6 +167,19 @@ export default function DriverDetailPage() {
           {VERIFICATION_LABELS[driver.verificationStatus] || driver.verificationStatus}
         </span>
       </div>
+
+      {/* Action error banner */}
+      {actionError && (
+        <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+          <p className="text-sm text-red-700">{actionError}</p>
+          <button
+            onClick={() => setActionError(null)}
+            className="text-red-400 hover:text-red-600 text-sm font-medium ml-4"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Driver Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">

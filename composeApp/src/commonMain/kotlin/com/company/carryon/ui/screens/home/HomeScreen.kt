@@ -159,6 +159,7 @@ fun HomeScreen(
     var deliverySuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
     var showPickupSuggestions by remember { mutableStateOf(false) }
     var showDeliverySuggestions by remember { mutableStateOf(false) }
+    var autocompleteError by remember { mutableStateOf<String?>(null) }
 
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
@@ -176,9 +177,9 @@ fun HomeScreen(
             result.onSuccess { results ->
                 pickupSuggestions = results
                 showPickupSuggestions = results.isNotEmpty()
+                autocompleteError = null
             }.onFailure {
-                // API error — keep showing any existing suggestions rather than crashing
-                println("[Autocomplete] pickup error: ${it.message}")
+                autocompleteError = "Search unavailable. Please type the full address."
             }
         }
     }
@@ -196,8 +197,9 @@ fun HomeScreen(
             result.onSuccess { results ->
                 deliverySuggestions = results
                 showDeliverySuggestions = results.isNotEmpty()
+                autocompleteError = null
             }.onFailure {
-                println("[Autocomplete] delivery error: ${it.message}")
+                autocompleteError = "Search unavailable. Please type the full address."
             }
         }
     }
@@ -412,6 +414,16 @@ fun HomeScreen(
                         HorizontalDivider(color = Color(0xFFF0F0F0))
                     }
                 }
+            }
+
+            // Autocomplete error hint
+            autocompleteError?.let { errMsg ->
+                Text(
+                    errMsg,
+                    fontSize = 11.sp,
+                    color = Color(0xFFE65100),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
