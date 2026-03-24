@@ -5,6 +5,7 @@ import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.realtime.Realtime
 
 object SupabaseConfig {
     // Web Client ID from Google Cloud Console (OAuth 2.0 > Web application)
@@ -26,5 +27,6 @@ object SupabaseConfig {
         install(ComposeAuth) {
             googleNativeLogin(serverClientId = GOOGLE_WEB_CLIENT_ID)
         }
+        install(Realtime)
     }
 }

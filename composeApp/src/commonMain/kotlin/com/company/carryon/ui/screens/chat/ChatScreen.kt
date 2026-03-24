@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.ChatMessage
 import com.company.carryon.data.network.ChatApi
+import com.company.carryon.data.network.RealtimeChatService
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,24 +40,37 @@ fun ChatScreen(
     var showQuickMessages by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    // Load messages and poll for new ones
+    // Load messages and subscribe to realtime updates
     LaunchedEffect(bookingId) {
         // Load quick messages
         ChatApi.getQuickMessages(bookingId).onSuccess { resp ->
             quickMessages = resp.data ?: emptyList()
         }
 
-        // Poll for messages — compare by last message ID to detect real changes
-        while (true) {
-            ChatApi.getMessages(bookingId).onSuccess { resp ->
-                val newMessages = resp.data ?: emptyList()
-                val currentLastId = messages.lastOrNull()?.id
-                val newLastId = newMessages.lastOrNull()?.id
-                if (newMessages.size != messages.size || currentLastId != newLastId) {
-                    messages = newMessages
+        // Initial message load
+        ChatApi.getMessages(bookingId).onSuccess { resp ->
+            messages = resp.data ?: emptyList()
+        }
+
+        // Subscribe to realtime updates via Supabase WebSocket
+        RealtimeChatService.startListening(bookingId, this)
+    }
+
+    // Refresh messages when realtime signal arrives
+    LaunchedEffect(bookingId) {
+        RealtimeChatService.newMessageSignal.collect { signalBookingId ->
+            if (signalBookingId == bookingId) {
+                ChatApi.getMessages(bookingId).onSuccess { resp ->
+                    messages = resp.data ?: emptyList()
                 }
             }
-            delay(3000)
+        }
+    }
+
+    // Clean up realtime subscription when leaving
+    DisposableEffect(bookingId) {
+        onDispose {
+            scope.launch { RealtimeChatService.stopListening() }
         }
     }
 

@@ -62,6 +62,7 @@ kotlin {
             // Supabase
             implementation(libs.supabase.auth.kt)
             implementation(libs.supabase.compose.auth)
+            implementation(libs.supabase.realtime.kt)
             // Kotlinx
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
