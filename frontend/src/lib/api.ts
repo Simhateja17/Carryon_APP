@@ -1,10 +1,33 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://carryon-backend-wb3t.onrender.com";
+const PRODUCTION_URL = "https://carryon-backend-wb3t.onrender.com";
 const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || "";
+
+let _resolvedBase: string | null = null;
+
+async function getApiBase(): Promise<string> {
+  if (_resolvedBase) return _resolvedBase;
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    _resolvedBase = process.env.NEXT_PUBLIC_API_URL;
+    return _resolvedBase;
+  }
+  if (process.env.NODE_ENV === "development") {
+    try {
+      const res = await fetch("http://localhost:4999", {
+        signal: AbortSignal.timeout(2000),
+      });
+      const { port } = await res.json();
+      _resolvedBase = `http://localhost:${port}`;
+      return _resolvedBase;
+    } catch {}
+  }
+  _resolvedBase = PRODUCTION_URL;
+  return _resolvedBase;
+}
 
 export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
+  const API_BASE = await getApiBase();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options?.headers as Record<string, string>),
