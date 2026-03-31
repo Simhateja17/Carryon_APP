@@ -2,7 +2,6 @@ package com.company.carryon.ui.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -35,12 +34,10 @@ import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.components.rememberLocationRequester
 import com.company.carryon.data.model.AutocompleteResult
 import com.company.carryon.data.model.MapConfig
-import com.company.carryon.data.model.NearbyPlace
 import com.company.carryon.data.model.PlaceResult
 import com.company.carryon.data.model.RouteResult
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.i18n.LocalStrings
-import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,8 +64,6 @@ fun SelectAddressScreen(
     var searchResults by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
     var isSearchingFrom by remember { mutableStateOf(true) }
     var showSearchResults by remember { mutableStateOf(false) }
-    var nearbyPlaces by remember { mutableStateOf<List<NearbyPlace>>(emptyList()) }
-    var isLoadingNearby by remember { mutableStateOf(false) }
     var fromPlace by remember { mutableStateOf<PlaceResult?>(null) }
     var toPlace by remember { mutableStateOf<PlaceResult?>(null) }
     var routeResult by remember { mutableStateOf<RouteResult?>(null) }
@@ -78,7 +73,7 @@ fun SelectAddressScreen(
     var searchJob by remember { mutableStateOf<Job?>(null) }
     val strings = LocalStrings.current
 
-    // Use device location to center map, pre-fill "from", and load real nearby places
+    // Use device location to center map and pre-fill "from"
     val requestLocation = rememberLocationRequester(
         onLocation = { lat, lng ->
             centerLat = lat
@@ -98,12 +93,6 @@ fun SelectAddressScreen(
                         )
                     }
                 }
-                // Load nearby places around real location
-                isLoadingNearby = true
-                LocationApi.searchNearby(lat, lng, radius = 2000).onSuccess { places ->
-                    nearbyPlaces = places
-                }
-                isLoadingNearby = false
             }
         }
     )
@@ -410,57 +399,6 @@ fun SelectAddressScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-
-                // Nearby places from API
-                Text(strings.nearbyPlaces, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                Spacer(modifier = Modifier.height(10.dp))
-
-                if (isLoadingNearby) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryBlue, strokeWidth = 2.dp)
-                    }
-                } else if (nearbyPlaces.isEmpty()) {
-                    Text(strings.noNearbyPlaces, fontSize = 13.sp, color = TextSecondary, modifier = Modifier.padding(vertical = 8.dp))
-                } else {
-                    nearbyPlaces.take(6).forEach { place ->
-                        val distanceText = if (place.distance >= 1000) {
-                            "${(place.distance / 1000.0).formatDecimal(1)}km"
-                        } else {
-                            "${place.distance.toInt()}m"
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                val placeResult = PlaceResult(
-                                    placeId = place.placeId,
-                                    label = place.title,
-                                    address = place.address,
-                                    latitude = place.lat,
-                                    longitude = place.lng
-                                )
-                                if (isSearchingFrom) {
-                                    from = place.title
-                                    fromPlace = placeResult
-                                } else {
-                                    to = place.title
-                                    toPlace = placeResult
-                                }
-                                centerLat = place.lat
-                                centerLng = place.lng
-                                mapZoom = 15.0
-                            }.padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(20.dp).padding(top = 2.dp), contentScale = ContentScale.Fit)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(place.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                                Text(place.address, fontSize = 12.sp, color = TextSecondary, lineHeight = 16.sp, maxLines = 2)
-                            }
-                            Text(distanceText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                        }
-                        HorizontalDivider(color = Color(0xFFF0F0F0))
-                    }
-                }
                 Spacer(modifier = Modifier.height(8.dp))
                 } // end inner Column
             } // end outer Column
