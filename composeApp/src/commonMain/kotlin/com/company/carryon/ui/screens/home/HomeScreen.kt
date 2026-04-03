@@ -159,48 +159,59 @@ fun HomeScreen(
     var deliverySuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
     var showPickupSuggestions by remember { mutableStateOf(false) }
     var showDeliverySuggestions by remember { mutableStateOf(false) }
-    var autocompleteError by remember { mutableStateOf<String?>(null) }
+    var pickupAutocompleteError by remember { mutableStateOf<String?>(null) }
+    var deliveryAutocompleteError by remember { mutableStateOf<String?>(null) }
+    var isSearchingPickup by remember { mutableStateOf(false) }
+    var isSearchingDelivery by remember { mutableStateOf(false) }
 
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
 
     fun searchPickup(query: String) {
         pickupSearchJob?.cancel()
+        pickupAutocompleteError = null
         if (query.length < 2) {
             pickupSuggestions = emptyList()
             showPickupSuggestions = false
+            isSearchingPickup = false
             return
         }
         pickupSearchJob = scope.launch {
+            isSearchingPickup = true
             delay(300)
             val result = LocationApi.autocomplete(query, userLat, userLng)
             result.onSuccess { results ->
                 pickupSuggestions = results
                 showPickupSuggestions = results.isNotEmpty()
-                autocompleteError = null
+                pickupAutocompleteError = null
             }.onFailure {
-                autocompleteError = "Search unavailable. Please type the full address."
+                pickupAutocompleteError = "Search unavailable. Please type the full address."
             }
+            isSearchingPickup = false
         }
     }
 
     fun searchDelivery(query: String) {
         deliverySearchJob?.cancel()
+        deliveryAutocompleteError = null
         if (query.length < 2) {
             deliverySuggestions = emptyList()
             showDeliverySuggestions = false
+            isSearchingDelivery = false
             return
         }
         deliverySearchJob = scope.launch {
+            isSearchingDelivery = true
             delay(300)
             val result = LocationApi.autocomplete(query, userLat, userLng)
             result.onSuccess { results ->
                 deliverySuggestions = results
                 showDeliverySuggestions = results.isNotEmpty()
-                autocompleteError = null
+                deliveryAutocompleteError = null
             }.onFailure {
-                autocompleteError = "Search unavailable. Please type the full address."
+                deliveryAutocompleteError = "Search unavailable. Please type the full address."
             }
+            isSearchingDelivery = false
         }
     }
 
@@ -416,14 +427,16 @@ fun HomeScreen(
                 }
             }
 
-            // Autocomplete error hint
-            autocompleteError?.let { errMsg ->
-                Text(
-                    errMsg,
-                    fontSize = 11.sp,
-                    color = Color(0xFFE65100),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                )
+            // Delivery autocomplete error hint: show only after request completes.
+            if (!isSearchingDelivery && deliveryLocation.length >= 2) {
+                deliveryAutocompleteError?.let { errMsg ->
+                    Text(
+                        errMsg,
+                        fontSize = 11.sp,
+                        color = Color(0xFFE65100),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

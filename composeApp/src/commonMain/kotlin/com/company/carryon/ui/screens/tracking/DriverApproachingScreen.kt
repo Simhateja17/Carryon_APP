@@ -27,6 +27,7 @@ import com.company.carryon.ui.components.MapMarker
 import com.company.carryon.ui.components.MapViewComposable
 import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +53,7 @@ fun DriverApproachingScreen(
     var routeResult by remember { mutableStateOf<RouteResult?>(null) }
     var etaMinutes by remember { mutableStateOf(0) }
     var driverId by remember { mutableStateOf("") }
+    var pickupDoneHandled by remember { mutableStateOf(false) }
 
     // Load booking data
     LaunchedEffect(bookingId) {
@@ -94,7 +96,7 @@ fun DriverApproachingScreen(
     // Poll booking status every 5s for status changes
     LaunchedEffect(bookingId) {
         if (bookingId.isBlank()) return@LaunchedEffect
-        while (true) {
+        while (currentCoroutineContext().isActive && !pickupDoneHandled) {
             delay(5000L)
             BookingApi.getBooking(bookingId).onSuccess { response ->
                 val updated = response.data
@@ -104,6 +106,7 @@ fun DriverApproachingScreen(
                         updated.status == BookingStatus.IN_TRANSIT ||
                         updated.status == BookingStatus.DELIVERED
                     ) {
+                        pickupDoneHandled = true
                         onPickupDone()
                     }
                 }
@@ -115,7 +118,7 @@ fun DriverApproachingScreen(
     LaunchedEffect(driverId, pickupLat, pickupLng) {
         if (driverId.isBlank() || pickupLat == 0.0) return@LaunchedEffect
 
-        while (true) {
+        while (currentCoroutineContext().isActive && !pickupDoneHandled) {
             LocationApi.getPosition(driverId).onSuccess { pos ->
                 if (pos.latitude != 0.0 && pos.longitude != 0.0) {
                     driverLat = pos.latitude

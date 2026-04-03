@@ -376,7 +376,7 @@ fun App() {
                             deliveryLng = screen.deliveryLng
                         )
                     },
-                    onConfirmPayment = { paymentMethod ->
+                    onConfirmPayment = { _ ->
                         // Navigate to payment success - actual booking creation happens there or via a coroutine
                         currentScreen = AppScreen.PaymentSuccess(
                             bookingId = "", // Will be populated after API call
@@ -388,7 +388,13 @@ fun App() {
             is AppScreen.PaymentSuccess -> {
                 PaymentSuccessScreen(
                     amount = screen.amount,
-                    onContinue = { currentScreen = AppScreen.SearchingDriver(screen.bookingId, screen.amount) }
+                    onContinue = {
+                        if (screen.bookingId.isNotBlank()) {
+                            currentScreen = AppScreen.SearchingDriver(screen.bookingId, screen.amount)
+                        } else {
+                            currentScreen = AppScreen.Orders
+                        }
+                    }
                 )
             }
             is AppScreen.SearchingDriver -> {
@@ -396,22 +402,34 @@ fun App() {
                     bookingId = screen.bookingId,
                     amount = screen.amount,
                     onDriverFound = { currentScreen = AppScreen.DriverApproaching(screen.bookingId) },
-                    onCancel = { currentScreen = AppScreen.Home }
+                    onCancel = { currentScreen = AppScreen.Orders }
                 )
             }
             is AppScreen.DriverApproaching -> {
                 DriverApproachingScreen(
                     bookingId = screen.bookingId,
                     onPickupDone = { currentScreen = AppScreen.TrackingLive(screen.bookingId) },
-                    onBack = { currentScreen = AppScreen.Home }
+                    onBack = { currentScreen = AppScreen.Orders }
                 )
             }
             is AppScreen.DriverRating -> {
                 DriverRatingScreen(
                     driverName = screen.driverName,
                     bookingId = screen.bookingId,
-                    onSubmit = { currentScreen = AppScreen.Home },
-                    onBack = { currentScreen = AppScreen.Home }
+                    onSubmit = {
+                        if (screen.bookingId.isNotBlank()) {
+                            currentScreen = AppScreen.DeliveryDetails(screen.bookingId)
+                        } else {
+                            currentScreen = AppScreen.Orders
+                        }
+                    },
+                    onBack = {
+                        if (screen.bookingId.isNotBlank()) {
+                            currentScreen = AppScreen.DeliveryDetails(screen.bookingId)
+                        } else {
+                            currentScreen = AppScreen.Orders
+                        }
+                    }
                 )
             }
             is AppScreen.ReadyToBook -> {

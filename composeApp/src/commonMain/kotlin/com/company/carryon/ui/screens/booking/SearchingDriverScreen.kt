@@ -19,6 +19,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.theme.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -32,15 +33,17 @@ fun SearchingDriverScreen(
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
     var isCancelling by remember { mutableStateOf(false) }
+    var driverFoundHandled by remember { mutableStateOf(false) }
 
     // Poll for driver assignment
     LaunchedEffect(bookingId) {
         if (bookingId.isBlank()) return@LaunchedEffect
-        while (true) {
+        while (currentCoroutineContext().isActive && !driverFoundHandled) {
             delay(6000L)
             BookingApi.getBooking(bookingId).onSuccess { response ->
                 val booking = response.data
                 if (booking != null && booking.status == BookingStatus.DRIVER_ASSIGNED) {
+                    driverFoundHandled = true
                     onDriverFound()
                 }
             }
