@@ -29,6 +29,7 @@ import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +75,12 @@ fun DriverApproachingScreen(
                         ?: loadedBooking.pickupAddress.longitude
 
                     driverId = loadedBooking.driver?.id ?: ""
-                    etaMinutes = loadedBooking.eta ?: 0
+                    etaMinutes = when {
+                        (loadedBooking.eta ?: 0) > 0 -> loadedBooking.eta ?: 0
+                        loadedBooking.duration > 0 -> loadedBooking.duration
+                        loadedBooking.distance > 0.0 -> estimateMinutesFromDistance(loadedBooking.distance)
+                        else -> 0
+                    }
                 } else {
                     errorMessage = "Booking not found"
                 }
@@ -130,7 +136,7 @@ fun DriverApproachingScreen(
             if (driverLat != 0.0 && pickupLat != 0.0) {
                 LocationApi.calculateRoute(driverLat, driverLng, pickupLat, pickupLng).onSuccess { route ->
                     routeResult = route
-                    etaMinutes = route.duration
+                    etaMinutes = if (route.duration > 0) route.duration else estimateMinutesFromDistance(route.distance)
                 }
             }
 
@@ -361,4 +367,10 @@ fun DriverApproachingScreen(
             }
         }
     }
+}
+
+private fun estimateMinutesFromDistance(distanceKm: Double): Int {
+    if (distanceKm <= 0.0) return 0
+    // Fallback ETA for cases where backend route duration is unavailable.
+    return ceil((distanceKm / 30.0) * 60.0).toInt().coerceAtLeast(1)
 }

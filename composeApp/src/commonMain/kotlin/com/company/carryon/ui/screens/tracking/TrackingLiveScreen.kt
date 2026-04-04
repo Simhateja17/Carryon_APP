@@ -31,6 +31,7 @@ import com.company.carryon.data.model.Booking
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
 import kotlinx.coroutines.delay
+import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +87,12 @@ fun TrackingLiveScreen(
                     driverId = loadedBooking.driver?.id ?: ""
                     
                     // Set initial ETA from booking
-                    etaMinutes = loadedBooking.eta ?: 0
+                    etaMinutes = when {
+                        (loadedBooking.eta ?: 0) > 0 -> loadedBooking.eta ?: 0
+                        loadedBooking.duration > 0 -> loadedBooking.duration
+                        loadedBooking.distance > 0.0 -> estimateMinutesFromDistance(loadedBooking.distance)
+                        else -> 0
+                    }
                 } else {
                     errorMessage = "Booking not found"
                 }
@@ -142,7 +148,7 @@ fun TrackingLiveScreen(
             if (driverLat != 0.0 && deliveryLat != 0.0) {
                 LocationApi.calculateRoute(driverLat, driverLng, deliveryLat, deliveryLng).onSuccess { route ->
                     routeResult = route
-                    etaMinutes = route.duration
+                    etaMinutes = if (route.duration > 0) route.duration else estimateMinutesFromDistance(route.distance)
                 }
             }
 
@@ -156,7 +162,9 @@ fun TrackingLiveScreen(
             delay(15000) // Every 15 seconds
             BookingApi.getEta(bookingId).onSuccess { response ->
                 response.data?.let { eta ->
-                    etaMinutes = eta.etaMinutes
+                    if (eta.etaMinutes > 0) {
+                        etaMinutes = eta.etaMinutes
+                    }
                 }
             }
         }
@@ -386,4 +394,10 @@ fun TrackingLiveScreen(
             }
         }
     }
+}
+
+private fun estimateMinutesFromDistance(distanceKm: Double): Int {
+    if (distanceKm <= 0.0) return 0
+    // Fallback ETA for cases where provider omits route duration.
+    return ceil((distanceKm / 30.0) * 60.0).toInt().coerceAtLeast(1)
 }

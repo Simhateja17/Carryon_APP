@@ -40,25 +40,31 @@ fun DetailsScreen(
     onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var itemType by remember { mutableStateOf("") }
-    var quantity by remember { mutableStateOf("") }
-    var payer by remember { mutableStateOf("me") }
-    var paymentType by remember { mutableStateOf("") }
+    var itemType by rememberSaveable { mutableStateOf("") }
+    var quantity by rememberSaveable { mutableStateOf("") }
+    var payer by rememberSaveable { mutableStateOf("me") }
+    var paymentType by rememberSaveable { mutableStateOf("") }
     var paymentDropdownExpanded by remember { mutableStateOf(false) }
     val paymentOptions = listOf("Cash", "DuitNow QR", "Touch 'n Go eWallet", "GrabPay", "FPX Online Banking", "Credit / Debit Card")
-    var senderName by remember { mutableStateOf("") }
-    var senderPhone by remember { mutableStateOf("") }
-    var recipientName by remember { mutableStateOf("") }
-    var recipientPhone by remember { mutableStateOf("") }
+    var senderName by rememberSaveable { mutableStateOf("") }
+    var senderPhone by rememberSaveable { mutableStateOf("") }
+    var recipientName by rememberSaveable { mutableStateOf("") }
+    var recipientPhone by rememberSaveable { mutableStateOf("") }
+    var senderPhoneTouched by rememberSaveable { mutableStateOf(false) }
+    var recipientPhoneTouched by rememberSaveable { mutableStateOf(false) }
+
+    fun isValidMalaysianPhone(phone: String): Boolean {
+        val digits = phone.filter { it.isDigit() }
+        return digits.matches(Regex("^1[0-9]{8,9}$"))
+    }
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
-    // Fetch user profile to pre-fill sender name
+    // Fetch user profile to pre-fill sender name and phone
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { user ->
-            if (senderName.isBlank()) {
-                senderName = user.name
-            }
+            if (senderName.isBlank()) senderName = user.name
+            if (senderPhone.isBlank() && user.phone.isNotBlank()) senderPhone = user.phone
         }
     }
 
@@ -94,13 +100,13 @@ fun DetailsScreen(
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
-            val isFormValid = itemType.isNotBlank() && 
-                quantity.isNotBlank() && 
-                paymentType.isNotBlank() && 
+            val isFormValid = itemType.isNotBlank() &&
+                quantity.isNotBlank() &&
+                paymentType.isNotBlank() &&
                 senderName.isNotBlank() &&
-                senderPhone.isNotBlank() &&
-                recipientName.isNotBlank() && 
-                recipientPhone.isNotBlank()
+                isValidMalaysianPhone(senderPhone) &&
+                recipientName.isNotBlank() &&
+                isValidMalaysianPhone(recipientPhone)
             
             Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Button(
@@ -287,11 +293,12 @@ fun DetailsScreen(
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = senderPhone,
-                onValueChange = { senderPhone = it },
+                onValueChange = { senderPhone = it; senderPhoneTouched = true },
                 placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
                 prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
+                isError = senderPhoneTouched && !isValidMalaysianPhone(senderPhone),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF6F9FA),
                     focusedContainerColor = Color(0xFFF6F9FA),
@@ -303,6 +310,9 @@ fun DetailsScreen(
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
             )
+            if (senderPhoneTouched && !isValidMalaysianPhone(senderPhone)) {
+                Text("Enter a valid Malaysian number (e.g. 12-3456789)", fontSize = 12.sp, color = Color.Red, modifier = Modifier.padding(top = 2.dp))
+            }
 
             // Recipient Names
             Spacer(modifier = Modifier.height(16.dp))
@@ -330,11 +340,12 @@ fun DetailsScreen(
             Spacer(modifier = Modifier.height(6.dp))
             OutlinedTextField(
                 value = recipientPhone,
-                onValueChange = { recipientPhone = it },
+                onValueChange = { recipientPhone = it; recipientPhoneTouched = true },
                 placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
                 prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
+                isError = recipientPhoneTouched && !isValidMalaysianPhone(recipientPhone),
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = Color(0xFFF6F9FA),
                     focusedContainerColor = Color(0xFFF6F9FA),
@@ -346,6 +357,9 @@ fun DetailsScreen(
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
             )
+            if (recipientPhoneTouched && !isValidMalaysianPhone(recipientPhone)) {
+                Text("Enter a valid Malaysian number (e.g. 12-3456789)", fontSize = 12.sp, color = Color.Red, modifier = Modifier.padding(top = 2.dp))
+            }
 
             // Camera box
             Spacer(modifier = Modifier.height(18.dp))

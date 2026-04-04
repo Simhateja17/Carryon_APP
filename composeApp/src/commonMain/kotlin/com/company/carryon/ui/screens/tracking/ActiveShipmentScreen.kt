@@ -29,6 +29,7 @@ import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
 
 private fun formatISODate(isoDate: String): String {
     return try {
@@ -112,7 +113,15 @@ fun ActiveShipmentScreen(
         }
     }
 
-    val etaText = activeBooking?.eta?.let { "$it min  ●●●" } ?: "—  ●●●"
+    val fallbackEta = activeBooking?.let { booking ->
+        when {
+            (booking.eta ?: 0) > 0 -> booking.eta ?: 0
+            booking.duration > 0 -> booking.duration
+            booking.distance > 0.0 -> estimateMinutesFromDistance(booking.distance)
+            else -> null
+        }
+    }
+    val etaText = fallbackEta?.let { "$it min  ●●●" } ?: "—  ●●●"
     val orderId = activeBooking?.id ?: "—"
     val pickupAddress = activeBooking?.pickupAddress?.address ?: "—"
     val recipientName = activeBooking?.deliveryAddress?.contactName?.ifBlank {
@@ -365,4 +374,9 @@ fun ActiveShipmentScreen(
             }
         }
     }
+}
+
+private fun estimateMinutesFromDistance(distanceKm: Double): Int {
+    if (distanceKm <= 0.0) return 0
+    return ceil((distanceKm / 30.0) * 60.0).toInt().coerceAtLeast(1)
 }
