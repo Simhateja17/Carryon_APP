@@ -29,6 +29,7 @@ import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)

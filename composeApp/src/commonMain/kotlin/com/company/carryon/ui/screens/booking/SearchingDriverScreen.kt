@@ -21,6 +21,7 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.theme.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
