@@ -40,6 +40,7 @@ fun RequestForRideScreen(
     senderPhone: String = "",
     receiverName: String = "",
     receiverPhone: String = "",
+    receiverEmail: String = "",
     onContinue: (bookingId: String, amount: Double) -> Unit,
     onBack: () -> Unit
 ) {
@@ -187,7 +188,8 @@ fun RequestForRideScreen(
                                     latitude = deliveryLat!!,
                                     longitude = deliveryLng!!,
                                     contactName = receiverName,
-                                    contactPhone = receiverPhone
+                                    contactPhone = receiverPhone,
+                                    contactEmail = receiverEmail
                                 ),
                                 vehicleType = vehicleTypeApi,
                                 paymentMethod = paymentMethodApi,
@@ -195,6 +197,7 @@ fun RequestForRideScreen(
                                 senderPhone = senderPhone,
                                 receiverName = receiverName,
                                 receiverPhone = receiverPhone,
+                                receiverEmail = receiverEmail,
                                 estimatedPrice = estimatedPrice + taxAmount,
                                 distance = distanceKm,
                                 duration = 0

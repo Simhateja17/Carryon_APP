@@ -103,6 +103,7 @@ sealed class AppScreen {
         val senderPhone: String = "",
         val receiverName: String = "",
         val receiverPhone: String = "",
+        val receiverEmail: String = "",
         val pickupLat: Double = 0.0,
         val pickupLng: Double = 0.0,
         val deliveryLat: Double = 0.0,
@@ -120,7 +121,8 @@ sealed class AppScreen {
         val senderName: String = "",
         val senderPhone: String = "",
         val receiverName: String = "",
-        val receiverPhone: String = ""
+        val receiverPhone: String = "",
+        val receiverEmail: String = ""
     ) : AppScreen()
     data object Settings : AppScreen()
     // New screens
@@ -234,7 +236,7 @@ fun App() {
                 ProfileScreen(
                     onNavigateToEditProfile = { currentScreen = AppScreen.EditProfile },
                     onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses },
-                    onNavigateToHelp = { currentScreen = AppScreen.Support },
+                    onNavigateToHelp = { currentScreen = AppScreen.Help },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
@@ -273,7 +275,10 @@ fun App() {
             }
             is AppScreen.Help -> {
                 HelpScreen(
-                    onBack = { currentScreen = AppScreen.Profile }
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onNavigateToOrders = { currentScreen = AppScreen.Orders },
+                    onNavigateToTracking = { currentScreen = AppScreen.TrackShipment },
+                    onNavigateToSupport = { currentScreen = AppScreen.Support }
                 )
             }
             is AppScreen.History -> {
@@ -341,7 +346,7 @@ fun App() {
             is AppScreen.SenderReceiver -> {
                 SenderReceiverScreen(
                     onBack = { currentScreen = AppScreen.Calculate },
-                    onNext = { senderName, senderPhone, receiverName, receiverPhone, _ ->
+                    onNext = { senderName, senderPhone, receiverName, receiverPhone, receiverEmail, _ ->
                         currentScreen = AppScreen.BookingPayment(
                             pickupAddress = screen.pickupAddress,
                             deliveryAddress = screen.deliveryAddress,
@@ -352,6 +357,7 @@ fun App() {
                             senderPhone = senderPhone,
                             receiverName = receiverName,
                             receiverPhone = receiverPhone,
+                            receiverEmail = receiverEmail,
                             pickupLat = screen.pickupLat,
                             pickupLng = screen.pickupLng,
                             deliveryLat = screen.deliveryLat,
@@ -470,7 +476,7 @@ fun App() {
                     pickup = screen.pickup,
                     delivery = screen.delivery,
                     onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone -> 
-                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone) 
+                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "") 
                     },
                     onBack = { currentScreen = AppScreen.SelectAddress() }
                 )
@@ -484,6 +490,7 @@ fun App() {
                     senderPhone = screen.senderPhone,
                     receiverName = screen.receiverName,
                     receiverPhone = screen.receiverPhone,
+                    receiverEmail = screen.receiverEmail,
                     onContinue = { bookingId, amount ->
                         currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
                     },

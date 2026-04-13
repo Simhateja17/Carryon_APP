@@ -24,6 +24,7 @@ data class CreateBookingRequest(
     val senderPhone: String,
     val receiverName: String,
     val receiverPhone: String,
+    val receiverEmail: String? = null,
     val notes: String? = null,
     val estimatedPrice: Double = 0.0,
     val distance: Double = 0.0,
@@ -37,6 +38,7 @@ data class CreateAddressData(
     val longitude: Double,
     val contactName: String,
     val contactPhone: String,
+    val contactEmail: String? = null,
     val landmark: String = ""
 )
 

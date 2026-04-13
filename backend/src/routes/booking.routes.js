@@ -20,6 +20,27 @@ function generateDeliveryOtp() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
+function nextOrderCodeFromLast(lastOrderCode) {
+  const match = /^ORD-(\d+)$/.exec(lastOrderCode || '');
+  const next = match ? Number(match[1]) + 1 : 1;
+  return `ORD-${String(next).padStart(6, '0')}`;
+}
+
+async function generateNextOrderCode(tx) {
+  const latest = await tx.booking.findFirst({
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+    select: { orderCode: true },
+  });
+  return nextOrderCodeFromLast(latest?.orderCode);
+}
+
+function isOrderCodeConflict(err) {
+  const target = err?.meta?.target;
+  if (err?.code !== 'P2002') return false;
+  if (Array.isArray(target)) return target.includes('orderCode');
+  return typeof target === 'string' && target.includes('orderCode');
+}
+
 // POST /api/bookings
 router.post('/', async (req, res, next) => {
   try {
@@ -36,52 +57,66 @@ router.post('/', async (req, res, next) => {
       return next(new AppError('pickupAddress and deliveryAddress are required', 400));
     }
 
-    const booking = await prisma.$transaction(async (tx) => {
-      const pickup = await tx.address.create({
-        data: {
-          userId: req.user.userId,
-          address: pickupAddress.address || '',
-          latitude: pickupAddress.latitude || 0,
-          longitude: pickupAddress.longitude || 0,
-          contactName: pickupAddress.contactName || senderName || '',
-          contactPhone: pickupAddress.contactPhone || senderPhone || '',
-          landmark: pickupAddress.landmark || '',
-          label: '',
-          type: 'OTHER',
-        },
-      });
+    let booking = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        booking = await prisma.$transaction(async (tx) => {
+          const pickup = await tx.address.create({
+            data: {
+              userId: req.user.userId,
+              address: pickupAddress.address || '',
+              latitude: pickupAddress.latitude || 0,
+              longitude: pickupAddress.longitude || 0,
+              contactName: pickupAddress.contactName || senderName || '',
+              contactPhone: pickupAddress.contactPhone || senderPhone || '',
+              contactEmail: pickupAddress.contactEmail || '',
+              landmark: pickupAddress.landmark || '',
+              label: '',
+              type: 'OTHER',
+            },
+          });
 
-      const delivery = await tx.address.create({
-        data: {
-          userId: req.user.userId,
-          address: deliveryAddress.address || '',
-          latitude: deliveryAddress.latitude || 0,
-          longitude: deliveryAddress.longitude || 0,
-          contactName: deliveryAddress.contactName || receiverName || '',
-          contactPhone: deliveryAddress.contactPhone || receiverPhone || '',
-          landmark: deliveryAddress.landmark || '',
-          label: '',
-          type: 'OTHER',
-        },
-      });
+          const delivery = await tx.address.create({
+            data: {
+              userId: req.user.userId,
+              address: deliveryAddress.address || '',
+              latitude: deliveryAddress.latitude || 0,
+              longitude: deliveryAddress.longitude || 0,
+              contactName: deliveryAddress.contactName || receiverName || '',
+              contactPhone: deliveryAddress.contactPhone || receiverPhone || '',
+              contactEmail: deliveryAddress.contactEmail || '',
+              landmark: deliveryAddress.landmark || '',
+              label: '',
+              type: 'OTHER',
+            },
+          });
 
-      return tx.booking.create({
-        data: {
-          userId: req.user.userId,
-          pickupAddressId: pickup.id,
-          deliveryAddressId: delivery.id,
-          vehicleType: vehicleType || '',
-          scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
-          estimatedPrice: estimatedPrice || 0,
-          distance: distance || 0,
-          duration: duration || 0,
-          paymentMethod: paymentMethod || 'CASH',
-          otp: generateDeliveryOtp(),
-          status: 'SEARCHING_DRIVER',
-        },
-        include: bookingIncludes,
-      });
-    });
+          const orderCode = await generateNextOrderCode(tx);
+
+          return tx.booking.create({
+            data: {
+              orderCode,
+              userId: req.user.userId,
+              pickupAddressId: pickup.id,
+              deliveryAddressId: delivery.id,
+              vehicleType: vehicleType || '',
+              scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
+              estimatedPrice: estimatedPrice || 0,
+              distance: distance || 0,
+              duration: duration || 0,
+              paymentMethod: paymentMethod || 'CASH',
+              otp: generateDeliveryOtp(),
+              dispatchSource: 'USER_APP',
+              status: 'SEARCHING_DRIVER',
+            },
+            include: bookingIncludes,
+          });
+        });
+        break;
+      } catch (err) {
+        if (!isOrderCodeConflict(err) || attempt === 2) throw err;
+      }
+    }
 
     console.log('[booking] Created booking id:', booking.id, 'status:', booking.status, 'estimatedPrice:', booking.estimatedPrice);
 
@@ -183,7 +218,8 @@ router.post('/:id/verify-delivery', async (req, res, next) => {
       return next(new AppError('Booking is cancelled', 400));
     }
 
-    if (booking.otp !== otp) {
+    const expectedOtp = booking.deliveryOtp || booking.otp;
+    if (expectedOtp !== otp) {
       console.log('[booking] verify-delivery — OTP mismatch for bookingId:', req.params.id);
       return next(new AppError('Invalid delivery OTP', 400));
     }
@@ -192,7 +228,9 @@ router.post('/:id/verify-delivery', async (req, res, next) => {
       where: { id: req.params.id },
       data: {
         status: 'DELIVERED',
-        otp: null, // Clear OTP after successful verification to prevent reuse
+        otp: '', // Clear OTP after successful verification to prevent reuse
+        deliveryOtp: '',
+        deliveryOtpVerifiedAt: new Date(),
         deliveryProofUrl: deliveryProofUrl || null,
         deliveredAt: new Date(),
         paymentStatus: booking.paymentMethod === 'CASH' ? 'COMPLETED' : booking.paymentStatus,
