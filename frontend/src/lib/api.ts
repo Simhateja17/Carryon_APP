@@ -1,5 +1,5 @@
 const PRODUCTION_URL = "https://carryon-backend-wb3t.onrender.com";
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_KEY || "";
+const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || "";
 
 let _resolvedBase: string | null = null;
 
@@ -80,6 +80,7 @@ export interface DriverListItem {
   phone: string;
   photo: string | null;
   isOnline: boolean;
+  hasFcmToken?: boolean;
   isVerified: boolean;
   verificationStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "REJECTED";
   rating: number;
@@ -202,6 +203,68 @@ export async function sendNotification(payload: SendNotificationPayload) {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export interface RideLocationPayload {
+  address: string;
+  latitude: number;
+  longitude: number;
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  landmark?: string;
+}
+
+export interface CreateRideRequestPayload {
+  from: RideLocationPayload;
+  to: RideLocationPayload;
+  price: number;
+  vehicleType: "BIKE" | "CAR" | "VAN" | "TRUCK";
+  paymentMethod?: "CASH" | "UPI" | "CARD" | "WALLET";
+  driverIds?: string[];
+}
+
+export interface CreateRideRequestResult {
+  bookingId: string;
+  status: string;
+  vehicleType: string;
+  estimatedPrice: number;
+  distance: number;
+  duration: number;
+  targetedDrivers: DriverRef[];
+  targetingMode?: "selected_drivers" | "nearby_online_drivers";
+  push: PushResult;
+}
+
+export async function createRideRequest(payload: CreateRideRequestPayload) {
+  return apiFetch<{
+    success: boolean;
+    data: CreateRideRequestResult;
+  }>("/api/admin/notifications/ride-request", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface AdminRecipientOtpRecord {
+  bookingId: string;
+  orderCode: string;
+  bookingStatus: string;
+  dispatchSource: string;
+  recipientName: string;
+  recipientEmail: string;
+  deliveryOtp: string;
+  otpSentAt: string | null;
+  otpVerifiedAt: string | null;
+  createdAt: string | null;
+  driver: { id: string; name: string; email: string } | null;
+}
+
+export async function getRecipientOtps(status: "all" | "active" | "verified" = "all", limit = 100) {
+  return apiFetch<{
+    success: boolean;
+    data: AdminRecipientOtpRecord[];
+  }>(`/api/admin/notifications/recipient-otps?status=${status}&limit=${limit}`);
 }
 
 // ── Admin Driver Management ──────────────────────────────────
