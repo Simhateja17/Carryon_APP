@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,11 +29,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.privacy_change_password_icon
+import carryon.composeapp.generated.resources.privacy_delete_account_icon
+import carryon.composeapp.generated.resources.privacy_download_my_data_icon
+import carryon.composeapp.generated.resources.privacy_location_access_icon
+import carryon.composeapp.generated.resources.privacy_logged_in_devices_icon
+import carryon.composeapp.generated.resources.privacy_notifications_icon
 import com.company.carryon.ui.theme.PrimaryBlue
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun PrivacySecurityScreen(
@@ -83,12 +94,12 @@ fun PrivacySecurityScreen(
             ) {
                 SectionTitle("ACCOUNT SECURITY")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = "🔒", title = "Change Password", onClick = onChangePassword)
+                ActionCard(iconRes = Res.drawable.privacy_change_password_icon, title = "Change Password", onClick = onChangePassword)
 
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("LOGIN & ACCESS")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = "🖥", title = "Logged in devices", onClick = onLoggedInDevices)
+                ActionCard(iconRes = Res.drawable.privacy_logged_in_devices_icon, title = "Logged in devices", onClick = onLoggedInDevices)
 
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("PERMISSIONS")
@@ -100,7 +111,7 @@ fun PrivacySecurityScreen(
                         .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
                 ) {
                     ToggleRow(
-                        icon = "📍",
+                        iconRes = Res.drawable.privacy_location_access_icon,
                         title = "Location Access",
                         checked = locationEnabled,
                         onToggle = { locationEnabled = !locationEnabled }
@@ -112,7 +123,7 @@ fun PrivacySecurityScreen(
                             .background(Color(0xFFE7E6FF))
                     )
                     ToggleRow(
-                        icon = "🔔",
+                        iconRes = Res.drawable.privacy_notifications_icon,
                         title = "Notifications",
                         checked = notificationsEnabled,
                         onToggle = { notificationsEnabled = !notificationsEnabled }
@@ -122,7 +133,7 @@ fun PrivacySecurityScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("DATA & PRIVACY")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = "↓", title = "Download my data")
+                ActionCard(iconRes = Res.drawable.privacy_download_my_data_icon, title = "Download my data")
 
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
@@ -144,7 +155,12 @@ fun PrivacySecurityScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("⌫", color = PrimaryBlue, fontSize = 18.sp)
+                    Image(
+                        painter = painterResource(Res.drawable.privacy_delete_account_icon),
+                        contentDescription = "Delete Account",
+                        modifier = Modifier.size(20.dp),
+                        contentScale = ContentScale.Fit
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Account", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -192,7 +208,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun ActionCard(icon: String, title: String, onClick: () -> Unit = {}) {
+private fun ActionCard(iconRes: DrawableResource, title: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -203,7 +219,12 @@ private fun ActionCard(icon: String, title: String, onClick: () -> Unit = {}) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(icon, color = PrimaryBlue, fontSize = 20.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(modifier = Modifier.width(12.dp))
             Text(title, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
@@ -213,7 +234,7 @@ private fun ActionCard(icon: String, title: String, onClick: () -> Unit = {}) {
 
 @Composable
 private fun ToggleRow(
-    icon: String,
+    iconRes: DrawableResource,
     title: String,
     checked: Boolean,
     onToggle: () -> Unit
@@ -227,7 +248,12 @@ private fun ToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(icon, color = PrimaryBlue, fontSize = 19.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(modifier = Modifier.width(12.dp))
             Text(title, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
@@ -236,15 +262,15 @@ private fun ToggleRow(
             modifier = Modifier
                 .width(44.dp)
                 .height(24.dp)
-                .background(if (checked) PrimaryBlue else Color(0xFFA6D2F3), RoundedCornerShape(999.dp))
+                .background(if (checked) Color(0xFF2F80ED) else Color(0xFFA6D2F3), RoundedCornerShape(999.dp))
         ) {
             Box(
                 modifier = Modifier
                     .size(20.dp)
                     .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart)
                     .padding(2.dp)
-                    .background(Color(0x33A6D2F3), CircleShape)
-                    .border(1.dp, if (checked) Color(0x33A6D2F3) else Color(0xFFD1D5DB), CircleShape)
+                    .background(Color.White, CircleShape)
+                    .border(1.dp, Color.White, CircleShape)
             )
         }
     }

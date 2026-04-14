@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -23,7 +24,17 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.bell_icon
+import carryon.composeapp.generated.resources.profile_help_support_icon
+import carryon.composeapp.generated.resources.profile_logout_icon
+import carryon.composeapp.generated.resources.profile_payments_wallet_icon
+import carryon.composeapp.generated.resources.profile_personal_info_icon
+import carryon.composeapp.generated.resources.profile_privacy_security_icon
+import carryon.composeapp.generated.resources.profile_rating_icon
+import carryon.composeapp.generated.resources.profile_saved_addresses_icon
+import carryon.composeapp.generated.resources.profile_settings_icon
+import carryon.composeapp.generated.resources.profile_shipments_icon
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.DrawableResource
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
@@ -143,16 +154,16 @@ fun ProfileScreen(
                 StatCard(
                     modifier = Modifier
                         .weight(1f)
-                        .height(108.dp),
-                    icon = "🚚",
+                        .height(142.dp),
+                    iconRes = Res.drawable.profile_shipments_icon,
                     value = "24",
                     label = "TOTAL SHIPMENTS"
                 )
                 StatCard(
                     modifier = Modifier
                         .weight(1f)
-                        .height(108.dp),
-                    icon = "⭐",
+                        .height(142.dp),
+                    iconRes = Res.drawable.profile_rating_icon,
                     value = "4.9",
                     label = "USER RATING"
                 )
@@ -160,29 +171,38 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            ProfileOptionCard(icon = "◉", title = "Personal Info", onClick = onNavigateToEditProfile)
+            ProfileOptionCard(iconRes = Res.drawable.profile_personal_info_icon, title = "Personal Info", onClick = onNavigateToEditProfile)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = "🗺", title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
+            ProfileOptionCard(iconRes = Res.drawable.profile_saved_addresses_icon, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = "▣", title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
+            ProfileOptionCard(iconRes = Res.drawable.profile_payments_wallet_icon, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = "⚙", title = "Settings", onClick = onNavigateToSettings)
+            ProfileOptionCard(iconRes = Res.drawable.profile_settings_icon, title = "Settings", onClick = onNavigateToSettings)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = "🎧", title = "Help & Support", onClick = onNavigateToHelp)
+            ProfileOptionCard(iconRes = Res.drawable.profile_help_support_icon, title = "Help & Support", onClick = onNavigateToHelp)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = "🛡", title = "Privacy & Security", onClick = onNavigateToPromo)
+            ProfileOptionCard(iconRes = Res.drawable.profile_privacy_security_icon, title = "Privacy & Security", onClick = onNavigateToPromo)
 
             Spacer(modifier = Modifier.height(18.dp))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFE3EDF8), RoundedCornerShape(18.dp))
+                    .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
                     .clickable { onLogout() }
                     .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("↪  Logout", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(Res.drawable.profile_logout_icon),
+                        contentDescription = "Logout",
+                        modifier = Modifier.size(24.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -202,32 +222,50 @@ fun ProfileScreen(
 @Composable
 private fun StatCard(
     modifier: Modifier = Modifier,
-    icon: String,
+    iconRes: DrawableResource,
     value: String,
     label: String
 ) {
     Column(
         modifier = modifier
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
-            .padding(14.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = Color(0x0D000000),
+                spotColor = Color(0x0D000000)
+            )
+            .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(34.dp)
-                .background(Color(0xFFCCE0F6), RoundedCornerShape(10.dp)),
+                .size(40.dp)
+                .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, color = PrimaryBlue)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
         }
-        Text(value, color = Color(0xFF111827), fontSize = 38.sp, fontWeight = FontWeight.SemiBold)
-        Text(label, color = Color(0xFF1F2937), fontSize = 12.sp)
+        Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp)
+        Text(
+            label,
+            color = Color.Black,
+            fontSize = 12.sp,
+            letterSpacing = 0.6.sp,
+            lineHeight = 16.sp,
+            fontWeight = FontWeight.Normal
+        )
     }
 }
 
 @Composable
 private fun ProfileOptionCard(
-    icon: String,
+    iconRes: DrawableResource,
     title: String,
     subtitleBadge: String? = null,
     onClick: () -> Unit
@@ -235,18 +273,25 @@ private fun ProfileOptionCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(16.dp))
-            .border(1.dp, Color(0xFFD5E1EF), RoundedCornerShape(16.dp))
+            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(38.dp)
-                .background(Color(0xFFCFE1F4), RoundedCornerShape(10.dp)),
+                .size(48.dp)
+                .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
-        ) { Text(icon, color = PrimaryBlue) }
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
@@ -256,7 +301,7 @@ private fun ProfileOptionCard(
                 Box(
                     modifier = Modifier
                         .padding(top = 3.dp)
-                        .background(Color(0xFFD7E9FF), RoundedCornerShape(999.dp))
+                        .background(Color.White, RoundedCornerShape(999.dp))
                         .padding(horizontal = 7.dp, vertical = 2.dp)
                 ) {
                     Text(subtitleBadge, color = PrimaryBlue, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)

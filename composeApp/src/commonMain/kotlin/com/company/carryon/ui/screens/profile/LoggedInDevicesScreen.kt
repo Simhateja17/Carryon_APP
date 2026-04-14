@@ -2,6 +2,7 @@ package com.company.carryon.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +23,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.logged_in_device_iphone
+import carryon.composeapp.generated.resources.logged_in_device_pc
 import com.company.carryon.ui.theme.PrimaryBlue
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun LoggedInDevicesScreen(onBack: () -> Unit) {
@@ -77,7 +84,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(22.dp))
 
                 DeviceCard(
-                    icon = "📱",
+                    icon = Res.drawable.logged_in_device_iphone,
                     title = "iPhone 15 Pro (Current\nDevice)",
                     location = "San Francisco,\nCA",
                     status = "Active\nnow",
@@ -87,7 +94,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 DeviceCard(
-                    icon = "💻",
+                    icon = Res.drawable.logged_in_device_pc,
                     title = "MacBook Pro 14\"",
                     location = "San\nFrancisco,\nCA",
                     status = "Last active: 2\nhours ago",
@@ -97,7 +104,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 DeviceCard(
-                    icon = "📱",
+                    icon = Res.drawable.logged_in_device_iphone,
                     title = "Samsung Galaxy S23",
                     location = "New York,\nNY",
                     status = "Last active: 3\ndays ago",
@@ -168,7 +175,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
 
 @Composable
 private fun DeviceCard(
-    icon: String,
+    icon: DrawableResource,
     title: String,
     location: String,
     status: String,
@@ -189,7 +196,12 @@ private fun DeviceCard(
                     .background(Color(0xFFF3F4F6), RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(icon, color = PrimaryBlue, fontSize = 20.sp)
+                Image(
+                    painter = painterResource(icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(36.dp),
+                    contentScale = ContentScale.Fit
+                )
             }
             Column {
                 Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
