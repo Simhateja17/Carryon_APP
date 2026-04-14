@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
-    alias(libs.plugins.googleServices)
 }
 
 kotlin {
@@ -119,3 +118,13 @@ dependencies {
     implementation(libs.firebase.messaging)
 }
 
+// Apply Google Services only when Firebase config is present.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn("google-services.json not found in composeApp; skipping Google Services plugin.")
+}
+
+// Android Studio compatibility:
+// Some IDE/Gradle combinations request this legacy task during sync for KMP modules.
+tasks.register("prepareKotlinBuildScriptModel")

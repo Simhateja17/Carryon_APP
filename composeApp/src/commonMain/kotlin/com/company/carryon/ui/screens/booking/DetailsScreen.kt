@@ -1,36 +1,58 @@
 package com.company.carryon.ui.screens.booking
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.camera_icon
-import com.company.carryon.ui.theme.*
-import com.company.carryon.ui.components.rememberCameraCapture
-import com.company.carryon.ui.components.decodeImageBytes
-import com.company.carryon.data.network.UploadApi
 import com.company.carryon.data.network.UserApi
-import com.company.carryon.i18n.LocalStrings
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
+import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.TextPrimary
+import com.company.carryon.ui.theme.TextSecondary
+
+private val SectionTint20 = Color(0x33A6D2F3)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,27 +63,22 @@ fun DetailsScreen(
     onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var itemType by rememberSaveable { mutableStateOf("") }
-    var quantity by rememberSaveable { mutableStateOf("") }
-    var payer by rememberSaveable { mutableStateOf("me") }
-    var paymentType by rememberSaveable { mutableStateOf("") }
-    var paymentDropdownExpanded by remember { mutableStateOf(false) }
-    val paymentOptions = listOf("Cash", "DuitNow QR", "Touch 'n Go eWallet", "GrabPay", "FPX Online Banking", "Credit / Debit Card")
+    var deliveryMode by rememberSaveable { mutableStateOf("Scheduled") }
+    var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
+    var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
+    var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
+    var parcelWeight by rememberSaveable { mutableStateOf("0.0") }
+    var parcelType by rememberSaveable { mutableStateOf("Documents") }
+    var instructions by rememberSaveable { mutableStateOf("") }
+    var receiverName by rememberSaveable { mutableStateOf("") }
+    var receiverPhone by rememberSaveable { mutableStateOf("") }
+
     var senderName by rememberSaveable { mutableStateOf("") }
     var senderPhone by rememberSaveable { mutableStateOf("") }
-    var recipientName by rememberSaveable { mutableStateOf("") }
-    var recipientPhone by rememberSaveable { mutableStateOf("") }
-    var senderPhoneTouched by rememberSaveable { mutableStateOf(false) }
-    var recipientPhoneTouched by rememberSaveable { mutableStateOf(false) }
 
-    fun isValidMalaysianPhone(phone: String): Boolean {
-        val digits = phone.filter { it.isDigit() }
-        return digits.matches(Regex("^1[0-9]{8,9}$"))
-    }
-    val strings = LocalStrings.current
-    val scope = rememberCoroutineScope()
+    var parcelDropdownExpanded by remember { mutableStateOf(false) }
+    val parcelTypeOptions = listOf("Documents", "Electronics", "Clothes", "Groceries", "Other")
 
-    // Fetch user profile to pre-fill sender name and phone
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { user ->
             if (senderName.isBlank()) senderName = user.name
@@ -69,366 +86,843 @@ fun DetailsScreen(
         }
     }
 
-    // Camera capture state
-    var capturedImageBytes by remember { mutableStateOf<ByteArray?>(null) }
-    var packageImageUrl by remember { mutableStateOf<String?>(null) }
-    var isUploading by remember { mutableStateOf(false) }
-    var uploadError by remember { mutableStateOf<String?>(null) }
-
-    val launchCamera = rememberCameraCapture(
-        onImageCaptured = { bytes ->
-            capturedImageBytes = bytes
-            uploadError = null
-            // Upload in background
-            scope.launch {
-                isUploading = true
-                UploadApi.uploadPackageImage(bytes)
-                    .onSuccess { url ->
-                        packageImageUrl = url
-                        isUploading = false
-                    }
-                    .onFailure { err ->
-                        uploadError = err.message ?: "Upload failed"
-                        isUploading = false
-                    }
-            }
-        },
-        onDenied = {
-            uploadError = "Camera permission denied"
-        }
-    )
-
     Scaffold(
         containerColor = Color.White,
-        bottomBar = {
-            val isFormValid = itemType.isNotBlank() &&
-                quantity.isNotBlank() &&
-                paymentType.isNotBlank() &&
-                senderName.isNotBlank() &&
-                isValidMalaysianPhone(senderPhone) &&
-                recipientName.isNotBlank() &&
-                isValidMalaysianPhone(recipientPhone)
-            
-            Box(modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 20.dp, vertical = 12.dp)) {
-                Button(
-                    onClick = { onContinue(vehicleType, pickup, delivery, senderName, senderPhone, recipientName, recipientPhone) },
-                    enabled = isFormValid,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryBlue,
-                        disabledContainerColor = PrimaryBlue.copy(alpha = 0.5f)
-                    )
-                ) { Text(strings.continueText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold) }
-            }
-        },
         topBar = {
             TopAppBar(
                 title = {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "←",
+                            color = Color(0xFF2563EB),
+                            fontSize = 16.sp,
+                            modifier = Modifier.clickable { onBack() }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Delivery Details",
+                            color = Color(0xFF2563EB),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 },
-                actions = { IconButton(onClick = {}) { Text("🔔", fontSize = 20.sp) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-            // Back + Title
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("<", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, modifier = Modifier.clickable { onBack() }.padding(end = 8.dp))
-                Text(strings.details, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // What are you sending
-            Text(strings.whatAreYouSending, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Text(strings.selectTypeOfItem, fontSize = 12.sp, color = TextSecondary)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = itemType,
-                onValueChange = { itemType = it },
-                placeholder = { Text(strings.select, color = Color.Gray) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true
-            )
-
-            // Warning
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(6.dp)).background(Color.Transparent).padding(10.dp)) {
-                Text("⚠", fontSize = 14.sp, color = Color.Red)
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(strings.prohibitedItems, fontSize = 12.sp, color = TextSecondary, lineHeight = 17.sp)
-            }
-
-            // Quantity
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(strings.quantity, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = quantity,
-                onValueChange = { quantity = it },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true
-            )
-
-            // Select who pays
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(strings.selectWhoPays, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { payer = "me" }) {
-                    Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(if (payer == "me") PrimaryBlue else Color.Transparent).border(BorderStroke(1.5.dp, if (payer == "me") PrimaryBlue else Color(0xFFDCE8E9)), CircleShape), contentAlignment = Alignment.Center) {
-                        if (payer == "me") Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.White))
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(strings.me, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { payer = "recipient" }) {
-                    Box(modifier = Modifier.size(20.dp).clip(CircleShape).background(if (payer == "recipient") PrimaryBlue else Color.Transparent).border(BorderStroke(1.5.dp, if (payer == "recipient") PrimaryBlue else Color(0xFFDCE8E9)), CircleShape), contentAlignment = Alignment.Center) {
-                        if (payer == "recipient") Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.White))
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(strings.recipient, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                }
-            }
-
-            // Payment type dropdown
-            Spacer(modifier = Modifier.height(12.dp))
-            ExposedDropdownMenuBox(
-                expanded = paymentDropdownExpanded,
-                onExpandedChange = { paymentDropdownExpanded = !paymentDropdownExpanded }
-            ) {
-                OutlinedTextField(
-                    value = paymentType,
-                    onValueChange = {},
-                    placeholder = { Text(strings.paymentType, color = Color.Gray) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedContainerColor = Color(0xFFF6F9FA),
-                        focusedContainerColor = Color(0xFFF6F9FA),
-                        unfocusedBorderColor = Color(0xFFDCE8E9),
-                        focusedBorderColor = PrimaryBlue,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black
-                    ),
-                    singleLine = true,
-                    readOnly = true,
-                    trailingIcon = {
-                        Text(
-                            if (paymentDropdownExpanded) "▲" else "▼",
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
-                    }
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White
                 )
-                ExposedDropdownMenu(
-                    expanded = paymentDropdownExpanded,
-                    onDismissRequest = { paymentDropdownExpanded = false },
-                    modifier = Modifier.background(Color.White)
-                ) {
-                    paymentOptions.forEachIndexed { index, option ->
-                        DropdownMenuItem(
-                            text = { Text(option, fontSize = 14.sp, color = TextPrimary) },
-                            onClick = {
-                                paymentType = option
-                                paymentDropdownExpanded = false
+            )
+        },
+        bottomBar = {
+            Surface(
+                color = Color.White,
+                shadowElevation = 10.dp,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 28.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF2563EB), Color(0xFF60A5FA))
+                                )
+                            )
+                            .clickable {
+                                onContinue(
+                                    vehicleType,
+                                    pickup,
+                                    delivery,
+                                    senderName,
+                                    senderPhone,
+                                    receiverName,
+                                    receiverPhone
+                                )
                             },
-                            modifier = Modifier.background(Color.White)
-                        )
-                        if (index < paymentOptions.size - 1) {
-                            HorizontalDivider(
-                                color = Color(0xFFE0E0E0),
-                                thickness = 0.8.dp,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Confirm Booking",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = 0.2.sp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "→",
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Medium
                             )
                         }
                     }
                 }
             }
-
-            // Sender Name
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(strings.sendersName, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp)
+        ) {
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = senderName,
-                onValueChange = { senderName = it },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true
-            )
 
-            // Sender Phone
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(strings.sendersNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = senderPhone,
-                onValueChange = { senderPhone = it; senderPhoneTouched = true },
-                placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
-                prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                isError = senderPhoneTouched && !isValidMalaysianPhone(senderPhone),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
-            )
-            if (senderPhoneTouched && !isValidMalaysianPhone(senderPhone)) {
-                Text("Enter a valid Malaysian number (e.g. 12-3456789)", fontSize = 12.sp, color = Color.Red, modifier = Modifier.padding(top = 2.dp))
-            }
-
-            // Recipient Names
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(strings.recipientNames, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = recipientName,
-                onValueChange = { recipientName = it },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true
-            )
-
-            // Recipient contact number
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(strings.recipientContactNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-            Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = recipientPhone,
-                onValueChange = { recipientPhone = it; recipientPhoneTouched = true },
-                placeholder = { Text("1X-XXXXXXXX", color = Color.Gray) },
-                prefix = { Text("+60 ", color = TextPrimary, fontSize = 14.sp) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                isError = recipientPhoneTouched && !isValidMalaysianPhone(recipientPhone),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = Color(0xFFF6F9FA),
-                    focusedContainerColor = Color(0xFFF6F9FA),
-                    unfocusedBorderColor = Color(0xFFDCE8E9),
-                    focusedBorderColor = PrimaryBlue,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true,
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Phone)
-            )
-            if (recipientPhoneTouched && !isValidMalaysianPhone(recipientPhone)) {
-                Text("Enter a valid Malaysian number (e.g. 12-3456789)", fontSize = 12.sp, color = Color.Red, modifier = Modifier.padding(top = 2.dp))
-            }
-
-            // Camera box
-            Spacer(modifier = Modifier.height(18.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(if (capturedImageBytes != null) 200.dp else 100.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFF6F9FA))
-                    .border(BorderStroke(1.dp, Color(0xFFDCE8E9)), RoundedCornerShape(10.dp))
-                    .clickable { launchCamera() },
-                contentAlignment = Alignment.Center
+            SectionTitle("DELIVERY TIME")
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = SectionTint20,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (capturedImageBytes != null) {
-                    // Show captured image preview
-                    val imageBitmap = remember(capturedImageBytes) {
-                        capturedImageBytes?.let { decodeImageBytes(it) }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        DeliveryModeChip("Express", deliveryMode == "Express", modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = "Express" }
+                        DeliveryModeChip("Same Day", deliveryMode == "Same Day", modifier = Modifier.weight(1f)) { deliveryMode = "Same Day" }
+                        DeliveryModeChip("Scheduled", deliveryMode == "Scheduled", modifier = Modifier.weight(1f)) { deliveryMode = "Scheduled" }
                     }
-                    if (imageBitmap != null) {
-                        Image(
-                            bitmap = imageBitmap,
-                            contentDescription = "Package photo",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                    // Upload indicator overlay
-                    if (isUploading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.4f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(32.dp))
-                        }
-                    }
-                    // Re-take button overlay at bottom
-                    Box(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        contentAlignment = Alignment.BottomEnd
-                    ) {
+
+                    if (deliveryMode == "Express") {
+                        Spacer(modifier = Modifier.height(12.dp))
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(Color.Black.copy(alpha = 0.5f))
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(Color(0xFF2F80ED))
+                                .padding(25.dp)
                         ) {
-                            Text("Retake", fontSize = 12.sp, color = Color.White)
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Color(0xFFA6D2F3),
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("⚡", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column {
+                                        Text("Express Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                                        Text("Fastest delivery within 2–4 hours", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("⚑", color = Color.White, fontSize = 12.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Driver will be assigned instantly", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
                         }
-                    }
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Image(
-                            painter = painterResource(Res.drawable.camera_icon),
-                            contentDescription = "Camera",
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(strings.takePictureOfPackage, fontSize = 13.sp, color = TextSecondary)
+                    } else if (deliveryMode == "Same Day") {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            shape = RoundedCornerShape(24.dp),
+                            color = SectionTint20,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFF2F80ED),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text("◫", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Same Day Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        "Delivered within today. Perfect for\nurgent local shipments.",
+                                        color = Color.Black,
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                            }
+                        }
+                    } else if (deliveryMode == "Scheduled") {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text("SELECT DATE", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(selectedDate, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                }
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text("TIME SLOT", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(timeSlot, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                }
+                            }
+                        }
                     }
                 }
             }
-            // Upload error message
-            if (uploadError != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(uploadError!!, fontSize = 12.sp, color = Color.Red)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            if (deliveryMode == "Express") {
+                SectionTitle("PARCEL DETAILS")
+                Spacer(modifier = Modifier.height(8.dp))
+                ExpressInputCard(
+                    icon = "⚖",
+                    label = "Weight (kg)",
+                    valueText = parcelWeight
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                ExpressDropdownCard(
+                    icon = "⌂",
+                    label = "Parcel Type",
+                    valueText = parcelType.ifBlank { "Package" },
+                    expanded = parcelDropdownExpanded,
+                    onToggle = { parcelDropdownExpanded = !parcelDropdownExpanded },
+                    options = parcelTypeOptions,
+                    onSelect = {
+                        parcelType = it
+                        parcelDropdownExpanded = false
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                SectionTitle("INSTRUCTIONS")
+                Spacer(modifier = Modifier.height(8.dp))
+                ExpressContainerCard {
+                    OutlinedTextField(
+                        value = instructions,
+                        onValueChange = { instructions = it },
+                        placeholder = { Text("Add delivery instructions...", color = Color(0x6671749E), fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+                        minLines = 4,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                SectionTitle("RECEIVER DETAILS")
+                Spacer(modifier = Modifier.height(8.dp))
+                ExpressLabeledInputCard(
+                    icon = "◉",
+                    placeholder = "Receiver Name",
+                    value = receiverName,
+                    onValueChange = { receiverName = it }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                ExpressLabeledInputCard(
+                    icon = "✆",
+                    placeholder = "Phone Number",
+                    value = receiverPhone,
+                    onValueChange = { receiverPhone = it },
+                    keyboardType = KeyboardType.Phone
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(
+                            elevation = 20.dp,
+                            shape = RoundedCornerShape(32.dp),
+                            ambientColor = Color(0x40000000),
+                            spotColor = Color(0x40000000)
+                        )
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(Color(0xFF2F80ED))
+                        .padding(24.dp)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(shape = RoundedCornerShape(16.dp), color = Color(0xFFA6D2F3), modifier = Modifier.size(48.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text("⚲", color = Color.White, fontSize = 24.sp)
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                                Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                            }
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                            Text("₹150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
+                        }
+                    }
+                }
+            } else if (deliveryMode == "Same Day") {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
+                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    SameDaySlotCard(
+                        title = "Morning",
+                        time = "10 AM – 12 PM",
+                        selected = sameDaySlot == "Morning",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Morning" }
+                    SameDaySlotCard(
+                        title = "Afternoon",
+                        time = "12 PM – 2 PM",
+                        selected = sameDaySlot == "Afternoon",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Afternoon" }
+                    SameDaySlotCard(
+                        title = "Late Afr.",
+                        time = "2 PM – 5 PM",
+                        selected = sameDaySlot == "Late Afr.",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Late Afr." }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("WEIGHT (KG)", fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(parcelWeight, fontSize = 20.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                        }
+                    }
+                    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
+                        ExposedDropdownMenuBox(
+                            expanded = parcelDropdownExpanded,
+                            onExpandedChange = { parcelDropdownExpanded = !parcelDropdownExpanded }
+                        ) {
+                            OutlinedTextField(
+                                value = parcelType.ifBlank { "Package" },
+                                onValueChange = {},
+                                readOnly = true,
+                                singleLine = true,
+                                label = { Text("TYPE", fontSize = 12.sp) },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = parcelDropdownExpanded) },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = SectionTint20,
+                                    unfocusedContainerColor = SectionTint20
+                                ),
+                                modifier = Modifier.fillMaxWidth().menuAnchor()
+                            )
+                            DropdownMenu(expanded = parcelDropdownExpanded, onDismissRequest = { parcelDropdownExpanded = false }) {
+                                parcelTypeOptions.forEach {
+                                    DropdownMenuItem(text = { Text(it) }, onClick = {
+                                        parcelType = it
+                                        parcelDropdownExpanded = false
+                                    })
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("INSTRUCTIONS", fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = instructions,
+                            onValueChange = { instructions = it },
+                            placeholder = { Text("Add delivery instructions...", color = Color.Black, fontSize = 14.sp) },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color.Transparent,
+                                unfocusedBorderColor = Color.Transparent,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text("Receiver Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(12.dp))
+                SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
+                Spacer(modifier = Modifier.height(12.dp))
+                SameDayReceiverRow(icon = "✆", placeholder = "Phone Number", value = receiverPhone, onValueChange = { receiverPhone = it }, keyboardType = KeyboardType.Phone)
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Surface(shape = RoundedCornerShape(32.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(shape = RoundedCornerShape(16.dp), color = Color.White, modifier = Modifier.size(64.dp)) {
+                            Box(contentAlignment = Alignment.Center) { Text("🚴", fontSize = 30.sp) }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Standard Bike", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                            Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("₹180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                            Text("EST. TOTAL", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                        }
+                    }
+                }
+            } else {
+                SectionCard(title = "PARCEL DETAILS", icon = "◈") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            SmallLabel("WEIGHT (KG)")
+                            OutlinedTextField(
+                                value = parcelWeight,
+                                onValueChange = { parcelWeight = it },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color.White,
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            SmallLabel("PARCEL TYPE")
+                            ExposedDropdownMenuBox(
+                                expanded = parcelDropdownExpanded,
+                                onExpandedChange = { parcelDropdownExpanded = !parcelDropdownExpanded }
+                            ) {
+                                OutlinedTextField(
+                                    value = parcelType,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(12.dp),
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = parcelDropdownExpanded)
+                                    },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color.Transparent,
+                                        unfocusedBorderColor = Color.Transparent,
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White,
+                                        focusedTextColor = Color.Black,
+                                        unfocusedTextColor = Color.Black
+                                    ),
+                                    modifier = Modifier.fillMaxWidth().menuAnchor()
+                                )
+                                DropdownMenu(
+                                    expanded = parcelDropdownExpanded,
+                                    onDismissRequest = { parcelDropdownExpanded = false }
+                                ) {
+                                    parcelTypeOptions.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(option) },
+                                            onClick = {
+                                                parcelType = option
+                                                parcelDropdownExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SectionCard(title = "INSTRUCTIONS", icon = "☰") {
+                    OutlinedTextField(
+                        value = instructions,
+                        onValueChange = { instructions = it },
+                        placeholder = { Text("Add delivery instructions...", color = Color(0x80000000), fontSize = 16.sp) },
+                        minLines = 4,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        modifier = Modifier.fillMaxWidth().height(102.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SectionCard(title = "RECEIVER DETAILS", icon = "▣") {
+                    OutlinedTextField(
+                        value = receiverName,
+                        onValueChange = { receiverName = it },
+                        placeholder = { Text("Receiver Name", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = receiverPhone,
+                        onValueChange = { receiverPhone = it },
+                        placeholder = { Text("Phone Number", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(
+                            elevation = 20.dp,
+                            shape = RoundedCornerShape(24.dp),
+                            ambientColor = Color(0x330050D4),
+                            spotColor = Color(0x330050D4)
+                        )
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(Color(0xFF2F80ED))
+                        .padding(20.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color.White.copy(alpha = 0.2f)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                                ) {
+                                    Text("⚲", color = Color.White, fontSize = 10.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = vehicleType.ifBlank { "STANDARD BIKE" }.uppercase(),
+                                        color = Color.White,
+                                        fontSize = 10.sp,
+                                        letterSpacing = 1.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Estimated Arrival", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text("25 mins", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp)
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("Total Cost", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text("₹150", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
+                        }
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        color = Color.Black,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        letterSpacing = 0.7.sp,
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+    )
+}
+
+@Composable
+private fun SmallLabel(text: String) {
+    Text(
+        text = text,
+        color = Color.Black,
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+    )
+}
+
+@Composable
+private fun DeliveryModeChip(
+    text: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    selectedBold: Boolean = false,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = if (selected) Color(0xFF2F80ED) else Color.White,
+        shadowElevation = if (selected) 3.dp else 0.dp,
+        modifier = modifier.height(36.dp).clickable(onClick = onClick)
+    ) {
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = text,
+                color = if (selected) Color.White else Color.Black,
+                fontSize = 14.sp,
+                fontWeight = if (selected && selectedBold) FontWeight.Bold else FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionCard(
+    title: String,
+    icon: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = SectionTint20,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(icon, color = PrimaryBlue, fontSize = 14.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    title,
+                    color = Color.Black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.7.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SameDaySlotCard(
+    title: String,
+    time: String,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = if (selected) Color(0xFF2F80ED) else SectionTint20,
+        shadowElevation = if (selected) 6.dp else 0.dp,
+        modifier = modifier.clickable(onClick = onClick)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)) {
+            Text(title, fontSize = 12.sp, color = if (selected) Color(0xFFDBEAFE) else Color.Black)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(time, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = if (selected) Color.White else Color.Black)
+        }
+    }
+}
+
+@Composable
+private fun SameDayReceiverRow(
+    icon: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(icon, fontSize = 16.sp, color = Color.Black)
+            Spacer(modifier = Modifier.width(12.dp))
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                placeholder = { Text(placeholder, fontSize = 14.sp, color = Color.Black) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExpressContainerCard(content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = SectionTint20,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(21.dp), content = content)
+    }
+}
+
+@Composable
+private fun ExpressInputCard(
+    icon: String,
+    label: String,
+    valueText: String
+) {
+    ExpressContainerCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(icon, color = Color.Black, fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            valueText,
+            color = Color(0x6671749E),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ExpressDropdownCard(
+    icon: String,
+    label: String,
+    valueText: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    options: List<String>,
+    onSelect: (String) -> Unit
+) {
+    ExpressContainerCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(icon, color = Color.Black, fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { onToggle() }) {
+            OutlinedTextField(
+                value = valueText,
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.fillMaxWidth().menuAnchor()
+            )
+            DropdownMenu(expanded = expanded, onDismissRequest = onToggle) {
+                options.forEach {
+                    DropdownMenuItem(text = { Text(it) }, onClick = { onSelect(it) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExpressLabeledInputCard(
+    icon: String,
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    ExpressContainerCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(icon, color = Color.Black, fontSize = 16.sp)
+            Spacer(modifier = Modifier.width(16.dp))
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                placeholder = { Text(placeholder, color = Color(0xFF6B7280), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
+                singleLine = true,
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+                ),
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

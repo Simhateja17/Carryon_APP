@@ -3,44 +3,57 @@ package com.company.carryon.ui.screens.wallet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Wallet
 import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
-import com.company.carryon.ui.theme.*
-import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
-import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WalletScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onAddMoney: () -> Unit = {},
+    onSendMoney: () -> Unit = {},
+    onAddNewMethod: () -> Unit = {},
+    onDownloadInvoices: () -> Unit = {},
+    onViewReceipts: () -> Unit = {}
 ) {
-    val strings = LocalStrings.current
-    val scope = rememberCoroutineScope()
     var wallet by remember { mutableStateOf<Wallet?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var showTopUp by remember { mutableStateOf(false) }
-    var topUpAmount by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var successMessage by remember { mutableStateOf<String?>(null) }
-
-    val quickAmounts = listOf(10, 20, 50, 100, 200, 500)
 
     LaunchedEffect(Unit) {
         WalletApi.getWallet().onSuccess { response ->
@@ -49,249 +62,312 @@ fun WalletScreen(
         isLoading = false
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(strings.walletTitle, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        },
-        containerColor = BackgroundLight
-    ) { paddingValues ->
+    Scaffold(containerColor = Color(0xFFF5F6F8)) { paddingValues ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryBlue)
+            }
+            return@Scaffold
+        }
+
+        val transactions = (wallet?.transactions ?: emptyList()).take(3)
+        val balance = wallet?.balance ?: 500.0
+
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Balance Card
             item {
-                Card(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = PrimaryBlue)
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("☰", color = Color(0xFF64748B), fontSize = 20.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Payments", color = Color(0xFF1E293B), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .background(Color(0xFFDDEAFE), CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(strings.walletBalance, fontSize = 14.sp, color = Color.White.copy(alpha = 0.8f))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "RM ${(wallet?.balance ?: 0.0).formatDecimal(2)}",
-                            fontSize = 36.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(
-                            onClick = { showTopUp = !showTopUp },
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-                        ) {
-                            Text(strings.topUp, color = PrimaryBlue, fontWeight = FontWeight.SemiBold)
-                        }
+                        Text("👤", fontSize = 14.sp)
                     }
                 }
             }
 
-            // Top-up section
-            if (showTopUp) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(strings.topUpWallet, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            // Quick amounts
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                quickAmounts.take(3).forEach { amount ->
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .border(
-                                                1.dp,
-                                                if (topUpAmount == amount.toString()) PrimaryBlue else Color.LightGray,
-                                                RoundedCornerShape(10.dp)
-                                            )
-                                            .background(if (topUpAmount == amount.toString()) PrimaryBlueSurface else Color.White)
-                                            .clickable { topUpAmount = amount.toString() }
-                                            .padding(vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("RM $amount", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                quickAmounts.drop(3).forEach { amount ->
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .clip(RoundedCornerShape(10.dp))
-                                            .border(
-                                                1.dp,
-                                                if (topUpAmount == amount.toString()) PrimaryBlue else Color.LightGray,
-                                                RoundedCornerShape(10.dp)
-                                            )
-                                            .background(if (topUpAmount == amount.toString()) PrimaryBlueSurface else Color.White)
-                                            .clickable { topUpAmount = amount.toString() }
-                                            .padding(vertical = 12.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text("RM $amount", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(12.dp))
-                            OutlinedTextField(
-                                value = topUpAmount,
-                                onValueChange = { topUpAmount = it.filter { c -> c.isDigit() || c == '.' } },
-                                label = { Text(strings.enterAmount) },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true
-                            )
-
-                            errorMessage?.let {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(it, color = ErrorRed, fontSize = 13.sp)
-                            }
-                            successMessage?.let {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(it, color = SuccessGreen, fontSize = 13.sp)
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    val amt = topUpAmount.toDoubleOrNull()
-                                    if (amt == null || amt <= 0) {
-                                        errorMessage = "Please enter a valid amount"
-                                        return@Button
-                                    }
-                                    errorMessage = null
-                                    scope.launch {
-                                        WalletApi.topUp(amt).onSuccess { resp ->
-                                            wallet = wallet?.copy(balance = resp.data?.balance ?: wallet!!.balance)
-                                            successMessage = "RM ${amt.formatDecimal(2)} added!"
-                                            topUpAmount = ""
-                                            showTopUp = false
-                                            // Refresh wallet
-                                            WalletApi.getWallet().onSuccess { w -> wallet = w.data }
-                                        }.onFailure {
-                                            errorMessage = it.message
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen)
-                            ) {
-                                Text(strings.topUp, fontWeight = FontWeight.SemiBold)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Transaction History
             item {
-                Text(strings.transactionHistory, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                listOf(Color(0xFF3B82F6), Color(0xFF2F80ED))
+                            ),
+                            shape = RoundedCornerShape(22.dp)
+                        )
+                        .padding(18.dp)
+                ) {
+                    Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("₹${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Button(
+                        onClick = onAddMoney,
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                    ) {
+                        Text("⊕ Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
             }
 
-            val transactions = wallet?.transactions ?: emptyList()
-            if (transactions.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(strings.noTransactions, color = TextSecondary, fontSize = 14.sp)
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ActionItem("➕", "Add Money", onClick = onAddMoney)
+                    ActionItem("⟲", "Send Money", onClick = onSendMoney)
+                    ActionItem("⌂", "Withdraw")
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text("See All", color = Color(0xFF3B82F6), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    if (transactions.isEmpty()) {
+                        Text("No transactions yet", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(8.dp))
+                    } else {
+                        transactions.forEach { txn ->
+                            TransactionRow(txn)
                         }
                     }
                 }
-            } else {
-                items(transactions) { txn ->
-                    TransactionItem(txn)
+            }
+
+            item {
+                Text("Saved Methods", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            }
+
+            item {
+                PaymentMethodItem(
+                    title = "Google Pay (UPI)",
+                    subtitle = "linked: user@okaxis"
+                )
+            }
+
+            item {
+                PaymentMethodItem(
+                    title = "HDFC Bank Card",
+                    subtitle = "Ending in •••• 4421"
+                )
+            }
+
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onAddNewMethod() }
+                        .border(1.dp, Color(0xFFD1D5DB), RoundedCornerShape(14.dp))
+                        .padding(vertical = 14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("+ Add New Method", color = Color(0xFF3B82F6), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    UtilityCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Download Invoice",
+                        subtitle = "Monthly statement",
+                        icon = "⇩",
+                        onClick = onDownloadInvoices
+                    )
+                    UtilityCard(
+                        modifier = Modifier.weight(1f),
+                        title = "View Receipts",
+                        subtitle = "Individual orders",
+                        icon = "⌕",
+                        onClick = onViewReceipts
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun TransactionItem(txn: WalletTransaction) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+private fun ActionItem(icon: String, label: String, onClick: (() -> Unit)? = null) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(Color(0xFFE8F1FC), RoundedCornerShape(18.dp)),
+            contentAlignment = Alignment.Center
         ) {
-            val icon = when (txn.type) {
-                "TOP_UP" -> "+"
-                "PAYMENT" -> "-"
-                "REFUND" -> "+"
-                "CASHBACK" -> "+"
-                "REFERRAL_BONUS" -> "+"
-                "WITHDRAWAL" -> "-"
-                else -> ""
-            }
-            val iconBg = if (txn.amount >= 0) SuccessGreen else ErrorRed
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(iconBg.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(icon, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = iconBg)
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(txn.description.ifEmpty { txn.type }, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                Text(
-                    txn.createdAt.take(10),
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
-
             Text(
-                text = "${if (txn.amount >= 0) "+" else ""}RM ${kotlin.math.abs(txn.amount).formatDecimal(2)}",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = if (txn.amount >= 0) SuccessGreen else ErrorRed
+                icon,
+                color = PrimaryBlue,
+                fontSize = 20.sp,
+                modifier = if (onClick != null) Modifier.clickable { onClick() } else Modifier
             )
         }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            label,
+            color = Color.Black,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = if (onClick != null) Modifier.clickable { onClick() } else Modifier
+        )
     }
+}
+
+@Composable
+private fun TransactionRow(txn: WalletTransaction) {
+    val isCredit = txn.amount >= 0
+    val amountText = "${if (isCredit) "+" else "-"}₹${kotlin.math.abs(txn.amount).formatDecimal(0)}"
+    val title = txn.description.ifBlank {
+        if (txn.type == "TOP_UP") "Wallet Top-up" else "Delivery #CN-0000"
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(Color(0xFFE7EEF9), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(if (isCredit) "↥" else "◫", color = PrimaryBlue, fontSize = 16.sp)
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = Color.Black, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text("${formatDate(txn.createdAt)} • Success", color = Color(0xFF64748B), fontSize = 12.sp)
+        }
+        Text(
+            amountText,
+            color = if (isCredit) Color(0xFF3B82F6) else Color(0xFF3B82F6),
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun PaymentMethodItem(title: String, subtitle: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFFDCE6F1))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .background(Color(0xFFE7EEF9), RoundedCornerShape(10.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("⌂", color = PrimaryBlue, fontSize = 14.sp)
+        }
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = Color(0xFF334155), fontSize = 13.sp)
+        }
+        Text("›", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun UtilityCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String,
+    icon: String,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFDCE6F1))
+            .clickable { onClick() }
+            .padding(14.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(34.dp)
+                .background(Color(0xFFE7EEF9), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(icon, color = PrimaryBlue, fontSize = 14.sp)
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(title, color = Color.Black, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        Text(subtitle, color = Color(0xFF475569), fontSize = 12.sp)
+    }
+}
+
+private fun formatDate(raw: String): String {
+    val datePart = raw.take(10)
+    val pieces = datePart.split("-")
+    if (pieces.size != 3) return "Oct 24, 2023"
+    val year = pieces[0]
+    val month = when (pieces[1]) {
+        "01" -> "Jan"
+        "02" -> "Feb"
+        "03" -> "Mar"
+        "04" -> "Apr"
+        "05" -> "May"
+        "06" -> "Jun"
+        "07" -> "Jul"
+        "08" -> "Aug"
+        "09" -> "Sep"
+        "10" -> "Oct"
+        "11" -> "Nov"
+        "12" -> "Dec"
+        else -> "Oct"
+    }
+    return "$month ${pieces[2]}, $year"
 }

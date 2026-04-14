@@ -1,9 +1,12 @@
 package com.company.carryon
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -16,6 +19,7 @@ import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.icon_people
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.CarryOnTheme
+import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.screens.splash.SplashScreen
 import com.company.carryon.ui.screens.auth.WelcomeScreen
@@ -40,17 +44,37 @@ import com.company.carryon.ui.screens.booking.SenderReceiverScreen
 import com.company.carryon.ui.screens.booking.PaymentScreen
 import com.company.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.company.carryon.ui.screens.booking.SearchingDriverScreen
+import com.company.carryon.ui.screens.booking.DeliveryScheduledScreen
+import com.company.carryon.ui.screens.booking.ScheduledOrderDetailsScreen
+import com.company.carryon.ui.screens.booking.ModifyScheduleScreen
+import com.company.carryon.ui.screens.booking.CancelDeliveryScreen
+import com.company.carryon.ui.screens.booking.CancellationUnavailableScreen
 import com.company.carryon.ui.screens.tracking.DriverApproachingScreen
 import com.company.carryon.ui.screens.home.SelectAddressScreen
 import com.company.carryon.ui.screens.booking.DetailsScreen
 import com.company.carryon.ui.screens.booking.RequestForRideScreen
+import com.company.carryon.ui.screens.wallet.AddMoneyScreen
+import com.company.carryon.ui.screens.wallet.AddPaymentMethodScreen
+import com.company.carryon.ui.screens.wallet.SendMoneyScreen
 import com.company.carryon.ui.screens.wallet.WalletScreen
 import com.company.carryon.ui.screens.chat.ChatScreen
+import com.company.carryon.ui.screens.support.ReportIssueScreen
+import com.company.carryon.ui.screens.support.SupportCallScreen
+import com.company.carryon.ui.screens.support.SupportChatScreen
 import com.company.carryon.ui.screens.support.SupportScreen
 import com.company.carryon.ui.screens.support.TicketDetailScreen
 import com.company.carryon.ui.screens.promo.PromoScreen
+import com.company.carryon.ui.screens.invoice.DeliveryReceiptsScreen
 import com.company.carryon.ui.screens.invoice.InvoiceScreen
+import com.company.carryon.ui.screens.invoice.InvoiceHubScreen
+import com.company.carryon.ui.screens.profile.ChangePasswordScreen
+import com.company.carryon.ui.screens.profile.ClearCacheScreen
+import com.company.carryon.ui.screens.profile.DefaultVehicleScreen
 import com.company.carryon.ui.screens.profile.EditProfileScreen
+import com.company.carryon.ui.screens.profile.AddAddressScreen
+import com.company.carryon.ui.screens.profile.LanguageSettingsScreen
+import com.company.carryon.ui.screens.profile.LoggedInDevicesScreen
+import com.company.carryon.ui.screens.profile.PrivacySecurityScreen
 import com.company.carryon.ui.screens.profile.SavedAddressesScreen
 import com.company.carryon.ui.screens.help.HelpScreen
 import com.company.carryon.data.network.clearToken
@@ -80,7 +104,8 @@ sealed class AppScreen {
     data object ActiveShipment : AppScreen()
     data class DeliveryDetails(val orderId: String) : AppScreen()
     data object EditProfile : AppScreen()
-    data object SavedAddresses : AppScreen()
+    data class SavedAddresses(val fromSettings: Boolean = false) : AppScreen()
+    data class AddAddress(val fromSettings: Boolean = false) : AppScreen()
     data object Help : AppScreen()
     data class SenderReceiver(
         val pickupAddress: String = "",
@@ -110,9 +135,19 @@ sealed class AppScreen {
     ) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Double = 0.0) : AppScreen()
     data class SearchingDriver(val bookingId: String, val amount: Double = 0.0) : AppScreen()
+    data class DeliveryScheduled(val bookingId: String = "") : AppScreen()
+    data class ScheduledOrderDetails(val bookingId: String = "") : AppScreen()
+    data class ModifySchedule(val bookingId: String = "") : AppScreen()
+    data class CancelDelivery(val bookingId: String = "") : AppScreen()
+    data class CancellationUnavailable(val bookingId: String = "") : AppScreen()
     data class DriverApproaching(val bookingId: String) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
-    data class Details(val vehicleType: String = "", val pickup: String = "", val delivery: String = "") : AppScreen()
+    data class Details(
+        val vehicleType: String = "",
+        val pickup: String = "",
+        val delivery: String = "",
+        val fromHome: Boolean = false
+    ) : AppScreen()
     data class RequestForRide(
         val vehicleType: String = "",
         val pickup: String = "",
@@ -120,15 +155,30 @@ sealed class AppScreen {
         val senderName: String = "",
         val senderPhone: String = "",
         val receiverName: String = "",
-        val receiverPhone: String = ""
+        val receiverPhone: String = "",
+        val fromHome: Boolean = false
     ) : AppScreen()
     data object Settings : AppScreen()
+    data object LanguageSettings : AppScreen()
+    data object DefaultVehicle : AppScreen()
+    data object ClearCache : AppScreen()
     // New screens
     data object Wallet : AppScreen()
+    data object AddMoney : AppScreen()
+    data object SendMoney : AppScreen()
+    data object AddPaymentMethod : AppScreen()
+    data object DeliveryReceipts : AppScreen()
     data class Chat(val bookingId: String, val driverName: String = "Driver") : AppScreen()
     data object Support : AppScreen()
+    data object SupportChat : AppScreen()
+    data object SupportCall : AppScreen()
+    data object ReportIssue : AppScreen()
     data class TicketDetail(val ticketId: String) : AppScreen()
+    data object PrivacySecurity : AppScreen()
+    data object ChangePassword : AppScreen()
+    data object LoggedInDevices : AppScreen()
     data object Promo : AppScreen()
+    data object InvoiceHub : AppScreen()
     data class Invoice(val bookingId: String) : AppScreen()
 }
 
@@ -146,7 +196,27 @@ fun App() {
         currentScreen !is AppScreen.Otp &&
         currentScreen !is AppScreen.PaymentSuccess &&
         currentScreen !is AppScreen.SearchingDriver &&
-        currentScreen !is AppScreen.DriverApproaching
+        currentScreen !is AppScreen.DeliveryScheduled &&
+        currentScreen !is AppScreen.ModifySchedule &&
+        currentScreen !is AppScreen.CancelDelivery &&
+        currentScreen !is AppScreen.CancellationUnavailable &&
+        currentScreen !is AppScreen.DriverApproaching &&
+        currentScreen !is AppScreen.Support &&
+        currentScreen !is AppScreen.SupportChat &&
+        currentScreen !is AppScreen.SupportCall &&
+        currentScreen !is AppScreen.PrivacySecurity &&
+        currentScreen !is AppScreen.ChangePassword &&
+        currentScreen !is AppScreen.LoggedInDevices &&
+        currentScreen !is AppScreen.SavedAddresses &&
+        currentScreen !is AppScreen.AddAddress &&
+        currentScreen !is AppScreen.LanguageSettings &&
+        currentScreen !is AppScreen.DefaultVehicle &&
+        currentScreen !is AppScreen.ClearCache &&
+        currentScreen !is AppScreen.ReportIssue &&
+        currentScreen !is AppScreen.AddMoney &&
+        currentScreen !is AppScreen.SendMoney &&
+        currentScreen !is AppScreen.AddPaymentMethod &&
+        currentScreen !is AppScreen.DeliveryReceipts
 
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
@@ -154,12 +224,17 @@ fun App() {
         is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment,
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
-        is AppScreen.BookingPayment, is AppScreen.SearchingDriver,
+        is AppScreen.BookingPayment, is AppScreen.SearchingDriver, is AppScreen.DeliveryScheduled,
+        is AppScreen.ScheduledOrderDetails, is AppScreen.ModifySchedule,
         is AppScreen.DriverApproaching -> 1
-        is AppScreen.Wallet, is AppScreen.Invoice -> 2
-        is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses,
-        is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support,
-        is AppScreen.TicketDetail, is AppScreen.Promo, is AppScreen.DriverRating,
+        is AppScreen.Wallet, is AppScreen.Invoice, is AppScreen.InvoiceHub -> 2
+        is AppScreen.AddMoney -> 2
+        is AppScreen.SendMoney -> 2
+        is AppScreen.AddPaymentMethod -> 2
+        is AppScreen.DeliveryReceipts -> 2
+        is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses, is AppScreen.AddAddress,
+        is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support, is AppScreen.ReportIssue,
+        is AppScreen.SupportChat, is AppScreen.SupportCall, is AppScreen.TicketDetail, is AppScreen.PrivacySecurity, is AppScreen.ChangePassword, is AppScreen.LoggedInDevices, is AppScreen.LanguageSettings, is AppScreen.DefaultVehicle, is AppScreen.ClearCache, is AppScreen.Promo, is AppScreen.DriverRating,
         is AppScreen.Chat -> 3
         else -> 0
     }
@@ -220,7 +295,12 @@ fun App() {
             is AppScreen.Home -> {
                 HomeScreen(
                     onNavigateToBooking = { pickup, delivery, packageType ->
-                        currentScreen = AppScreen.SelectAddress(pickup, delivery, packageType)
+                        currentScreen = AppScreen.Details(
+                            vehicleType = packageType,
+                            pickup = pickup,
+                            delivery = delivery,
+                            fromHome = true
+                        )
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
@@ -233,7 +313,7 @@ fun App() {
             is AppScreen.Profile -> {
                 ProfileScreen(
                     onNavigateToEditProfile = { currentScreen = AppScreen.EditProfile },
-                    onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses },
+                    onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses(fromSettings = false) },
                     onNavigateToHelp = { currentScreen = AppScreen.Support },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
@@ -242,7 +322,7 @@ fun App() {
                     onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToPromo = { currentScreen = AppScreen.Promo },
+                    onNavigateToPromo = { currentScreen = AppScreen.PrivacySecurity },
                     onLogout = {
                         clearToken()
                         scope.launch {
@@ -268,12 +348,42 @@ fun App() {
             }
             is AppScreen.SavedAddresses -> {
                 SavedAddressesScreen(
-                    onBack = { currentScreen = AppScreen.Profile }
+                    onAddNewAddress = { currentScreen = AppScreen.AddAddress(fromSettings = screen.fromSettings) },
+                    onBack = {
+                        currentScreen = if (screen.fromSettings) {
+                            AppScreen.Settings
+                        } else {
+                            AppScreen.Profile
+                        }
+                    }
+                )
+            }
+            is AppScreen.AddAddress -> {
+                AddAddressScreen(
+                    onBack = { currentScreen = AppScreen.SavedAddresses(fromSettings = screen.fromSettings) },
+                    onSave = { currentScreen = AppScreen.SavedAddresses(fromSettings = screen.fromSettings) }
                 )
             }
             is AppScreen.Help -> {
                 HelpScreen(
                     onBack = { currentScreen = AppScreen.Profile }
+                )
+            }
+            is AppScreen.PrivacySecurity -> {
+                PrivacySecurityScreen(
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onChangePassword = { currentScreen = AppScreen.ChangePassword },
+                    onLoggedInDevices = { currentScreen = AppScreen.LoggedInDevices }
+                )
+            }
+            is AppScreen.ChangePassword -> {
+                ChangePasswordScreen(
+                    onBack = { currentScreen = AppScreen.PrivacySecurity }
+                )
+            }
+            is AppScreen.LoggedInDevices -> {
+                LoggedInDevicesScreen(
+                    onBack = { currentScreen = AppScreen.PrivacySecurity }
                 )
             }
             is AppScreen.History -> {
@@ -402,7 +512,54 @@ fun App() {
                     bookingId = screen.bookingId,
                     amount = screen.amount,
                     onDriverFound = { currentScreen = AppScreen.DriverApproaching(screen.bookingId) },
+                    onScheduled = { currentScreen = AppScreen.DeliveryScheduled(screen.bookingId) },
                     onCancel = { currentScreen = AppScreen.Orders }
+                )
+            }
+            is AppScreen.DeliveryScheduled -> {
+                DeliveryScheduledScreen(
+                    onBack = { currentScreen = AppScreen.Orders },
+                    onViewOrder = {
+                        currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId)
+                    },
+                    onModifySchedule = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
+                    onCancelDelivery = { currentScreen = AppScreen.Orders }
+                )
+            }
+            is AppScreen.ScheduledOrderDetails -> {
+                ScheduledOrderDetailsScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.DeliveryScheduled(screen.bookingId) },
+                    onModifySchedule = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
+                    onCancelDelivery = { currentScreen = AppScreen.Orders }
+                )
+            }
+            is AppScreen.ModifySchedule -> {
+                ModifyScheduleScreen(
+                    onBack = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
+                    onUpdateSchedule = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
+                    onCancelDelivery = { currentScreen = AppScreen.CancelDelivery(screen.bookingId) }
+                )
+            }
+            is AppScreen.CancelDelivery -> {
+                CancelDeliveryScreen(
+                    onBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
+                    onConfirmCancel = {
+                        currentScreen = if (isCancellationAllowed(screen.bookingId)) {
+                            AppScreen.Orders
+                        } else {
+                            AppScreen.CancellationUnavailable(screen.bookingId)
+                        }
+                    },
+                    onKeepBooking = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) }
+                )
+            }
+            is AppScreen.CancellationUnavailable -> {
+                CancellationUnavailableScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
+                    onChatSupport = { currentScreen = AppScreen.Support },
+                    onGoBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) }
                 )
             }
             is AppScreen.DriverApproaching -> {
@@ -460,7 +617,14 @@ fun App() {
                     initialFrom = screen.pickup,
                     initialTo = screen.delivery,
                     vehicleType = screen.vehicleType,
-                    onNext = { vt, pickup, delivery -> currentScreen = AppScreen.Details(vt, pickup, delivery) },
+                    onNext = { vt, pickup, delivery ->
+                        currentScreen = AppScreen.Details(
+                            vehicleType = vt,
+                            pickup = pickup,
+                            delivery = delivery,
+                            fromHome = false
+                        )
+                    },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }
@@ -469,10 +633,23 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone -> 
-                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone) 
+                    onContinue = { _, _, _, _, _, _, _ ->
+                        currentScreen = AppScreen.SearchingDriver(
+                            bookingId = "",
+                            amount = 0.0
+                        )
                     },
-                    onBack = { currentScreen = AppScreen.SelectAddress() }
+                    onBack = {
+                        currentScreen = if (screen.fromHome) {
+                            AppScreen.Home
+                        } else {
+                            AppScreen.SelectAddress(
+                                pickup = screen.pickup,
+                                delivery = screen.delivery,
+                                vehicleType = screen.vehicleType
+                            )
+                        }
+                    }
                 )
             }
             is AppScreen.RequestForRide -> {
@@ -487,19 +664,77 @@ fun App() {
                     onContinue = { bookingId, amount ->
                         currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
                     },
-                    onBack = { currentScreen = AppScreen.Details(screen.vehicleType, screen.pickup, screen.delivery) }
+                    onBack = {
+                        currentScreen = AppScreen.Details(
+                            vehicleType = screen.vehicleType,
+                            pickup = screen.pickup,
+                            delivery = screen.delivery,
+                            fromHome = screen.fromHome
+                        )
+                    }
                 )
             }
             is AppScreen.Settings -> {
                 SettingsScreen(
                     onBack = { currentScreen = AppScreen.Profile },
+                    onNavigateToLanguage = { currentScreen = AppScreen.LanguageSettings },
+                    onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses(fromSettings = true) },
+                    onNavigateToDefaultVehicle = { currentScreen = AppScreen.DefaultVehicle },
+                    onNavigateToClearCache = { currentScreen = AppScreen.ClearCache },
                     onLanguageChanged = { currentLanguage = it }
+                )
+            }
+            is AppScreen.LanguageSettings -> {
+                LanguageSettingsScreen(
+                    onBack = { currentScreen = AppScreen.Settings },
+                    onLanguageChanged = { currentLanguage = it }
+                )
+            }
+            is AppScreen.DefaultVehicle -> {
+                DefaultVehicleScreen(
+                    onBack = { currentScreen = AppScreen.Settings },
+                    onSave = { currentScreen = AppScreen.Settings }
+                )
+            }
+            is AppScreen.ClearCache -> {
+                ClearCacheScreen(
+                    onBack = { currentScreen = AppScreen.Settings }
                 )
             }
             // ── New Screens ──────────────────────────────────
             is AppScreen.Wallet -> {
                 WalletScreen(
-                    onBack = { currentScreen = AppScreen.Profile }
+                    onBack = { currentScreen = AppScreen.Profile },
+                    onAddMoney = { currentScreen = AppScreen.AddMoney },
+                    onSendMoney = { currentScreen = AppScreen.SendMoney },
+                    onAddNewMethod = { currentScreen = AppScreen.AddPaymentMethod },
+                    onDownloadInvoices = { currentScreen = AppScreen.InvoiceHub },
+                    onViewReceipts = { currentScreen = AppScreen.DeliveryReceipts }
+                )
+            }
+            is AppScreen.AddMoney -> {
+                AddMoneyScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
+                )
+            }
+            is AppScreen.SendMoney -> {
+                SendMoneyScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
+                )
+            }
+            is AppScreen.AddPaymentMethod -> {
+                AddPaymentMethodScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
+                )
+            }
+            is AppScreen.InvoiceHub -> {
+                InvoiceHubScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
+                )
+            }
+            is AppScreen.DeliveryReceipts -> {
+                DeliveryReceiptsScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
                 )
             }
             is AppScreen.Chat -> {
@@ -512,7 +747,31 @@ fun App() {
             is AppScreen.Support -> {
                 SupportScreen(
                     onBack = { currentScreen = AppScreen.Profile },
-                    onTicketClick = { ticketId -> currentScreen = AppScreen.TicketDetail(ticketId) }
+                    onTicketClick = { ticketId ->
+                        currentScreen = when (ticketId) {
+                            "chat" -> AppScreen.SupportChat
+                            "call" -> AppScreen.SupportCall
+                            "report_issue" -> AppScreen.ReportIssue
+                            else -> AppScreen.TicketDetail(ticketId)
+                        }
+                    }
+                )
+            }
+            is AppScreen.SupportChat -> {
+                SupportChatScreen(
+                    onBack = { currentScreen = AppScreen.Support }
+                )
+            }
+            is AppScreen.SupportCall -> {
+                SupportCallScreen(
+                    onBack = { currentScreen = AppScreen.Support },
+                    onEndCall = { currentScreen = AppScreen.Support }
+                )
+            }
+            is AppScreen.ReportIssue -> {
+                ReportIssueScreen(
+                    onBack = { currentScreen = AppScreen.Support },
+                    onSubmit = { currentScreen = AppScreen.Support }
                 )
             }
             is AppScreen.TicketDetail -> {
@@ -547,35 +806,84 @@ private fun AppBottomBar(
     onPaymentsClick: () -> Unit,
     onAccountClick: () -> Unit
 ) {
-    NavigationBar(
-        containerColor = Color.White,
+    Surface(
+        color = Color.White,
         tonalElevation = 8.dp
     ) {
         val items = listOf(
-            Res.drawable.icon_home,
-            Res.drawable.icon_timer,
-            Res.drawable.payment_icon,
-            Res.drawable.icon_people
+            Res.drawable.icon_home to "HOME",
+            Res.drawable.icon_timer to "ORDERS",
+            Res.drawable.payment_icon to "WALLET",
+            Res.drawable.icon_people to "PROFILE"
         )
         val actions = listOf(onHomeClick, onOrdersClick, onPaymentsClick, onAccountClick)
 
-        items.forEachIndexed { index, iconRes ->
-            NavigationBarItem(
-                icon = {
-                    Image(
-                        painter = painterResource(iconRes),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                },
-                selected = selectedTab == index,
-                onClick = { actions[index]() },
-                label = null,
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = if (selectedTab == index) PrimaryBlueSurface else Color.Transparent
-                )
-            )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            items.forEachIndexed { index, item ->
+                val isSelected = selectedTab == index
+                val (iconRes, label) = item
+
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { actions[index]() },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (isSelected) {
+                        Surface(
+                            shape = CircleShape,
+                            color = PrimaryBlue,
+                            shadowElevation = 6.dp,
+                            modifier = Modifier.size(64.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(iconRes),
+                                    contentDescription = label,
+                                    modifier = Modifier.size(18.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(label, color = Color.White, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    } else {
+                        Image(
+                            painter = painterResource(iconRes),
+                            contentDescription = label,
+                            modifier = Modifier.size(21.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            label,
+                            color = Color(0xFF97A3B6),
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                }
+            }
         }
     }
+}
+
+private fun isCancellationAllowed(bookingId: String): Boolean {
+    if (bookingId.isBlank()) return true
+    val lowered = bookingId.lowercase()
+    return !(
+        lowered.contains("arrived") ||
+            lowered.contains("reached") ||
+            lowered.contains("picked") ||
+            lowered.contains("no_cancel")
+        )
 }
