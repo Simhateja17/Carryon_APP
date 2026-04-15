@@ -55,6 +55,14 @@ import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.car_two_seater
 import carryon.composeapp.generated.resources.ellipse_4
+import carryon.composeapp.generated.resources.home_current_location_icon
+import carryon.composeapp.generated.resources.home_delivery_progress_icon
+import carryon.composeapp.generated.resources.home_enter_pickup_icon
+import carryon.composeapp.generated.resources.home_estimated_logistics_icon
+import carryon.composeapp.generated.resources.home_home_icon
+import carryon.composeapp.generated.resources.home_recent_delivery_icon
+import carryon.composeapp.generated.resources.home_where_deliver_icon
+import carryon.composeapp.generated.resources.home_work_icon
 import carryon.composeapp.generated.resources.mini_van
 import carryon.composeapp.generated.resources.open_truck
 import carryon.composeapp.generated.resources.truck
@@ -71,7 +79,6 @@ import com.company.carryon.ui.theme.BackgroundLight
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.PrimaryBlueSurface
-import com.company.carryon.ui.theme.SuccessGreen
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import kotlinx.coroutines.Job
@@ -85,6 +92,8 @@ private data class VehicleOption(
     val name: String,
     val price: String
 )
+
+private val HomeCardBackground = Color(0x33A6D2F3)
 
 @Composable
 fun HomeScreen(
@@ -324,7 +333,12 @@ fun HomeScreen(
                     modifier = Modifier.size(28.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text("🚚", fontSize = 13.sp)
+                        Image(
+                            painter = painterResource(Res.drawable.home_delivery_progress_icon),
+                            contentDescription = "Delivery in progress",
+                            modifier = Modifier.size(14.dp),
+                            contentScale = ContentScale.Fit
+                        )
                     }
                 }
                 Spacer(modifier = Modifier.width(10.dp))
@@ -358,7 +372,14 @@ fun HomeScreen(
                         color = Color(0xFF90A0B7)
                     )
                 },
-                leadingIcon = { Text("◉", color = PrimaryBlue, fontSize = 12.sp) },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(Res.drawable.home_enter_pickup_icon),
+                        contentDescription = "Enter pickup location",
+                        modifier = Modifier.size(18.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                },
                 trailingIcon = if (isGettingLocation || isSearchingPickup) {
                     {
                         CircularProgressIndicator(
@@ -421,7 +442,14 @@ fun HomeScreen(
                     showPickupSuggestions = false
                 },
                 placeholder = { Text("Where should we deliver?", color = Color(0xFF90A0B7)) },
-                leadingIcon = { Text("●", color = SuccessGreen, fontSize = 12.sp) },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(Res.drawable.home_where_deliver_icon),
+                        contentDescription = "Where should we deliver",
+                        modifier = Modifier.size(18.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                },
                 trailingIcon = if (isSearchingDelivery) {
                     {
                         CircularProgressIndicator(
@@ -484,13 +512,24 @@ fun HomeScreen(
             QuickLocationChip(
                 title = "Current Location",
                 selected = true,
+                iconRes = Res.drawable.home_current_location_icon,
                 onClick = {
                     isGettingLocation = true
                     requestLocation()
                 }
             )
-            QuickLocationChip(title = "Home", selected = false, onClick = { pickupLocation = "Home" })
-            QuickLocationChip(title = "Work", selected = false, onClick = { deliveryLocation = "Work" })
+            QuickLocationChip(
+                title = "Home",
+                selected = false,
+                iconRes = Res.drawable.home_home_icon,
+                onClick = { pickupLocation = "Home" }
+            )
+            QuickLocationChip(
+                title = "Work",
+                selected = false,
+                iconRes = Res.drawable.home_work_icon,
+                onClick = { deliveryLocation = "Work" }
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -551,7 +590,12 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.23f), modifier = Modifier.size(30.dp)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("◷", color = Color.White, fontSize = 13.sp)
+                            Image(
+                                painter = painterResource(Res.drawable.home_estimated_logistics_icon),
+                                contentDescription = "Estimated logistics",
+                                modifier = Modifier.size(14.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.width(10.dp))
@@ -590,8 +634,18 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SavedAddressCard(title = "Home", subtitle = "Sector 45, Gurgaon...", modifier = Modifier.weight(1f))
-            SavedAddressCard(title = "Work", subtitle = "Cyber Hub, Phase 2...", modifier = Modifier.weight(1f))
+            SavedAddressCard(
+                title = "Home",
+                subtitle = "Sector 45, Gurgaon...",
+                iconRes = Res.drawable.home_home_icon,
+                modifier = Modifier.weight(1f)
+            )
+            SavedAddressCard(
+                title = "Work",
+                subtitle = "Cyber Hub, Phase 2...",
+                iconRes = Res.drawable.home_work_icon,
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -599,7 +653,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun QuickLocationChip(title: String, selected: Boolean, onClick: () -> Unit) {
+private fun QuickLocationChip(
+    title: String,
+    selected: Boolean,
+    iconRes: DrawableResource,
+    onClick: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(22.dp),
         color = if (selected) PrimaryBlue else Color(0xFFF0F2F5),
@@ -609,10 +668,11 @@ private fun QuickLocationChip(title: String, selected: Boolean, onClick: () -> U
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (selected) "➤" else "⌂",
-                color = if (selected) Color.White else TextSecondary,
-                fontSize = 10.sp
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(16.dp),
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
@@ -653,7 +713,7 @@ private fun VehicleCard(
                     .fillMaxWidth()
                     .height(72.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (selected) Color(0xFF1F3F78) else Color(0xFFF3F5F8)),
+                    .background(if (selected) Color(0xFF1F3F78) else HomeCardBackground),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -685,7 +745,7 @@ private fun VehicleCard(
 @Composable
 private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> Unit) {
     Surface(
-        color = Color(0xFFEFF2F6),
+        color = HomeCardBackground,
         shape = RoundedCornerShape(14.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -696,7 +756,14 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(26.dp)) {
-                Box(contentAlignment = Alignment.Center) { Text("↻", color = TextSecondary, fontSize = 11.sp) }
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(Res.drawable.home_recent_delivery_icon),
+                        contentDescription = "Recent delivery",
+                        modifier = Modifier.size(14.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -721,14 +788,24 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
 }
 
 @Composable
-private fun SavedAddressCard(title: String, subtitle: String, modifier: Modifier = Modifier) {
+private fun SavedAddressCard(
+    title: String,
+    subtitle: String,
+    iconRes: DrawableResource,
+    modifier: Modifier = Modifier
+) {
     Surface(
-        color = Color(0xFFF6F7FA),
+        color = HomeCardBackground,
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.border(1.dp, Color(0xFFD8DEE8), RoundedCornerShape(12.dp))
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Text("⌂", color = PrimaryBlue, fontSize = 12.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(18.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(title, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Text(subtitle, color = TextSecondary, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

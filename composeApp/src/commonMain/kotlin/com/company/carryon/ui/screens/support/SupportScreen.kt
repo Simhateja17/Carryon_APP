@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.support
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,14 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.support_call_icon
+import carryon.composeapp.generated.resources.support_chat_icon
 import com.company.carryon.data.model.SupportTicket
 import com.company.carryon.data.network.SupportApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun SupportScreen(
@@ -53,14 +60,14 @@ fun SupportScreen(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             QuickSupportCard(
                 modifier = Modifier.weight(1f),
-                icon = "💬",
+                icon = Res.drawable.support_chat_icon,
                 title = "Chat with us",
                 subtitle = "Instant response",
                 onClick = { onTicketClick("chat") }
             )
             QuickSupportCard(
                 modifier = Modifier.weight(1f),
-                icon = "📞",
+                icon = Res.drawable.support_call_icon,
                 title = "Call Support",
                 subtitle = "Direct line",
                 onClick = { onTicketClick("call") }
@@ -157,7 +164,7 @@ fun SupportScreen(
 @Composable
 private fun QuickSupportCard(
     modifier: Modifier = Modifier,
-    icon: String,
+    icon: DrawableResource,
     title: String,
     subtitle: String,
     onClick: () -> Unit
@@ -176,7 +183,12 @@ private fun QuickSupportCard(
                 .background(Color(0xFFF4F7FC), RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, color = PrimaryBlue, fontSize = 22.sp)
+            Image(
+                painter = painterResource(icon),
+                contentDescription = title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         Text(title, color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)

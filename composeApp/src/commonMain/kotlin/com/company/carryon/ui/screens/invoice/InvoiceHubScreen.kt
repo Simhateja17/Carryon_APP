@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
 
+private val InvoiceCardBackground = Color(0x33A6D2F3)
+
 @Composable
 fun InvoiceHubScreen(
     onBack: () -> Unit
@@ -152,7 +154,7 @@ fun InvoiceHubScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFE8EEF6), RoundedCornerShape(14.dp))
+                        .background(InvoiceCardBackground, RoundedCornerShape(14.dp))
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -190,7 +192,7 @@ fun InvoiceHubScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFE8EEF6), RoundedCornerShape(14.dp))
+                        .background(InvoiceCardBackground, RoundedCornerShape(14.dp))
                         .padding(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -256,7 +258,7 @@ private fun InvoiceHistoryRow(item: InvoiceItem) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFEAF0F7), RoundedCornerShape(10.dp))
+            .background(InvoiceCardBackground, RoundedCornerShape(10.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

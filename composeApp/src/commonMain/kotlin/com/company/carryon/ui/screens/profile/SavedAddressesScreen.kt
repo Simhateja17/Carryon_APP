@@ -2,6 +2,7 @@ package com.company.carryon.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,13 +18,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.saved_address_delete
+import carryon.composeapp.generated.resources.saved_address_edit
+import carryon.composeapp.generated.resources.saved_address_hub
+import carryon.composeapp.generated.resources.saved_address_primary
 import com.company.carryon.ui.theme.PrimaryBlue
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 private data class SavedAddressUi(
-    val icon: String,
+    val icon: DrawableResource,
     val title: String,
     val lines: List<String>
 )
@@ -35,17 +44,17 @@ fun SavedAddressesScreen(
 ) {
     val addresses = listOf(
         SavedAddressUi(
-            icon = "🏠",
+            icon = Res.drawable.saved_address_primary,
             title = "Home",
             lines = listOf("1248 North Sheridan Rd,", "Apt 4B", "Chicago, IL 60660")
         ),
         SavedAddressUi(
-            icon = "🏢",
+            icon = Res.drawable.saved_address_primary,
             title = "Main Warehouse",
             lines = listOf("Global Logistics Center, Bay", "12", "8800 West Bryn Mawr Ave,", "IL 60631")
         ),
         SavedAddressUi(
-            icon = "✣",
+            icon = Res.drawable.saved_address_hub,
             title = "Downtown Hub",
             lines = listOf("Central Distribution Point", "200 East Randolph St,", "Chicago, IL 60601")
         )
@@ -61,7 +70,7 @@ fun SavedAddressesScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 178.dp)
+                    .padding(bottom = 90.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -93,7 +102,7 @@ fun SavedAddressesScreen(
                     text = "Frequent Locations",
                     color = Color(0xFF111111),
                     fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(start = 24.dp, top = 18.dp, bottom = 10.dp)
                 )
 
@@ -125,27 +134,11 @@ fun SavedAddressesScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
                 ) {
                     Text(
-                        text = "⌖  + Add New Address",
+                        text = "+ Add New Address",
                         color = Color.White,
                         fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Medium
                     )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(22.dp))
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomMenuItem(icon = "🚗", label = "ROUTE", selected = false)
-                    BottomMenuItem(icon = "💵", label = "EARNINGS", selected = false)
-                    BottomMenuItem(icon = "📋", label = "TASKS", selected = false)
-                    BottomMenuItem(icon = "👤", label = "PROFILE", selected = true)
                 }
             }
         }
@@ -167,7 +160,12 @@ private fun SavedAddressCard(address: SavedAddressUi) {
                 .background(Color.White, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = address.icon, color = Color(0xFF2F80ED), fontSize = 20.sp)
+            Image(
+                painter = painterResource(address.icon),
+                contentDescription = address.title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -177,7 +175,7 @@ private fun SavedAddressCard(address: SavedAddressUi) {
                 text = address.title,
                 color = Color(0xFF111111),
                 fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(2.dp))
             address.lines.forEach { line ->
@@ -195,38 +193,18 @@ private fun SavedAddressCard(address: SavedAddressUi) {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(top = 4.dp)
         ) {
-            Text(text = "✎", color = Color(0xFF111111), fontSize = 18.sp)
-            Text(text = "🗑", color = Color(0xFF111111), fontSize = 18.sp)
-        }
-    }
-}
-
-@Composable
-private fun BottomMenuItem(
-    icon: String,
-    label: String,
-    selected: Boolean
-) {
-    Column(
-        modifier = Modifier
-            .background(
-                if (selected) Color(0xFFCED4F7) else Color.Transparent,
-                RoundedCornerShape(16.dp)
+            Image(
+                painter = painterResource(Res.drawable.saved_address_edit),
+                contentDescription = "Edit ${address.title}",
+                modifier = Modifier.size(16.dp),
+                contentScale = ContentScale.Fit
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = icon,
-            color = if (selected) Color(0xFF1B3D94) else Color(0xFF75839B),
-            fontSize = 16.sp
-        )
-        Text(
-            text = label,
-            color = if (selected) Color(0xFF1B3D94) else Color(0xFF75839B),
-            fontSize = 10.sp,
-            letterSpacing = 0.4.sp,
-            fontWeight = FontWeight.SemiBold
-        )
+            Image(
+                painter = painterResource(Res.drawable.saved_address_delete),
+                contentDescription = "Delete ${address.title}",
+                modifier = Modifier.size(16.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
     }
 }

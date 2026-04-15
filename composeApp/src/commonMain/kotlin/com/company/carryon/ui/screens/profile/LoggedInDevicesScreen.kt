@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.logged_in_device_iphone
+import carryon.composeapp.generated.resources.logged_in_device_logout_arrow
 import carryon.composeapp.generated.resources.logged_in_device_pc
 import com.company.carryon.ui.theme.PrimaryBlue
 import org.jetbrains.compose.resources.DrawableResource
@@ -57,7 +59,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                     modifier = Modifier.clickable { onBack() }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text("Security", color = PrimaryBlue, fontSize = 40.sp, fontWeight = FontWeight.SemiBold)
+                Text("Security", color = PrimaryBlue, fontSize = 40.sp, fontWeight = FontWeight.Medium)
             }
 
             Column(
@@ -71,7 +73,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                     color = Color.Black,
                     fontSize = 30.sp,
                     lineHeight = 36.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
@@ -124,7 +126,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                         "Log out of all other sessions",
                         color = Color(0xFFF1F2FF),
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
 
@@ -133,8 +135,8 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(128.dp)
-                        .background(Color(0xFFE7E6FF), RoundedCornerShape(16.dp))
+                        .heightIn(min = 150.dp)
+                        .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
                         .padding(24.dp)
                 ) {
                     Column {
@@ -142,7 +144,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                             "PRIVACY PROTECTION",
                             color = Color.Black,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             letterSpacing = 1.4.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -192,19 +194,19 @@ private fun DeviceCard(
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
             Box(
                 modifier = Modifier
-                    .size(62.dp)
-                    .background(Color(0xFFF3F4F6), RoundedCornerShape(16.dp)),
+                    .size(48.dp)
+                    .background(Color.White, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(icon),
                     contentDescription = title,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(30.dp),
                     contentScale = ContentScale.Fit
                 )
             }
             Column {
-                Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold, lineHeight = 24.sp)
+                Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(location, color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
@@ -216,14 +218,19 @@ private fun DeviceCard(
                         color = if (status.startsWith("Active")) PrimaryBlue else Color.Black,
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
-                        fontWeight = if (status.startsWith("Active")) FontWeight.SemiBold else FontWeight.Normal
+                        fontWeight = if (status.startsWith("Active")) FontWeight.Medium else FontWeight.Normal
                     )
                 }
             }
         }
 
         if (showLogoutIcon) {
-            Text("⇥", color = PrimaryBlue, fontSize = 30.sp)
+            Image(
+                painter = painterResource(Res.drawable.logged_in_device_logout_arrow),
+                contentDescription = "Log out session",
+                modifier = Modifier.size(28.dp),
+                contentScale = ContentScale.Fit
+            )
         } else {
             Spacer(modifier = Modifier.width(24.dp))
         }
@@ -243,7 +250,7 @@ private fun SecurityBottomTab(icon: String, label: String, selected: Boolean) {
             label,
             color = if (selected) PrimaryBlue else Color(0xFF64748B),
             fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
 }

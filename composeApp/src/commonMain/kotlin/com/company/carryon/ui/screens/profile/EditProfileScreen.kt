@@ -73,7 +73,7 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(bottom = 190.dp)
+                        .padding(bottom = 130.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -207,22 +207,6 @@ fun EditProfileScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(saveError ?: "", color = ErrorRed, fontSize = 12.sp)
                     }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, RoundedCornerShape(24.dp))
-                            .padding(horizontal = 6.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BottomProfileItem("🚗", "ROUTE", false)
-                        BottomProfileItem("💵", "EARNINGS", false)
-                        BottomProfileItem("📋", "TASKS", false)
-                        BottomProfileItem("👤", "PROFILE", true)
-                    }
                 }
             }
         }
@@ -313,24 +297,3 @@ private fun SelectField(value: String) {
     )
 }
 
-@Composable
-private fun BottomProfileItem(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(
-                if (selected) Color(0xFFA6D2F3) else Color.Transparent,
-                RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color(0x99666666))
-        Text(
-            text = label,
-            color = if (selected) PrimaryBlue else Color(0x99666666),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.5.sp
-        )
-    }
-}
