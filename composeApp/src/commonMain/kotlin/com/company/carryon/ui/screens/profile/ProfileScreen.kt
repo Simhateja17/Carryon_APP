@@ -1,40 +1,45 @@
 package com.company.carryon.ui.screens.profile
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
-import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.icon_help
-import carryon.composeapp.generated.resources.icon_messages_menu
-import carryon.composeapp.generated.resources.icon_settings_menu
-import carryon.composeapp.generated.resources.icon_logout_shield
-import carryon.composeapp.generated.resources.icon_logout_hammer
-import org.jetbrains.compose.resources.DrawableResource
+import carryon.composeapp.generated.resources.profile_help_support_icon
+import carryon.composeapp.generated.resources.profile_logout_icon
+import carryon.composeapp.generated.resources.profile_payments_wallet_icon
+import carryon.composeapp.generated.resources.profile_personal_info_icon
+import carryon.composeapp.generated.resources.profile_privacy_security_icon
+import carryon.composeapp.generated.resources.profile_rating_icon
+import carryon.composeapp.generated.resources.profile_saved_addresses_icon
+import carryon.composeapp.generated.resources.profile_settings_icon
+import carryon.composeapp.generated.resources.profile_shipments_icon
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.DrawableResource
 import com.company.carryon.data.network.UserApi
-import com.company.carryon.ui.theme.*
-import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.TextPrimary
+import com.company.carryon.ui.theme.TextSecondary
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onNavigateToEditProfile: () -> Unit,
@@ -51,230 +56,260 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
-    val strings = LocalStrings.current
     var userName by remember { mutableStateOf("") }
     var profileError by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         UserApi.getProfile()
             .onSuccess { user -> userName = user.name; profileError = false }
             .onFailure { profileError = true }
     }
+
+    val displayName = if (profileError) "Guest User" else userName.ifBlank { "Devansh" }
+
     Scaffold(
-        containerColor = Color.White,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = strings.appName,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryBlue,
-                            fontStyle = FontStyle.Italic
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        },
+        containerColor = Color(0xFFF5F6F8)
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(Color(0xFFF5F6F8))
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Profile Header
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = strings.hiThere,
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = if (profileError) "Unable to load profile" else userName.ifEmpty { "Loading..." },
-                        fontSize = 18.sp,
-                        color = if (profileError) Color(0xFFE53935) else TextSecondary
-                    )
-                }
-
-                // Circular Avatar
+                Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Profile", color = Color(0xFF1F2937), fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.weight(1f))
                 Box(
                     modifier = Modifier
-                        .size(68.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE3F2FD))
+                        .background(Color(0xFFDDEAFE)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painter = painterResource(Res.drawable.ellipse_4),
-                        contentDescription = "Profile",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        painter = painterResource(Res.drawable.bell_icon),
+                        contentDescription = "Notification",
+                        modifier = Modifier.size(18.dp),
+                        contentScale = ContentScale.Fit
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // Cards Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Saved Addresses Card
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(100.dp)
-                        .clickable { onNavigateToSavedAddresses() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = PrimaryBlue)
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Image(
-                            painter = painterResource(Res.drawable.icon_help),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .align(Alignment.CenterEnd),
-                            contentScale = ContentScale.Crop,
-                            alpha = 0.35f
-                        )
-                        Text(
-                            text = strings.savedAddresses,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .padding(12.dp)
-                        )
-                    }
-                }
-
-                // Rewards Card
-                Card(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(100.dp)
-                        .clickable { onNavigateToPromo() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFC107))
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Image(
-                            painter = painterResource(Res.drawable.icon_logout_shield),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .align(Alignment.CenterEnd),
-                            contentScale = ContentScale.Crop,
-                            alpha = 0.35f
-                        )
-                        Text(
-                            text = strings.rewards,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier
-                                .align(Alignment.BottomStart)
-                                .padding(12.dp)
-                        )
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.size(130.dp)) {
+                    Image(
+                        painter = painterResource(Res.drawable.ellipse_4),
+                        contentDescription = "Avatar",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(34.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .align(Alignment.BottomEnd)
+                            .background(PrimaryBlue, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("✎", color = Color.White, fontSize = 14.sp)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Menu Items
-            ProfileMenuItem(iconRes = Res.drawable.icon_help, title = strings.helpAndSupport, onClick = onNavigateToHelp)
-            HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_messages_menu, title = strings.termsAndConditions, onClick = { })
-            HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_settings_menu, title = strings.settings, onClick = onNavigateToSettings)
-            HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_people, title = strings.referYourFriend, onClick = onNavigateToPromo)
-            HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(iconRes = Res.drawable.icon_logout_shield, title = strings.walletTitle, onClick = onNavigateToWallet)
-            HorizontalDivider(color = Color(0xFFF0F0F0))
-            ProfileMenuItem(
-                iconRes = Res.drawable.icon_logout_hammer,
-                title = strings.logout,
-                titleColor = Color(0xFFE53935),
-                onClick = onLogout
+            Text(
+                text = displayName,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = Color(0xFF111827),
+                fontSize = 44.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "+1 (555) 0123-4567",
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = Color(0xFF111827),
+                fontSize = 16.sp
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                StatCard(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(142.dp),
+                    iconRes = Res.drawable.profile_shipments_icon,
+                    value = "24",
+                    label = "TOTAL SHIPMENTS"
+                )
+                StatCard(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(142.dp),
+                    iconRes = Res.drawable.profile_rating_icon,
+                    value = "4.9",
+                    label = "USER RATING"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            ProfileOptionCard(iconRes = Res.drawable.profile_personal_info_icon, title = "Personal Info", onClick = onNavigateToEditProfile)
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileOptionCard(iconRes = Res.drawable.profile_saved_addresses_icon, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileOptionCard(iconRes = Res.drawable.profile_payments_wallet_icon, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileOptionCard(iconRes = Res.drawable.profile_settings_icon, title = "Settings", onClick = onNavigateToSettings)
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileOptionCard(iconRes = Res.drawable.profile_help_support_icon, title = "Help & Support", onClick = onNavigateToHelp)
+            Spacer(modifier = Modifier.height(10.dp))
+            ProfileOptionCard(iconRes = Res.drawable.profile_privacy_security_icon, title = "Privacy & Security", onClick = onNavigateToPromo)
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
+                    .clickable { onLogout() }
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(Res.drawable.profile_logout_icon),
+                        contentDescription = "Logout",
+                        modifier = Modifier.size(24.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "CARRYON V.2.4.0",
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = Color(0xFF6B7280),
+                fontSize = 10.sp,
+                letterSpacing = 1.sp
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
         }
     }
 }
 
 @Composable
-private fun ProfileMenuItem(
+private fun StatCard(
+    modifier: Modifier = Modifier,
+    iconRes: DrawableResource,
+    value: String,
+    label: String
+) {
+    Column(
+        modifier = modifier
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = Color(0x0D000000),
+                spotColor = Color(0x0D000000)
+            )
+            .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
+            .padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(Color.White, RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+        Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp)
+        Text(
+            label,
+            color = Color.Black,
+            fontSize = 12.sp,
+            letterSpacing = 0.6.sp,
+            lineHeight = 16.sp,
+            fontWeight = FontWeight.Normal
+        )
+    }
+}
+
+@Composable
+private fun ProfileOptionCard(
     iconRes: DrawableResource,
     title: String,
-    titleColor: Color = TextPrimary,
+    subtitleBadge: String? = null,
     onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+            .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(16.dp))
             .clickable { onClick() }
-            .padding(vertical = 16.dp),
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = title,
-            modifier = Modifier.size(28.dp),
-            contentScale = ContentScale.Fit
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            color = titleColor,
-            modifier = Modifier.weight(1f)
-        )
-
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .background(Color(0xFFF0F0F0), CircleShape),
+                .size(48.dp)
+                .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = ">",
-                fontSize = 16.sp,
-                color = Color(0xFF9E9E9E)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                contentScale = ContentScale.Fit
             )
         }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, fontSize = 16.sp, color = TextPrimary)
+            if (subtitleBadge != null) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                        .background(Color.White, RoundedCornerShape(999.dp))
+                        .padding(horizontal = 7.dp, vertical = 2.dp)
+                ) {
+                    Text(subtitleBadge, color = PrimaryBlue, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+
+        Text(">", fontSize = 20.sp, color = Color(0xFF111827))
     }
 }
 
