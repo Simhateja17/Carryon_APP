@@ -82,7 +82,9 @@ data class OrderItem(
     val delivery: String,
     val vehicleType: String,
     val price: Double,
-    val status: BookingStatus
+    val status: BookingStatus,
+    val estimatedMinutes: Int? = null,
+    val driverName: String? = null
 )
 
 private fun Booking.toOrderItem() = OrderItem(
@@ -92,7 +94,9 @@ private fun Booking.toOrderItem() = OrderItem(
     delivery    = deliveryAddress.label.ifEmpty { deliveryAddress.address },
     vehicleType = vehicleType,
     price       = if (finalPrice > 0) finalPrice else estimatedPrice,
-    status      = status
+    status      = status,
+    estimatedMinutes = eta,
+    driverName  = driver?.name
 )
 
 private enum class OrdersTab(val label: String) {
@@ -139,148 +143,37 @@ fun OrdersScreen(
             BookingStatus.PICKUP_DONE,
             BookingStatus.IN_TRANSIT
         )
-    } ?: OrderItem(
-        id = "CO-9842",
-        date = "",
-        pickup = "Sector 15, Urban Complex",
-        delivery = "Building 10C, Phase II",
-        vehicleType = "Bike",
-        price = 0.0,
-        status = BookingStatus.IN_TRANSIT
-    )
+    }
 
-    val scheduledFromApi = orders.filter {
+    val scheduledOrders = orders.filter {
         it.status == BookingStatus.PENDING || it.status == BookingStatus.SEARCHING_DRIVER
     }
-    val placeholderScheduled = listOf(
-        OrderItem(
-            id = "VL-8829-01",
-            date = "",
-            pickup = "32nd Avenue, Sector 15",
-            delivery = "DLF Cyber City, Phase 2",
-            vehicleType = "Bike",
-            price = 0.0,
-            status = BookingStatus.PENDING
-        ),
-        OrderItem(
-            id = "VL-8830-02",
-            date = "",
-            pickup = "Connaught Place, Block A",
-            delivery = "Indirapuram Hub, Tower 3",
-            vehicleType = "Bike",
-            price = 0.0,
-            status = BookingStatus.PENDING
-        )
-    )
-    val scheduledOrders = if (scheduledFromApi.isNotEmpty()) scheduledFromApi else placeholderScheduled
 
     val completedFromApi = orders.filter { it.status == BookingStatus.DELIVERED }
-    val completedCards = if (completedFromApi.isNotEmpty()) {
-        completedFromApi.take(2).mapIndexed { index, order ->
-            CompletedOrderPreview(
-                order = order,
-                dateTime = if (order.date.isBlank()) if (index == 0) "Oct 24, 2:30 PM" else "Oct 22, 11:45 AM" else order.date,
-                amountText = "₹${order.price.toInt()}",
-                statusText = "DELIVERED"
-            )
-        }
-    } else {
-        listOf(
-            CompletedOrderPreview(
-                order = OrderItem(
-                    id = "VL-882910",
-                    date = "",
-                    pickup = "Warehouse",
-                    delivery = "Retail Store",
-                    vehicleType = "Car",
-                    price = 249.0,
-                    status = BookingStatus.DELIVERED
-                ),
-                dateTime = "Oct 24, 2:30 PM",
-                amountText = "₹249",
-                statusText = "DELIVERED"
-            ),
-            CompletedOrderPreview(
-                order = OrderItem(
-                    id = "VL-882890",
-                    date = "",
-                    pickup = "Home",
-                    delivery = "Office",
-                    vehicleType = "Car",
-                    price = 150.0,
-                    status = BookingStatus.DELIVERED
-                ),
-                dateTime = "Oct 22, 11:45 AM",
-                amountText = "₹150",
-                statusText = "DELIVERED"
-            )
+    val completedCards = completedFromApi.map { order ->
+        CompletedOrderPreview(
+            order = order,
+            dateTime = order.date.ifBlank { "—" },
+            amountText = "RM ${order.price.toInt()}",
+            statusText = "DELIVERED"
         )
     }
 
     val cancelledFromApi = orders.filter { it.status == BookingStatus.CANCELLED }
-    val cancelledCards = if (cancelledFromApi.isNotEmpty()) {
-        cancelledFromApi.take(2).mapIndexed { index, order ->
-            CancelledOrderPreview(
-                order = order,
-                dateTime = if (order.date.isBlank()) if (index == 0) "Oct 24, 2023 • 14:30 PM" else "Oct 22, 2023 • 09:15 AM" else order.date,
-                reasonTitle = "Cancellation Reason",
-                reasonText = if (index == 0) "Driver unavailable in your area" else "Cancelled by user",
-                statusColor = if (index == 0) Color(0xFF2F80ED) else Color(0xFF64748B),
-                statusBgColor = if (index == 0) Color.White else Color(0xFFF1F5F9),
-                reasonLeftBorder = index == 0,
-                reasonTitleBlue = index != 0,
-                actionLabel = if (index == 0) "Re-book" else "Repeat\nOrder",
-                footerText = if (index == 0) "" else "Refund processed to\nWallet",
-                dropIconBg = if (index == 0) Color(0x1AFB5151) else Color(0xFFA6D2F3),
-                dropIconTint = if (index == 0) Color(0xFF2F80ED) else Color(0xFF2F80ED)
-            )
-        }
-    } else {
-        listOf(
-            CancelledOrderPreview(
-                order = OrderItem(
-                    id = "VL-8829-X9",
-                    date = "",
-                    pickup = "Harrington Fashion Hub, London",
-                    delivery = "Baker Street Residences, NW1 6XE",
-                    vehicleType = "Bike",
-                    price = 0.0,
-                    status = BookingStatus.CANCELLED
-                ),
-                dateTime = "Oct 24, 2023 • 14:30 PM",
-                reasonTitle = "Cancellation Reason",
-                reasonText = "Driver unavailable in your area",
-                statusColor = Color(0xFF2F80ED),
-                statusBgColor = Color.White,
-                reasonLeftBorder = true,
-                reasonTitleBlue = false,
-                actionLabel = "Re-book",
-                footerText = "",
-                dropIconBg = Color(0x1AFB5151),
-                dropIconTint = Color(0xFF2F80ED)
-            ),
-            CancelledOrderPreview(
-                order = OrderItem(
-                    id = "VL-9102-M1",
-                    date = "",
-                    pickup = "Westfield Shopping Centre",
-                    delivery = "Kensington High Street, W8 4NS",
-                    vehicleType = "Bike",
-                    price = 0.0,
-                    status = BookingStatus.CANCELLED
-                ),
-                dateTime = "Oct 22, 2023 • 09:15 AM",
-                reasonTitle = "Cancellation Reason",
-                reasonText = "Cancelled by user",
-                statusColor = Color(0xFF64748B),
-                statusBgColor = Color(0xFFF1F5F9),
-                reasonLeftBorder = false,
-                reasonTitleBlue = true,
-                actionLabel = "Repeat\nOrder",
-                footerText = "Refund processed to\nWallet",
-                dropIconBg = Color(0xFFA6D2F3),
-                dropIconTint = Color(0xFF2F80ED)
-            )
+    val cancelledCards = cancelledFromApi.map { order ->
+        CancelledOrderPreview(
+            order = order,
+            dateTime = order.date.ifBlank { "—" },
+            reasonTitle = "Cancellation Reason",
+            reasonText = "Cancelled",
+            statusColor = Color(0xFF64748B),
+            statusBgColor = Color(0xFFF1F5F9),
+            reasonLeftBorder = false,
+            reasonTitleBlue = true,
+            actionLabel = "Re-book",
+            footerText = "",
+            dropIconBg = Color(0xFFA6D2F3),
+            dropIconTint = Color(0xFF2F80ED)
         )
     }
 
@@ -360,39 +253,59 @@ fun OrdersScreen(
         val showCancelled = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.CANCELLED
 
         if (showOngoing) {
-            OngoingOrderCard(order = ongoingOrder, onTrack = { onOrderClick(ongoingOrder.id) })
-            Spacer(modifier = Modifier.height(12.dp))
+            if (ongoingOrder != null) {
+                OngoingOrderCard(order = ongoingOrder, onTrack = { onOrderClick(ongoingOrder.id) })
+                Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                EmptyOrdersState("No ongoing deliveries")
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
 
         if (showScheduled) {
-            scheduledOrders.forEach { scheduled ->
-                ScheduledOrderCard(
-                    order = scheduled,
-                    onModify = { onOrderClick(scheduled.id) },
-                    onCancel = { onOrderClick(scheduled.id) }
-                )
+            if (scheduledOrders.isEmpty()) {
+                EmptyOrdersState("No scheduled deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                scheduledOrders.forEach { scheduled ->
+                    ScheduledOrderCard(
+                        order = scheduled,
+                        onModify = { onOrderClick(scheduled.id) },
+                        onCancel = { onOrderClick(scheduled.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
         if (showCompleted) {
-            completedCards.forEach { completed ->
-                CompletedOrderCard(
-                    card = completed,
-                    onViewDetails = { onOrderClick(completed.order.id) },
-                    onRepeat = { onOrderClick(completed.order.id) }
-                )
+            if (completedCards.isEmpty()) {
+                EmptyOrdersState("No completed deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                completedCards.forEach { completed ->
+                    CompletedOrderCard(
+                        card = completed,
+                        onViewDetails = { onOrderClick(completed.order.id) },
+                        onRepeat = { onOrderClick(completed.order.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
         if (showCancelled) {
-            cancelledCards.forEach { cancelled ->
-                CancelledOrderCard(
-                    card = cancelled,
-                    onAction = { onOrderClick(cancelled.order.id) }
-                )
+            if (cancelledCards.isEmpty()) {
+                EmptyOrdersState("No cancelled deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                cancelledCards.forEach { cancelled ->
+                    CancelledOrderCard(
+                        card = cancelled,
+                        onAction = { onOrderClick(cancelled.order.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
@@ -569,38 +482,15 @@ private fun OngoingDeliveriesScreen(
     onHistoryClick: () -> Unit,
     onDraftsClick: () -> Unit
 ) {
-    val cards = if (ongoingOrders.isNotEmpty()) {
-        ongoingOrders.take(2).mapIndexed { idx, order ->
-            OngoingDeliveryPreview(
-                orderId = if (order.id.isBlank()) "VL-8829${idx + 40}" else order.id,
-                statusLabel = if (idx == 0) "IN TRANSIT" else "OUT FOR PICKUP",
-                etaMinutes = if (idx == 0) 12 else 5,
-                courierName = if (idx == 0) "Marcus Jensen" else "Elena Rodriguez",
-                primaryValue = if (idx == 0) order.pickup else "Arriving at Merchant: Artisan Bakes",
-                secondaryValue = if (idx == 0) order.delivery else "",
-                buttonText = if (idx == 0) "Track Order" else "View Details"
-            )
-        }
-    } else {
-        listOf(
-            OngoingDeliveryPreview(
-                orderId = "VL-882941",
-                statusLabel = "IN TRANSIT",
-                etaMinutes = 12,
-                courierName = "Marcus Jensen",
-                primaryValue = "Global Logistics Hub, Bld 4",
-                secondaryValue = "242 West 11th Street, Unit 4B",
-                buttonText = "Track Order"
-            ),
-            OngoingDeliveryPreview(
-                orderId = "VL-882949",
-                statusLabel = "OUT FOR PICKUP",
-                etaMinutes = 5,
-                courierName = "Elena Rodriguez",
-                primaryValue = "Arriving at Merchant: Artisan Bakes",
-                secondaryValue = "",
-                buttonText = "View Details"
-            )
+    val cards = ongoingOrders.take(2).mapIndexed { idx, order ->
+        OngoingDeliveryPreview(
+            orderId = order.id,
+            statusLabel = if (idx == 0) "IN TRANSIT" else "OUT FOR PICKUP",
+            etaMinutes = order.estimatedMinutes ?: 0,
+            courierName = order.driverName ?: "",
+            primaryValue = order.pickup,
+            secondaryValue = order.delivery,
+            buttonText = if (idx == 0) "Track Order" else "View Details"
         )
     }
 
@@ -926,6 +816,14 @@ private fun OrdersHeader(
 
 @Composable
 private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
+    val statusText = when (order.status) {
+        BookingStatus.SEARCHING_DRIVER -> "SEARCHING DRIVER"
+        BookingStatus.DRIVER_ASSIGNED -> "DRIVER ASSIGNED"
+        BookingStatus.DRIVER_ARRIVED -> "DRIVER ARRIVED"
+        BookingStatus.PICKUP_DONE -> "PICKUP DONE"
+        BookingStatus.IN_TRANSIT -> "IN TRANSIT"
+        else -> order.status.name.replace('_', ' ')
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -948,7 +846,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                     Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1)
                 }
 
-                StatusPill(text = "IN TRANSIT", color = PrimaryBlue)
+                StatusPill(text = statusText, color = PrimaryBlue)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -964,7 +862,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("ETA", color = Color(0xFF7A88A7), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("15 mins", color = PrimaryBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text(if (order.date.isBlank()) "—" else order.date, color = PrimaryBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 }
                 Button(
                     onClick = onTrack,
@@ -1048,7 +946,7 @@ private fun ScheduledOrderCard(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Today, 5:00 PM",
+                            text = order.date.ifBlank { "Pending schedule" },
                             color = Color(0xFF0F172A),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold
@@ -1615,6 +1513,22 @@ private fun RetryBlock(message: String, onRetry: () -> Unit) {
             Spacer(modifier = Modifier.width(8.dp))
             TextButton(onClick = onRetry) { Text("Retry", color = PrimaryBlue) }
         }
+    }
+}
+
+@Composable
+private fun EmptyOrdersState(message: String) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFFEAF2FC),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = message,
+            color = Color(0xFF64748B),
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+        )
     }
 }
 

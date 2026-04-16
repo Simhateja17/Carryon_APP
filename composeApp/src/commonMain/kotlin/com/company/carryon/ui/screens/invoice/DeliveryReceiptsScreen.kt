@@ -30,6 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
 
+private const val DeliveryModePooling = "Pooling"
+private const val DeliveryModePriority = "Priority"
+private const val DeliveryModeRegular = "Regular"
+
 @Composable
 fun DeliveryReceiptsScreen(
     onBack: () -> Unit
@@ -78,7 +82,7 @@ fun DeliveryReceiptsScreen(
         ) {
             Text("Total Spending", color = Color.White.copy(alpha = 0.9f), fontSize = 16.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text("$12,450.00", color = Color.White, fontSize = 52.sp, fontWeight = FontWeight.Bold)
+            Text("RM 12,450.00", color = Color.White, fontSize = 52.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(10.dp))
             Box(
                 modifier = Modifier
@@ -111,9 +115,9 @@ fun DeliveryReceiptsScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\nExpress", "$245.00")
+        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\n$DeliveryModePriority", "RM 245.00")
         Spacer(modifier = Modifier.height(10.dp))
-        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\nStandard", "$1,120.50", highlighted = true)
+        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\n$DeliveryModeRegular", "RM 1,120.50", highlighted = true)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -121,7 +125,7 @@ fun DeliveryReceiptsScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\nEconomy", "$56.20")
+        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\n$DeliveryModePooling", "RM 56.20")
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -232,17 +236,17 @@ private fun DetailedReceiptCard() {
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFABC3DB)))
         Spacer(modifier = Modifier.height(12.dp))
 
-        LineAmountRow("Logistics Service (International)", "$850.00")
+        LineAmountRow("Logistics Service (International)", "RM 850.00")
         Spacer(modifier = Modifier.height(8.dp))
-        LineAmountRow("Insurance Premium", "$45.00")
+        LineAmountRow("Insurance Premium", "RM 45.00")
         Spacer(modifier = Modifier.height(8.dp))
-        LineAmountRow("Priority Handling Fee", "$25.00")
+        LineAmountRow("Priority Handling Fee", "RM 25.00")
 
         Spacer(modifier = Modifier.height(14.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("Total Amount", color = PrimaryBlue, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Text("$920.00", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("RM 920.00", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

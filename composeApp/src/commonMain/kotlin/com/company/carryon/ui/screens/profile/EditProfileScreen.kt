@@ -31,15 +31,16 @@ import kotlinx.coroutines.launch
 fun EditProfileScreen(
     onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf("Marcus Holloway") }
-    var email by remember { mutableStateOf("m.holloway@carryon.logistics") }
-    var phone by remember { mutableStateOf("+1 (555) 0123-4567") }
-    var city by remember { mutableStateOf("Chicago, IL") }
-    var language by remember { mutableStateOf("English") }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("—") }
+    var language by remember { mutableStateOf("—") }
     var isLoading by remember { mutableStateOf(false) }
     var isFetching by remember { mutableStateOf(true) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    var profileLoadError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -48,9 +49,11 @@ fun EditProfileScreen(
                 name = user.name.ifBlank { name }
                 email = user.email.ifBlank { email }
                 phone = user.phone.ifBlank { phone }
+                profileLoadError = null
                 isFetching = false
             }
-            .onFailure {
+            .onFailure { err ->
+                profileLoadError = err.message ?: "Failed to load profile"
                 isFetching = false
             }
     }
@@ -139,6 +142,16 @@ fun EditProfileScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    if (profileLoadError != null) {
+                        Text(
+                            text = profileLoadError ?: "",
+                            color = ErrorRed,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
                     Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         ProfileFieldLabel("FULL NAME")
                         EditableField(value = name, onValueChange = { name = it })
@@ -206,22 +219,6 @@ fun EditProfileScreen(
                     if (saveError != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(saveError ?: "", color = ErrorRed, fontSize = 12.sp)
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color.White, RoundedCornerShape(24.dp))
-                            .padding(horizontal = 6.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BottomProfileItem("🚗", "ROUTE", false)
-                        BottomProfileItem("💵", "EARNINGS", false)
-                        BottomProfileItem("📋", "TASKS", false)
-                        BottomProfileItem("👤", "PROFILE", true)
                     }
                 }
             }
@@ -311,26 +308,4 @@ private fun SelectField(value: String) {
             unfocusedTextColor = Color.Black
         )
     )
-}
-
-@Composable
-private fun BottomProfileItem(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(
-                if (selected) Color(0xFFA6D2F3) else Color.Transparent,
-                RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color(0x99666666))
-        Text(
-            text = label,
-            color = if (selected) PrimaryBlue else Color(0x99666666),
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 0.5.sp
-        )
-    }
 }

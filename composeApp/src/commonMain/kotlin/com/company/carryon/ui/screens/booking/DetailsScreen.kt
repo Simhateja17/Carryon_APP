@@ -48,11 +48,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.ui.components.ContactInfo
+import com.company.carryon.ui.components.ContactPickerButton
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 
 private val SectionTint20 = Color(0x33A6D2F3)
+private const val DeliveryModePooling = "Pooling"
+private const val DeliveryModePriority = "Priority"
+private const val DeliveryModeRegular = "Regular"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,9 +66,10 @@ fun DetailsScreen(
     pickup: String = "",
     delivery: String = "",
     onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onContactSelected: (ContactInfo) -> Unit = {}
 ) {
-    var deliveryMode by rememberSaveable { mutableStateOf("Scheduled") }
+    var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModePooling) }
     var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
     var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
     var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
@@ -180,12 +186,12 @@ fun DetailsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        DeliveryModeChip("Express", deliveryMode == "Express", modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = "Express" }
-                        DeliveryModeChip("Same Day", deliveryMode == "Same Day", modifier = Modifier.weight(1f)) { deliveryMode = "Same Day" }
-                        DeliveryModeChip("Scheduled", deliveryMode == "Scheduled", modifier = Modifier.weight(1f)) { deliveryMode = "Scheduled" }
+                        DeliveryModeChip(DeliveryModePooling, deliveryMode == DeliveryModePooling, modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = DeliveryModePooling }
+                        DeliveryModeChip(DeliveryModePriority, deliveryMode == DeliveryModePriority, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModePriority }
+                        DeliveryModeChip(DeliveryModeRegular, deliveryMode == DeliveryModeRegular, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModeRegular }
                     }
 
-                    if (deliveryMode == "Express") {
+                    if (deliveryMode == DeliveryModePooling) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Box(
                             modifier = Modifier
@@ -207,19 +213,19 @@ fun DetailsScreen(
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column {
-                                        Text("Express Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
-                                        Text("Fastest delivery within 2–4 hours", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                                        Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("⚑", color = Color.White, fontSize = 12.sp)
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Driver will be assigned instantly", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Orders may be grouped to reduce delivery cost", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
-                    } else if (deliveryMode == "Same Day") {
+                    } else if (deliveryMode == DeliveryModePriority) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(24.dp),
@@ -238,9 +244,9 @@ fun DetailsScreen(
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Same Day Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                    Text("Priority Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
                                     Text(
-                                        "Delivered within today. Perfect for\nurgent local shipments.",
+                                        "Faster dispatch for urgent\nshipments that need priority handling.",
                                         color = Color.Black,
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp
@@ -248,7 +254,7 @@ fun DetailsScreen(
                                 }
                             }
                         }
-                    } else if (deliveryMode == "Scheduled") {
+                    } else if (deliveryMode == DeliveryModeRegular) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                             Surface(
@@ -279,7 +285,7 @@ fun DetailsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            if (deliveryMode == "Express") {
+            if (deliveryMode == DeliveryModePooling) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressInputCard(
@@ -340,6 +346,12 @@ fun DetailsScreen(
                     onValueChange = { receiverPhone = it },
                     keyboardType = KeyboardType.Phone
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                ContactPickerButton { contact ->
+                    receiverName = contact.name
+                    receiverPhone = contact.phone
+                    onContactSelected(contact)
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Box(
@@ -370,11 +382,11 @@ fun DetailsScreen(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                            Text("₹150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
+                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
                         }
                     }
                 }
-            } else if (deliveryMode == "Same Day") {
+            } else if (deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
@@ -475,6 +487,12 @@ fun DetailsScreen(
                 SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
                 Spacer(modifier = Modifier.height(12.dp))
                 SameDayReceiverRow(icon = "✆", placeholder = "Phone Number", value = receiverPhone, onValueChange = { receiverPhone = it }, keyboardType = KeyboardType.Phone)
+                Spacer(modifier = Modifier.height(12.dp))
+                ContactPickerButton { contact ->
+                    receiverName = contact.name
+                    receiverPhone = contact.phone
+                    onContactSelected(contact)
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Surface(shape = RoundedCornerShape(32.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
@@ -491,7 +509,7 @@ fun DetailsScreen(
                             Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("₹180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                            Text("RM 180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("EST. TOTAL", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                         }
                     }
@@ -620,6 +638,12 @@ fun DetailsScreen(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ContactPickerButton { contact ->
+                        receiverName = contact.name
+                        receiverPhone = contact.phone
+                        onContactSelected(contact)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -666,7 +690,7 @@ fun DetailsScreen(
 
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Total Cost", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text("₹150", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
+                            Text("RM 150", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
                         }
                     }
                 }

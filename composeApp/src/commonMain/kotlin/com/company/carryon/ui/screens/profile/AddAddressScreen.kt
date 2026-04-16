@@ -111,19 +111,19 @@ fun AddAddressScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Label("FULL ADDRESS")
-                FilledField("123 Precision Way, Logistics District")
+                FilledField("")
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("FLOOR / UNIT / LANDMARK")
-                FilledField("Apt 4B / Near Gate 2")
+                FilledField("")
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("CITY")
-                FilledField("Chicago")
+                FilledField("")
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("POSTAL CODE")
-                FilledField("60601")
+                FilledField("")
 
                 Spacer(modifier = Modifier.height(18.dp))
 

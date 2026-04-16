@@ -46,7 +46,7 @@ fun SearchingDriverScreen(
     var isCancelling by remember { mutableStateOf(false) }
     var driverFoundHandled by remember { mutableStateOf(false) }
     var hasNavigated by remember { mutableStateOf(false) }
-    val estimatedPriceText = "₹${(if (amount > 0.0) amount else 150.0).roundToInt()}"
+    val estimatedPriceText = "RM ${(if (amount > 0.0) amount else 150.0).roundToInt()}"
 
     // Auto-advance to scheduled state after a short wait (5-10 sec expected)
     LaunchedEffect(Unit) {
@@ -214,7 +214,8 @@ fun SearchingDriverScreen(
 
                     Text("PICKUP", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("32nd Avenue, Sector 15", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    // TODO: Get pickup address from booking data
+                    Text("—", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -224,7 +225,8 @@ fun SearchingDriverScreen(
                         Column {
                             Text("DROP OFF", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("DLF Cyber City, Phase 2", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                            // TODO: Get drop-off address from booking data
+                            Text("—", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         }
                         Box(
                             modifier = Modifier

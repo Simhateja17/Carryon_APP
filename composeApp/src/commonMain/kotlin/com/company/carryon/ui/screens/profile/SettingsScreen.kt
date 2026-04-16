@@ -31,21 +31,25 @@ fun SettingsScreen(
     onNavigateToClearCache: () -> Unit,
     onLanguageChanged: (String) -> Unit = {}
 ) {
-    var userName by remember { mutableStateOf("Alex Johnston") }
+    var userName by remember { mutableStateOf("—") }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
     var darkModeEnabled by remember { mutableStateOf(false) }
     var autoApplyCoupons by remember { mutableStateOf(true) }
     var saveLastAddress by remember { mutableStateOf(false) }
     var dataSaverMode by remember { mutableStateOf(false) }
+    var profileError by remember { mutableStateOf<String?>(null) }
+    var isLoadingProfile by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { profile ->
-            if (profile.name.isNotBlank()) {
-                userName = profile.name
-            }
+            userName = profile.name.ifBlank { "—" }
+            profileError = null
+        }.onFailure {
+            profileError = it.message ?: "Failed to load profile"
         }
         currentLanguage = getLanguage() ?: "en"
         onLanguageChanged(currentLanguage)
+        isLoadingProfile = false
     }
 
     Scaffold(
@@ -103,7 +107,7 @@ fun SettingsScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = userName,
+                            text = if (isLoadingProfile) "Loading..." else userName,
                             color = Color(0xFF0B1220),
                             fontSize = 34.sp,
                             fontWeight = FontWeight.ExtraBold
@@ -124,6 +128,15 @@ fun SettingsScreen(
                         Text("◉", color = PrimaryBlue, fontSize = 18.sp)
                     }
                 }
+            }
+
+            if (profileError != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = profileError ?: "",
+                    color = Color(0xFF64748B),
+                    fontSize = 12.sp
+                )
             }
 
             Spacer(modifier = Modifier.height(14.dp))

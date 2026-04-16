@@ -76,7 +76,7 @@ interface AppStrings {
     val ourServices: String get() = "Our services"
     val sameDayDelivery: String get() = "Same day\ndelivery"
     val overnightDelivery: String get() = "Overnight\ndelivery"
-    val expressDelivery: String get() = "Express\ndelivery"
+    val expressDelivery: String get() = "Priority\ndelivery"
 
     // ── Ready To Book Screen ──
     val youAreReadyToBook: String get() = "You are ready to Book"
@@ -167,7 +167,7 @@ interface AppStrings {
     val processing: String get() = "Processing"
     val delivering: String get() = "Delivering"
     val parcels: String get() = "Parcels"
-    val estExpress: String get() = "Est. Express"
+    val estExpress: String get() = "Est. Priority"
     val rateDriver: String get() = "Rate Driver"
     val orderConfirmed: String get() = "Order Confirmed"
     val orderPlaced: String get() = "Your order has been placed"

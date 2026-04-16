@@ -114,25 +114,12 @@ fun BookingScreen(
                     pricePerKm = v.pricePerKm
                 )
             }
-            // Fallback to defaults if API returns empty
-            if (vehicles.isEmpty()) {
-                vehicles = listOf(
-                    VehicleOption("bike", "🏍️", "Bike", strings.upToKg(10), "—", 0.0, "—", 5.0, 1.5),
-                    VehicleOption("auto", "🛺", "Auto", strings.upToKg(50), "—", 0.0, "—", 10.0, 2.5),
-                    VehicleOption("minitruck", "🚚", "Mini Truck", strings.upToKg(500), "—", 0.0, "—", 30.0, 4.0),
-                    VehicleOption("truck", "🚛", "Truck", strings.upToKg(2000), "—", 0.0, "—", 60.0, 7.0)
-                )
-            }
-            selectedVehicle = vehicles.getOrNull(2) ?: vehicles.firstOrNull()
+            // TODO: Remove fallback defaults - show empty state instead
+            selectedVehicle = vehicles.firstOrNull()
         }.onFailure {
-            // Fallback defaults
-            vehicles = listOf(
-                VehicleOption("bike", "🏍️", "Bike", strings.upToKg(10), "—", 0.0, "—", 5.0, 1.5),
-                VehicleOption("auto", "🛺", "Auto", strings.upToKg(50), "—", 0.0, "—", 10.0, 2.5),
-                VehicleOption("minitruck", "🚚", "Mini Truck", strings.upToKg(500), "—", 0.0, "—", 30.0, 4.0),
-                VehicleOption("truck", "🚛", "Truck", strings.upToKg(2000), "—", 0.0, "—", 60.0, 7.0)
-            )
-            selectedVehicle = vehicles[2]
+            // TODO: Remove fallback defaults - show error state instead
+            vehicles = emptyList()
+            selectedVehicle = null
         }
         isLoadingVehicles = false
     }

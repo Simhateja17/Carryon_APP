@@ -230,12 +230,14 @@ private fun AddressCard() {
                 Column {
                     Text("PICKUP ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text("32nd Avenue, Sector 15", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    // TODO: Get pickup address from booking data
+                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
                 }
                 Column {
                     Text("DROP-OFF ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text("DLF Cyber City, Phase 2", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    // TODO: Get drop-off address from booking data
+                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -283,7 +285,7 @@ private fun PaymentCard() {
             .background(Color(0xFFDCE6F1), RoundedCornerShape(20.dp))
             .padding(20.dp)
     ) {
-        SectionHeader(icon = "₹", title = "Payment")
+        SectionHeader(icon = "RM", title = "Payment")
         Spacer(modifier = Modifier.height(16.dp))
         KeyValueRow("Method", "Wallet", trailingDot = true)
         Spacer(modifier = Modifier.height(14.dp))
@@ -296,7 +298,7 @@ private fun PaymentCard() {
         ) {
             Text("Total Paid", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(
-                "₹150",
+                "RM 150",
                 color = PrimaryBlue,
                 fontSize = 42.sp,
                 fontWeight = FontWeight.Medium

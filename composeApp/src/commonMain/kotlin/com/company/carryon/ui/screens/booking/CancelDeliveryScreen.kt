@@ -157,7 +157,7 @@ fun CancelDeliveryScreen(
                         Column {
                             Text("REFUND POLICY", color = Color(0xFF4B7FB5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                             Text(
-                                "A refund of ₹150 will be credited\nback to your wallet.",
+                                "A refund of RM 150 will be credited\nback to your wallet.",
                                 color = Color(0xFF111827),
                                 fontSize = 13.sp,
                                 lineHeight = 18.sp

@@ -33,23 +33,8 @@ fun SavedAddressesScreen(
     onAddNewAddress: () -> Unit,
     onBack: () -> Unit
 ) {
-    val addresses = listOf(
-        SavedAddressUi(
-            icon = "🏠",
-            title = "Home",
-            lines = listOf("1248 North Sheridan Rd,", "Apt 4B", "Chicago, IL 60660")
-        ),
-        SavedAddressUi(
-            icon = "🏢",
-            title = "Main Warehouse",
-            lines = listOf("Global Logistics Center, Bay", "12", "8800 West Bryn Mawr Ave,", "IL 60631")
-        ),
-        SavedAddressUi(
-            icon = "✣",
-            title = "Downtown Hub",
-            lines = listOf("Central Distribution Point", "200 East Randolph St,", "Chicago, IL 60601")
-        )
-    )
+    // TODO: Fetch addresses from API
+    val addresses = emptyList<SavedAddressUi>()
 
     Scaffold(containerColor = Color(0xFFF3F4F6)) { paddingValues ->
         Box(
@@ -61,7 +46,7 @@ fun SavedAddressesScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = 178.dp)
+                    .padding(bottom = 90.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -131,22 +116,6 @@ fun SavedAddressesScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(22.dp))
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    BottomMenuItem(icon = "🚗", label = "ROUTE", selected = false)
-                    BottomMenuItem(icon = "💵", label = "EARNINGS", selected = false)
-                    BottomMenuItem(icon = "📋", label = "TASKS", selected = false)
-                    BottomMenuItem(icon = "👤", label = "PROFILE", selected = true)
-                }
             }
         }
     }
@@ -201,32 +170,4 @@ private fun SavedAddressCard(address: SavedAddressUi) {
     }
 }
 
-@Composable
-private fun BottomMenuItem(
-    icon: String,
-    label: String,
-    selected: Boolean
-) {
-    Column(
-        modifier = Modifier
-            .background(
-                if (selected) Color(0xFFCED4F7) else Color.Transparent,
-                RoundedCornerShape(16.dp)
-            )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = icon,
-            color = if (selected) Color(0xFF1B3D94) else Color(0xFF75839B),
-            fontSize = 16.sp
-        )
-        Text(
-            text = label,
-            color = if (selected) Color(0xFF1B3D94) else Color(0xFF75839B),
-            fontSize = 10.sp,
-            letterSpacing = 0.4.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-    }
-}
+
