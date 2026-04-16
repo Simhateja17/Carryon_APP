@@ -22,15 +22,19 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        initTokenStorage(this)
-        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-
-        requestNotificationPermissionIfNeeded()
-        requestLocationPermissionIfNeeded()
+        initTokenStorage(applicationContext)
+        enableEdgeToEdge()
 
         setContent {
             App()
+        }
+
+        // Request runtime permissions after first frame scheduling to avoid
+        // lifecycle timing issues during startup on some devices/ROMs.
+        window.decorView.post {
+            requestNotificationPermissionIfNeeded()
+            requestLocationPermissionIfNeeded()
         }
     }
 

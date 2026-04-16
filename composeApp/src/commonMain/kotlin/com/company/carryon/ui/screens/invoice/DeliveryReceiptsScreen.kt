@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,6 +19,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,111 +37,162 @@ import com.company.carryon.ui.theme.PrimaryBlue
 fun DeliveryReceiptsScreen(
     onBack: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F6F8))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-    ) {
+    Scaffold(
+        containerColor = Color(0xFFF5F6F8),
+        topBar = { FinancialHubTopBar(onBack = onBack) },
+        bottomBar = { ReceiptsBottomBar() }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = "FINANCE HISTORY",
+                color = PrimaryBlue,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = 1.2.sp
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Delivery Receipts",
+                color = Color.Black,
+                fontSize = 36.sp,
+                lineHeight = 40.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Spacer(modifier = Modifier.height(18.dp))
+            SpendingCard()
+            Spacer(modifier = Modifier.height(16.dp))
+            SearchCard()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ReceiptRow(
+                orderId = "#CR-99210",
+                subtitle = "Delivered Oct 24, 2023 •\nExpress",
+                amount = "$245.00",
+                selected = false
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ReceiptRow(
+                orderId = "#CR-99188",
+                subtitle = "Delivered Oct 22, 2023 •\nStandard",
+                amount = "$1,120.50",
+                selected = true
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            DetailedReceiptCard()
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ReceiptRow(
+                orderId = "#CR-98772",
+                subtitle = "Delivered Oct 15, 2023 •\nEconomy",
+                amount = "$56.20",
+                selected = false
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+private fun FinancialHubTopBar(onBack: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Financial Hub", color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = "☰",
+                color = PrimaryBlue,
+                fontSize = 16.sp,
+                modifier = Modifier.clickable { onBack() }
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = "Financial Hub",
+                color = PrimaryBlue,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
             Spacer(modifier = Modifier.weight(1f))
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .background(Color(0xFFDDEAFE), CircleShape),
+                    .size(32.dp)
+                    .border(1.5.dp, Color(0xFF7B9CFF), CircleShape)
+                    .background(Color.White, CircleShape),
                 contentAlignment = Alignment.Center
-            ) { Text("👨‍💼", fontSize = 14.sp) }
+            ) {
+                Text("👤", fontSize = 13.sp)
+            }
         }
+        HorizontalDivider(color = Color(0xFFE9ECF2))
+    }
+}
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE2E8F0)))
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("FINANCE HISTORY", color = PrimaryBlue, fontSize = 12.sp, letterSpacing = 1.2.sp)
+@Composable
+private fun SpendingCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.horizontalGradient(listOf(Color(0xFF2F80ED), Color(0xFF4D8BEA))),
+                shape = RoundedCornerShape(32.dp)
+            )
+            .padding(24.dp)
+    ) {
+        Text("Total Spending", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(4.dp))
-        Text("Delivery Receipts", color = Color(0xFF0F172A), fontSize = 52.sp, fontWeight = FontWeight.SemiBold)
-
+        Text(
+            text = "$12,450.00",
+            color = Color(0xFFF1F2FF),
+            fontSize = 40.sp,
+            lineHeight = 44.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
         Spacer(modifier = Modifier.height(12.dp))
-
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.horizontalGradient(listOf(Color(0xFF3C86E8), Color(0xFF2E74D8))),
-                    RoundedCornerShape(28.dp)
-                )
-                .padding(18.dp)
+                .background(Color.White.copy(alpha = 0.14f), RoundedCornerShape(999.dp))
+                .padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Total Spending", color = Color.White.copy(alpha = 0.9f), fontSize = 16.sp)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text("$12,450.00", color = Color.White, fontSize = 52.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(10.dp))
-            Box(
-                modifier = Modifier
-                    .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(999.dp))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Text("↗ +12.5% vs last month", color = Color.White, fontSize = 13.sp)
-            }
+            Text("↗", color = Color.White, fontSize = 10.sp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text("+12.5% vs last month", color = Color(0xFFF1F2FF), fontSize = 12.sp, fontWeight = FontWeight.Medium)
         }
+    }
+}
 
+@Composable
+private fun SearchCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
+            .padding(20.dp)
+    ) {
+        Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(14.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
-                .padding(14.dp)
-        ) {
-            Text("Quick Search", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(10.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF3F6FB), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 14.dp, vertical = 12.dp)
-            ) {
-                Text("⌕  Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\nExpress", "$245.00")
-        Spacer(modifier = Modifier.height(10.dp))
-        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\nStandard", "$1,120.50", highlighted = true)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DetailedReceiptCard()
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\nEconomy", "$56.20")
-
-        Spacer(modifier = Modifier.height(14.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            MiniTab("◷", "Payments", false)
-            MiniTab("▭", "Methods", false)
-            MiniTab("▤", "Invoices", true)
-            MiniTab("⚙", "Settings", false)
+            Text("⌕", color = PrimaryBlue, fontSize = 16.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -147,47 +201,80 @@ private fun ReceiptRow(
     orderId: String,
     subtitle: String,
     amount: String,
-    highlighted: Boolean = false
+    selected: Boolean
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
+            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
             .border(
-                width = if (highlighted) 2.dp else 0.dp,
-                color = if (highlighted) Color(0xFF3B82F6) else Color.Transparent,
-                shape = RoundedCornerShape(18.dp)
+                width = if (selected) 0.dp else 0.dp,
+                color = Color.Transparent,
+                shape = RoundedCornerShape(16.dp)
             )
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .let {
+                if (selected) {
+                    it.border(4.dp, Color.Transparent, RoundedCornerShape(16.dp))
+                        .padding(start = 0.dp)
+                } else {
+                    it
+                }
+            }
+            .padding(start = if (selected) 0.dp else 0.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .background(Color(0xFFEFF4FB), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
-        ) { Text(if (highlighted) "◈" else "🚚", color = PrimaryBlue) }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Order $orderId", color = Color(0xFF111827), fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, color = Color(0xFF111827), fontSize = 14.sp, lineHeight = 18.sp)
-        }
-
-        Column(horizontalAlignment = Alignment.End) {
-            Text(amount, color = Color(0xFF111827), fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+        if (selected) {
             Box(
                 modifier = Modifier
-                    .background(Color(0xFFE7F0FF), RoundedCornerShape(999.dp))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            ) {
-                Text("PAID", color = PrimaryBlue, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-            }
+                    .width(4.dp)
+                    .height(86.dp)
+                    .background(PrimaryBlue, RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
+            )
         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(Color.White, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("▣", color = PrimaryBlue, fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.width(12.dp))
 
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("›", color = PrimaryBlue, fontSize = 24.sp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Order $orderId",
+                    color = Color.Black,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = subtitle,
+                    color = Color.Black,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(horizontalAlignment = Alignment.End) {
+                Text(amount, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Box(
+                    modifier = Modifier
+                        .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
+                        .padding(horizontal = 8.dp, vertical = 1.dp)
+                ) {
+                    Text("PAID", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp, fontWeight = FontWeight.Medium)
+                }
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Text("›", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 
@@ -196,53 +283,81 @@ private fun DetailedReceiptCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFD1E1F0), RoundedCornerShape(28.dp))
-            .border(1.dp, Color(0xFFC0D3E6), RoundedCornerShape(28.dp))
-            .padding(16.dp)
+            .background(Color(0x33A6D2F3), RoundedCornerShape(36.dp))
+            .padding(4.dp)
     ) {
-        Row(verticalAlignment = Alignment.Top) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .background(Color(0xFFEAF2FB), RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) { Text("📦", color = Color(0xFFC0882D), fontSize = 20.sp) }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("DETAILED VIEW", color = PrimaryBlue, fontSize = 11.sp, letterSpacing = 1.sp)
-                Text("Order #CR-\n99054", color = Color(0xFF0F172A), fontSize = 44.sp, lineHeight = 44.sp, fontWeight = FontWeight.SemiBold)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
+                .padding(24.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(Color(0xFFEFF6FF), RoundedCornerShape(16.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("📦", fontSize = 20.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            "DETAILED VIEW",
+                            color = PrimaryBlue,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            "Order #CR-\n99054",
+                            color = Color.Black,
+                            fontSize = 36.sp,
+                            lineHeight = 40.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                Text("⇩", color = PrimaryBlue, fontSize = 16.sp)
             }
-            Text("⇩", color = PrimaryBlue, fontSize = 24.sp)
-        }
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("DATE", color = PrimaryBlue, fontSize = 11.sp, letterSpacing = 0.8.sp)
-                Text("October 18, 2023", color = Color(0xFF0F172A), fontSize = 15.sp)
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("DATE", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("October 18, 2023", color = Color.Black, fontSize = 14.sp)
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("PAYMENT METHOD", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Visa ending in\n••44", color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
+                }
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("PAYMENT METHOD", color = PrimaryBlue, fontSize = 11.sp, letterSpacing = 0.8.sp)
-                Text("Visa ending in\n••44", color = Color(0xFF0F172A), fontSize = 15.sp)
+
+            Spacer(modifier = Modifier.height(18.dp))
+            HorizontalDivider(color = Color(0xFFA7AAD7).copy(alpha = 0.8f))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LineAmountRow("Logistics Service (International)", "$850.00")
+            Spacer(modifier = Modifier.height(12.dp))
+            LineAmountRow("Insurance Premium", "$45.00")
+            Spacer(modifier = Modifier.height(12.dp))
+            LineAmountRow("Priority Handling Fee", "$25.00")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+                Text("$920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
             }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFABC3DB)))
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LineAmountRow("Logistics Service (International)", "$850.00")
-        Spacer(modifier = Modifier.height(8.dp))
-        LineAmountRow("Insurance Premium", "$45.00")
-        Spacer(modifier = Modifier.height(8.dp))
-        LineAmountRow("Priority Handling Fee", "$25.00")
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Total Amount", color = PrimaryBlue, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            Text("$920.00", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -250,21 +365,49 @@ private fun DetailedReceiptCard() {
 @Composable
 private fun LineAmountRow(title: String, amount: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(title, color = Color(0xFF111827), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(amount, color = Color(0xFF111827), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = title,
+            color = Color.Black,
+            fontSize = 14.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(text = amount, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
 @Composable
-private fun MiniTab(icon: String, label: String, selected: Boolean) {
+private fun ReceiptsBottomBar() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .navigationBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceAround
+    ) {
+        BottomItem("◫", "Payments", selected = false)
+        BottomItem("▭", "Methods", selected = false)
+        BottomItem("▣", "Invoices", selected = true)
+        BottomItem("⚙", "Settings", selected = false)
+    }
+}
+
+@Composable
+private fun BottomItem(icon: String, label: String, selected: Boolean) {
     Column(
         modifier = Modifier
-            .background(if (selected) Color(0xFFDCE9FF) else Color.Transparent, RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .background(if (selected) Color(0xFFEFF6FF) else Color.Transparent, RoundedCornerShape(16.dp))
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color(0xFF94A3B8), fontSize = 16.sp)
+        Text(icon, color = if (selected) PrimaryBlue else Color.Black, fontSize = 15.sp)
         Spacer(modifier = Modifier.height(2.dp))
-        Text(label, color = if (selected) PrimaryBlue else Color(0xFF94A3B8), fontSize = 12.sp)
+        Text(
+            label,
+            color = if (selected) PrimaryBlue else Color.Black,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

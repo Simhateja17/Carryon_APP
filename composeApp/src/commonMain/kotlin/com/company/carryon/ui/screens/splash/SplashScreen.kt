@@ -46,11 +46,11 @@ fun SplashScreen(
                             } else {
                                 false
                             }
-                        } catch (_: Exception) {
+                        } catch (_: Throwable) {
                             false
                         }
                     }
-                } catch (_: Exception) {
+                } catch (_: Throwable) {
                     false
                 }
             }

@@ -33,6 +33,7 @@ import com.company.carryon.ui.screens.calculate.CalculateScreen
 import com.company.carryon.ui.screens.history.HistoryScreen
 import com.company.carryon.ui.screens.tracking.TrackShipmentScreen
 import com.company.carryon.ui.screens.tracking.TrackingLiveScreen
+import com.company.carryon.ui.screens.tracking.TrackingScreen
 import com.company.carryon.ui.screens.tracking.PackageDetailsScreen
 import com.company.carryon.ui.screens.orders.OrdersScreen
 import com.company.carryon.ui.screens.booking.BookingScreen
@@ -95,6 +96,7 @@ sealed class AppScreen {
     data object Calculate : AppScreen()
     data object History : AppScreen()
     data object TrackShipment : AppScreen()
+    data class TrackOrder(val bookingId: String) : AppScreen()
     data class TrackingLive(val bookingId: String) : AppScreen()
     data object Orders : AppScreen()
     data class PackageDetails(val orderId: String) : AppScreen()
@@ -221,7 +223,7 @@ fun App() {
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
         is AppScreen.Calculate, is AppScreen.Details, is AppScreen.RequestForRide -> 0
-        is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment,
+        is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment, is AppScreen.TrackOrder,
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
         is AppScreen.BookingPayment, is AppScreen.SearchingDriver, is AppScreen.DeliveryScheduled,
@@ -408,12 +410,22 @@ fun App() {
                     onBack = { currentScreen = AppScreen.TrackShipment }
                 )
             }
+            is AppScreen.TrackOrder -> {
+                TrackingScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.Orders },
+                    onNavigateToHome = { currentScreen = AppScreen.Home }
+                )
+            }
             is AppScreen.Orders -> {
                 OrdersScreen(
                     onBack = { currentScreen = AppScreen.Home },
                     onOrderClick = { orderId ->
                         currentScreen = AppScreen.DeliveryDetails(orderId)
-                    }
+                    },
+                    onTrackOrder = { orderId ->
+                        currentScreen = AppScreen.TrackOrder(orderId)
+                    },
                 )
             }
             is AppScreen.PackageDetails -> {

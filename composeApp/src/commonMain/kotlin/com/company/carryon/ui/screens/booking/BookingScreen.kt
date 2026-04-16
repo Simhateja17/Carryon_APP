@@ -36,7 +36,9 @@ import com.company.carryon.data.model.LatLng
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Vehicle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class VehicleOption(
     val id: String,
@@ -90,7 +92,7 @@ fun BookingScreen(
     // Fetch vehicles from API
     LaunchedEffect(Unit) {
         isLoadingVehicles = true
-        BookingApi.getVehicles().onSuccess { response ->
+        withContext(Dispatchers.Default) { BookingApi.getVehicles() }.onSuccess { response ->
             val apiVehicles = response.data ?: emptyList()
             // Map API vehicles to VehicleOption with icons
             val iconMap = mapOf(

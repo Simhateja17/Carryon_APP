@@ -52,6 +52,8 @@ import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -68,7 +70,8 @@ fun WalletScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        WalletApi.getWallet().onSuccess { response ->
+        val result = withContext(Dispatchers.Default) { WalletApi.getWallet() }
+        result.onSuccess { response ->
             wallet = response.data
         }
         isLoading = false

@@ -57,12 +57,11 @@ import carryon.composeapp.generated.resources.car_two_seater
 import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.home_current_location_icon
 import carryon.composeapp.generated.resources.home_delivery_progress_icon
-import carryon.composeapp.generated.resources.home_enter_pickup_icon
 import carryon.composeapp.generated.resources.home_estimated_logistics_icon
-import carryon.composeapp.generated.resources.home_home_icon
 import carryon.composeapp.generated.resources.home_recent_delivery_icon
-import carryon.composeapp.generated.resources.home_where_deliver_icon
 import carryon.composeapp.generated.resources.home_work_icon
+import carryon.composeapp.generated.resources.icon_home
+import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.mini_van
 import carryon.composeapp.generated.resources.open_truck
 import carryon.composeapp.generated.resources.truck
@@ -82,8 +81,10 @@ import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -160,27 +161,32 @@ fun HomeScreen(
             VehicleOption(Res.drawable.open_truck, "Open Truck", "RM 40")
         )
 
-        BookingApi.getVehicles()
-            .onSuccess { response ->
-                val apiVehicles = response.data.orEmpty()
-                vehicleOptions = if (apiVehicles.isNotEmpty()) {
-                    apiVehicles.map { vehicle ->
-                        val icon = iconMap[vehicle.type.lowercase()] ?: Res.drawable.car_4_seater
-                        val displayName = when (vehicle.type.lowercase()) {
-                            "bike" -> "Bike"
-                            "auto" -> "Car (2-Seat)"
-                            "car" -> "Car (4-Seat)"
-                            "mini truck", "minitruck" -> "Mini Van"
-                            "truck" -> "Truck"
-                            else -> vehicle.type
+        try {
+            withContext(Dispatchers.Default) { BookingApi.getVehicles() }
+                .onSuccess { response ->
+                    val apiVehicles = response.data.orEmpty()
+                    vehicleOptions = if (apiVehicles.isNotEmpty()) {
+                        apiVehicles.map { vehicle ->
+                            val type = vehicle.type.lowercase()
+                            val icon = iconMap[type] ?: Res.drawable.car_4_seater
+                            val displayName = when (type) {
+                                "bike" -> "Bike"
+                                "auto" -> "Car (2-Seat)"
+                                "car" -> "Car (4-Seat)"
+                                "mini truck", "minitruck" -> "Mini Van"
+                                "truck" -> "Truck"
+                                else -> vehicle.type
+                            }
+                            VehicleOption(icon, displayName, "RM ${vehicle.basePrice.toInt()}")
                         }
-                        VehicleOption(icon, displayName, "RM ${vehicle.basePrice.toInt()}")
-                    }
-                } else defaultVehicles
-            }
-            .onFailure { vehicleOptions = defaultVehicles }
-
-        isLoadingVehicles = false
+                    } else defaultVehicles
+                }
+                .onFailure { vehicleOptions = defaultVehicles }
+        } catch (_: Throwable) {
+            vehicleOptions = defaultVehicles
+        } finally {
+            isLoadingVehicles = false
+        }
     }
 
     val requestLocation = rememberLocationRequester(
@@ -334,10 +340,9 @@ fun HomeScreen(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Image(
-                            painter = painterResource(Res.drawable.home_delivery_progress_icon),
+                                painter = painterResource(Res.drawable.home_delivery_progress_icon),
                             contentDescription = "Delivery in progress",
-                            modifier = Modifier.size(14.dp),
-                            contentScale = ContentScale.Fit
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
@@ -374,9 +379,9 @@ fun HomeScreen(
                 },
                 leadingIcon = {
                     Image(
-                        painter = painterResource(Res.drawable.home_enter_pickup_icon),
+                        painter = painterResource(Res.drawable.icon_map),
                         contentDescription = "Enter pickup location",
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(14.dp),
                         contentScale = ContentScale.Fit
                     )
                 },
@@ -444,9 +449,9 @@ fun HomeScreen(
                 placeholder = { Text("Where should we deliver?", color = Color(0xFF90A0B7)) },
                 leadingIcon = {
                     Image(
-                        painter = painterResource(Res.drawable.home_where_deliver_icon),
+                        painter = painterResource(Res.drawable.icon_home),
                         contentDescription = "Where should we deliver",
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(14.dp),
                         contentScale = ContentScale.Fit
                     )
                 },
@@ -521,7 +526,7 @@ fun HomeScreen(
             QuickLocationChip(
                 title = "Home",
                 selected = false,
-                iconRes = Res.drawable.home_home_icon,
+                iconRes = Res.drawable.icon_home,
                 onClick = { pickupLocation = "Home" }
             )
             QuickLocationChip(
@@ -593,8 +598,7 @@ fun HomeScreen(
                             Image(
                                 painter = painterResource(Res.drawable.home_estimated_logistics_icon),
                                 contentDescription = "Estimated logistics",
-                                modifier = Modifier.size(14.dp),
-                                contentScale = ContentScale.Fit
+                                modifier = Modifier.size(14.dp)
                             )
                         }
                     }
@@ -637,7 +641,7 @@ fun HomeScreen(
             SavedAddressCard(
                 title = "Home",
                 subtitle = "Sector 45, Gurgaon...",
-                iconRes = Res.drawable.home_home_icon,
+                iconRes = Res.drawable.icon_home,
                 modifier = Modifier.weight(1f)
             )
             SavedAddressCard(
@@ -671,7 +675,7 @@ private fun QuickLocationChip(
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = title,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(5.dp))
@@ -760,8 +764,7 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
                     Image(
                         painter = painterResource(Res.drawable.home_recent_delivery_icon),
                         contentDescription = "Recent delivery",
-                        modifier = Modifier.size(14.dp),
-                        contentScale = ContentScale.Fit
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }
@@ -803,7 +806,7 @@ private fun SavedAddressCard(
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = title,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(14.dp),
                 contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.height(4.dp))

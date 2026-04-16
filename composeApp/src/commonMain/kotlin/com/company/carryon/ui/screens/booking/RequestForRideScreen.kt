@@ -27,7 +27,9 @@ import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +71,7 @@ fun RequestForRideScreen(
     // Fetch vehicle prices from API
     LaunchedEffect(vehicleType) {
         isLoadingVehicles = true
-        BookingApi.getVehicles().onSuccess { response ->
+        withContext(Dispatchers.Default) { BookingApi.getVehicles() }.onSuccess { response ->
             val vehicles = response.data ?: emptyList()
             // Map vehicle type to API vehicle
             val vehicleTypeMapping = mapOf(

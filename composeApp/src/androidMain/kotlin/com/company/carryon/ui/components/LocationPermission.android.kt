@@ -65,33 +65,45 @@ private fun fetchCurrentLocation(
     onLocation: (Double, Double) -> Unit,
     onDenied: () -> Unit
 ) {
-    // Try last known location first — fast and battery-free
-    fusedClient.lastLocation.addOnSuccessListener { location ->
-        if (location != null) {
-            onLocation(location.latitude, location.longitude)
-        } else {
-            // No cached location — request a fresh single fix
-            val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
-                .setMaxUpdates(1)
-                .build()
+    try {
+        // Try last known location first — fast and battery-free
+        fusedClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                onLocation(location.latitude, location.longitude)
+            } else {
+                // No cached location — request a fresh single fix
+                val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 0)
+                    .setMaxUpdates(1)
+                    .build()
 
-            fusedClient.requestLocationUpdates(
-                request,
-                object : LocationCallback() {
-                    override fun onLocationResult(result: LocationResult) {
-                        fusedClient.removeLocationUpdates(this)
-                        val loc = result.lastLocation
-                        if (loc != null) {
-                            onLocation(loc.latitude, loc.longitude)
-                        } else {
-                            onDenied()
-                        }
-                    }
-                },
-                Looper.getMainLooper()
-            )
+                try {
+                    fusedClient.requestLocationUpdates(
+                        request,
+                        object : LocationCallback() {
+                            override fun onLocationResult(result: LocationResult) {
+                                fusedClient.removeLocationUpdates(this)
+                                val loc = result.lastLocation
+                                if (loc != null) {
+                                    onLocation(loc.latitude, loc.longitude)
+                                } else {
+                                    onDenied()
+                                }
+                            }
+                        },
+                        Looper.getMainLooper()
+                    )
+                } catch (_: SecurityException) {
+                    onDenied()
+                } catch (_: Exception) {
+                    onDenied()
+                }
+            }
+        }.addOnFailureListener {
+            onDenied()
         }
-    }.addOnFailureListener {
+    } catch (_: SecurityException) {
+        onDenied()
+    } catch (_: Exception) {
         onDenied()
     }
 }
