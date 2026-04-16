@@ -76,7 +76,7 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(bottom = 190.dp)
+                        .padding(bottom = 130.dp)
                 ) {
                     Row(
                         modifier = Modifier

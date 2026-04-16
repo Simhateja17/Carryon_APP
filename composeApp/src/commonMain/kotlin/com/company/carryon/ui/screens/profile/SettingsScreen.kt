@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -14,13 +15,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.settings_auto_apply_coupons_icon
+import carryon.composeapp.generated.resources.settings_clear_cache_icon
+import carryon.composeapp.generated.resources.settings_dark_mode_icon
+import carryon.composeapp.generated.resources.settings_data_saver_mode_icon
+import carryon.composeapp.generated.resources.settings_default_vehicle_icon
+import carryon.composeapp.generated.resources.settings_language_icon
+import carryon.composeapp.generated.resources.settings_logout_icon
+import carryon.composeapp.generated.resources.settings_save_last_address_icon
 import com.company.carryon.ui.theme.*
 import com.company.carryon.ui.components.getLanguageDisplayName
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.data.network.getLanguage
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+
+private val SettingsCardBackground = Color(0x33A6D2F3)
 
 @Composable
 fun SettingsScreen(
@@ -143,14 +158,14 @@ fun SettingsScreen(
 
             SettingsGroupCard {
                 SettingsToggleRow(
-                    icon = "☾",
+                    iconRes = Res.drawable.settings_dark_mode_icon,
                     title = "Dark Mode",
                     titleColor = PrimaryBlue,
                     checked = darkModeEnabled,
                     onCheckedChange = { darkModeEnabled = it }
                 )
                 SettingsNavRow(
-                    icon = "🌐",
+                    iconRes = Res.drawable.settings_language_icon,
                     title = "Language",
                     titleColor = PrimaryBlue,
                     trailingText = getLanguageDisplayName(currentLanguage),
@@ -164,12 +179,12 @@ fun SettingsScreen(
                 heading = "DELIVERY PREFERENCES"
             ) {
                 SettingsNavRow(
-                    icon = "🏠",
+                    iconRes = Res.drawable.settings_save_last_address_icon,
                     title = "Saved address",
                     onClick = { onNavigateToSavedAddresses() }
                 )
                 SettingsNavRow(
-                    icon = "🚚",
+                    iconRes = Res.drawable.settings_default_vehicle_icon,
                     title = "Default Vehicle",
                     onClick = { onNavigateToDefaultVehicle() }
                 )
@@ -181,13 +196,13 @@ fun SettingsScreen(
                 heading = "APP AUTOMATION"
             ) {
                 SettingsToggleRow(
-                    icon = "🎟",
+                    iconRes = Res.drawable.settings_auto_apply_coupons_icon,
                     title = "Auto-apply coupons",
                     checked = autoApplyCoupons,
                     onCheckedChange = { autoApplyCoupons = it }
                 )
                 SettingsToggleRow(
-                    icon = "📍",
+                    iconRes = Res.drawable.settings_save_last_address_icon,
                     title = "Save last address",
                     checked = saveLastAddress,
                     onCheckedChange = { saveLastAddress = it }
@@ -200,12 +215,12 @@ fun SettingsScreen(
                 heading = "DATA & SECURITY"
             ) {
                 SettingsNavRow(
-                    icon = "🧹",
+                    iconRes = Res.drawable.settings_clear_cache_icon,
                     title = "Clear cache",
                     onClick = { onNavigateToClearCache() }
                 )
                 SettingsToggleRow(
-                    icon = "✈",
+                    iconRes = Res.drawable.settings_data_saver_mode_icon,
                     title = "Data saver mode",
                     checked = dataSaverMode,
                     onCheckedChange = { dataSaverMode = it }
@@ -218,17 +233,26 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .background(Color(0xFFDCE6F1), RoundedCornerShape(24.dp))
+                    .background(SettingsCardBackground, RoundedCornerShape(24.dp))
                     .clickable { }
                     .border(1.dp, Color(0xFFD5E1EF), RoundedCornerShape(24.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "↪ Log Out",
-                    color = PrimaryBlue,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(Res.drawable.settings_logout_icon),
+                        contentDescription = "Log Out",
+                        modifier = Modifier.size(20.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Log Out",
+                        color = PrimaryBlue,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(22.dp))
@@ -261,7 +285,7 @@ private fun SettingsGroupCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(24.dp))
+            .background(SettingsCardBackground, RoundedCornerShape(24.dp))
             .border(1.dp, Color(0xFFD5E1EF), RoundedCornerShape(24.dp))
             .padding(8.dp)
     ) {
@@ -281,7 +305,7 @@ private fun SettingsGroupCard(
 
 @Composable
 private fun SettingsNavRow(
-    icon: String,
+    iconRes: DrawableResource,
     title: String,
     titleColor: Color = Color.Black,
     trailingText: String? = null,
@@ -300,7 +324,12 @@ private fun SettingsNavRow(
                 .background(Color.White, RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, color = PrimaryBlue)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -327,7 +356,7 @@ private fun SettingsNavRow(
 
 @Composable
 private fun SettingsToggleRow(
-    icon: String,
+    iconRes: DrawableResource,
     title: String,
     titleColor: Color = Color.Black,
     checked: Boolean,
@@ -345,7 +374,12 @@ private fun SettingsToggleRow(
                 .background(Color.White, RoundedCornerShape(16.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, color = PrimaryBlue)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(20.dp),
+                contentScale = ContentScale.Fit
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -362,7 +396,7 @@ private fun SettingsToggleRow(
                 .width(44.dp)
                 .height(24.dp)
                 .background(
-                    if (checked) PrimaryBlue else Color(0xFFA6D2F333),
+                    if (checked) Color(0xFF2F80ED) else Color(0xFFA6D2F3),
                     CircleShape
                 )
                 .clickable { onCheckedChange(!checked) }
@@ -372,10 +406,8 @@ private fun SettingsToggleRow(
             Box(
                 modifier = Modifier
                     .size(20.dp)
-                    .background(
-                        if (checked) Color(0xFFA6D2F3) else Color.White,
-                        CircleShape
-                    )
+                    .background(Color.White, CircleShape)
+                    .border(1.dp, Color.White, CircleShape)
             )
         }
     }

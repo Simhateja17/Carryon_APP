@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.wallet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,15 +34,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.wallet_add_money_icon
+import carryon.composeapp.generated.resources.wallet_delivery_icon
+import carryon.composeapp.generated.resources.wallet_download_invoice_icon
+import carryon.composeapp.generated.resources.wallet_google_pay_upi_icon
+import carryon.composeapp.generated.resources.wallet_hdfc_bank_card_icon
+import carryon.composeapp.generated.resources.wallet_send_money_icon
+import carryon.composeapp.generated.resources.wallet_view_receipts_icon
 import com.company.carryon.data.model.Wallet
 import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun WalletScreen(
@@ -56,7 +70,8 @@ fun WalletScreen(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        WalletApi.getWallet().onSuccess { response ->
+        val result = withContext(Dispatchers.Default) { WalletApi.getWallet() }
+        result.onSuccess { response ->
             wallet = response.data
         }
         isLoading = false
@@ -131,7 +146,16 @@ fun WalletScreen(
                             .fillMaxWidth()
                             .height(46.dp)
                     ) {
-                        Text("⊕ Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                painter = painterResource(Res.drawable.wallet_add_money_icon),
+                                contentDescription = "Add Money",
+                                modifier = Modifier.size(18.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
@@ -141,9 +165,9 @@ fun WalletScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ActionItem("➕", "Add Money", onClick = onAddMoney)
-                    ActionItem("⟲", "Send Money", onClick = onSendMoney)
-                    ActionItem("⌂", "Withdraw")
+                    ActionItem(Res.drawable.wallet_add_money_icon, "Add Money", onClick = onAddMoney)
+                    ActionItem(Res.drawable.wallet_send_money_icon, "Send Money", onClick = onSendMoney)
+                    ActionItem(Res.drawable.wallet_google_pay_upi_icon, "Withdraw")
                 }
             }
 
@@ -213,14 +237,14 @@ fun WalletScreen(
                         modifier = Modifier.weight(1f),
                         title = "Download Invoice",
                         subtitle = "Monthly statement",
-                        icon = "⇩",
+                        iconRes = Res.drawable.wallet_download_invoice_icon,
                         onClick = onDownloadInvoices
                     )
                     UtilityCard(
                         modifier = Modifier.weight(1f),
                         title = "View Receipts",
                         subtitle = "Individual orders",
-                        icon = "⌕",
+                        iconRes = Res.drawable.wallet_view_receipts_icon,
                         onClick = onViewReceipts
                     )
                 }
@@ -230,19 +254,22 @@ fun WalletScreen(
 }
 
 @Composable
-private fun ActionItem(icon: String, label: String, onClick: (() -> Unit)? = null) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun ActionItem(iconRes: DrawableResource, label: String, onClick: (() -> Unit)? = null) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = if (onClick != null) Modifier.clickable { onClick() } else Modifier
+    ) {
         Box(
             modifier = Modifier
                 .size(56.dp)
                 .background(Color(0xFFE8F1FC), RoundedCornerShape(18.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                icon,
-                color = PrimaryBlue,
-                fontSize = 20.sp,
-                modifier = if (onClick != null) Modifier.clickable { onClick() } else Modifier
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = label,
+                modifier = Modifier.size(24.dp),
+                contentScale = ContentScale.Fit
             )
         }
         Spacer(modifier = Modifier.height(6.dp))
@@ -250,8 +277,7 @@ private fun ActionItem(icon: String, label: String, onClick: (() -> Unit)? = nul
             label,
             color = Color.Black,
             fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = if (onClick != null) Modifier.clickable { onClick() } else Modifier
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -268,13 +294,23 @@ private fun TransactionRow(txn: WalletTransaction) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val deliveryLike = title == "Delivery #CN-9281" || title == "Delivery #CN-8822" || title.startsWith("Delivery #CN-")
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .background(Color(0xFFE7EEF9), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text(if (isCredit) "↥" else "◫", color = PrimaryBlue, fontSize = 16.sp)
+            if (deliveryLike) {
+                Image(
+                    painter = painterResource(Res.drawable.wallet_delivery_icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(20.dp),
+                    contentScale = ContentScale.Fit
+                )
+            } else {
+                Text(if (isCredit) "↥" else "◫", color = PrimaryBlue, fontSize = 16.sp)
+            }
         }
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -291,7 +327,7 @@ private fun TransactionRow(txn: WalletTransaction) {
 }
 
 @Composable
-private fun PaymentMethodItem(title: String, subtitle: String) {
+private fun PaymentMethodItem(iconRes: DrawableResource, title: String, subtitle: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -306,7 +342,12 @@ private fun PaymentMethodItem(title: String, subtitle: String) {
                 .background(Color(0xFFE7EEF9), RoundedCornerShape(10.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Text("⌂", color = PrimaryBlue, fontSize = 14.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(18.dp),
+                contentScale = ContentScale.Fit
+            )
         }
         Spacer(modifier = Modifier.width(10.dp))
         Column(modifier = Modifier.weight(1f)) {
@@ -322,7 +363,7 @@ private fun UtilityCard(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
-    icon: String,
+    iconRes: DrawableResource,
     onClick: () -> Unit
 ) {
     Column(
@@ -338,7 +379,12 @@ private fun UtilityCard(
                 .background(Color(0xFFE7EEF9), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(icon, color = PrimaryBlue, fontSize = 14.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(18.dp),
+                contentScale = ContentScale.Fit
+            )
         }
         Spacer(modifier = Modifier.height(12.dp))
         Text(title, color = Color.Black, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)

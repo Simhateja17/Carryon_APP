@@ -33,6 +33,7 @@ import com.company.carryon.ui.screens.calculate.CalculateScreen
 import com.company.carryon.ui.screens.history.HistoryScreen
 import com.company.carryon.ui.screens.tracking.TrackShipmentScreen
 import com.company.carryon.ui.screens.tracking.TrackingLiveScreen
+import com.company.carryon.ui.screens.tracking.TrackingScreen
 import com.company.carryon.ui.screens.tracking.PackageDetailsScreen
 import com.company.carryon.ui.screens.orders.OrdersScreen
 import com.company.carryon.ui.screens.booking.BookingScreen
@@ -77,6 +78,7 @@ import com.company.carryon.ui.screens.profile.LoggedInDevicesScreen
 import com.company.carryon.ui.screens.profile.PrivacySecurityScreen
 import com.company.carryon.ui.screens.profile.SavedAddressesScreen
 import com.company.carryon.ui.screens.help.HelpScreen
+import com.company.carryon.data.network.AuthStateManager
 import com.company.carryon.data.network.clearToken
 import com.company.carryon.data.network.getLanguage
 import com.company.carryon.data.network.SupabaseConfig
@@ -95,6 +97,7 @@ sealed class AppScreen {
     data object Calculate : AppScreen()
     data object History : AppScreen()
     data object TrackShipment : AppScreen()
+    data class TrackOrder(val bookingId: String) : AppScreen()
     data class TrackingLive(val bookingId: String) : AppScreen()
     data object Orders : AppScreen()
     data class PackageDetails(val orderId: String) : AppScreen()
@@ -158,6 +161,8 @@ sealed class AppScreen {
         val receiverName: String = "",
         val receiverPhone: String = "",
         val receiverEmail: String = "",
+        val deliveryMode: String = "Regular",
+        val offloading: Boolean = false,
         val fromHome: Boolean = false
     ) : AppScreen()
     data object Settings : AppScreen()
@@ -190,6 +195,19 @@ fun App() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
     val scope = rememberCoroutineScope()
+    val isLoggedIn by AuthStateManager.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn, currentScreen) {
+        val isPublicScreen = currentScreen is AppScreen.Splash ||
+            currentScreen is AppScreen.Welcome ||
+            currentScreen is AppScreen.Login ||
+            currentScreen is AppScreen.Register ||
+            currentScreen is AppScreen.Otp
+
+        if (!isLoggedIn && !isPublicScreen) {
+            currentScreen = AppScreen.Welcome
+        }
+    }
 
     val showBottomBar = currentScreen !is AppScreen.Splash &&
         currentScreen !is AppScreen.Welcome &&
@@ -223,7 +241,7 @@ fun App() {
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
         is AppScreen.Calculate, is AppScreen.Details, is AppScreen.RequestForRide -> 0
-        is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment,
+        is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment, is AppScreen.TrackOrder,
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
         is AppScreen.BookingPayment, is AppScreen.SearchingDriver, is AppScreen.DeliveryScheduled,
@@ -259,7 +277,10 @@ fun App() {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
-                    onLoggedIn = { currentScreen = AppScreen.Home },
+                    onLoggedIn = {
+                        AuthStateManager.setLoggedIn(true)
+                        currentScreen = AppScreen.Home
+                    },
                     onNotLoggedIn = { currentScreen = AppScreen.Welcome }
                 )
             }
@@ -273,7 +294,10 @@ fun App() {
                 LoginScreen(
                     onNavigateToOtp = { email -> currentScreen = AppScreen.Otp(email) },
                     onNavigateToRegister = { currentScreen = AppScreen.Register() },
-                    onGoogleSignInSuccess = { currentScreen = AppScreen.Home }
+                    onGoogleSignInSuccess = {
+                        AuthStateManager.setLoggedIn(true)
+                        currentScreen = AppScreen.Home
+                    }
                 )
             }
             is AppScreen.Register -> {
@@ -290,7 +314,10 @@ fun App() {
                     email = screen.email,
                     mode = screen.mode,
                     name = screen.name,
-                    onVerifySuccess = { currentScreen = AppScreen.Home },
+                    onVerifySuccess = {
+                        AuthStateManager.setLoggedIn(true)
+                        currentScreen = AppScreen.Home
+                    },
                     onBack = { currentScreen = AppScreen.Login }
                 )
             }
@@ -326,6 +353,7 @@ fun App() {
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
                     onNavigateToPromo = { currentScreen = AppScreen.PrivacySecurity },
                     onLogout = {
+                        AuthStateManager.setLoggedIn(false)
                         clearToken()
                         scope.launch {
                             try { SupabaseConfig.client.auth.signOut() } catch (_: Exception) { }
@@ -413,12 +441,22 @@ fun App() {
                     onBack = { currentScreen = AppScreen.TrackShipment }
                 )
             }
+            is AppScreen.TrackOrder -> {
+                TrackingScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.Orders },
+                    onNavigateToHome = { currentScreen = AppScreen.Home }
+                )
+            }
             is AppScreen.Orders -> {
                 OrdersScreen(
                     onBack = { currentScreen = AppScreen.Home },
                     onOrderClick = { orderId ->
                         currentScreen = AppScreen.DeliveryDetails(orderId)
-                    }
+                    },
+                    onTrackOrder = { orderId ->
+                        currentScreen = AppScreen.TrackOrder(orderId)
+                    },
                 )
             }
             is AppScreen.PackageDetails -> {
@@ -639,8 +677,8 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone ->
-                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "")
+                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, deliveryMode, offloading ->
+                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "", deliveryMode, offloading)
                     },
                     onBack = {
                         currentScreen = if (screen.fromHome) {
@@ -665,6 +703,8 @@ fun App() {
                     receiverName = screen.receiverName,
                     receiverPhone = screen.receiverPhone,
                     receiverEmail = screen.receiverEmail,
+                    deliveryMode = screen.deliveryMode,
+                    offloading = screen.offloading,
                     onContinue = { bookingId, amount ->
                         currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
                     },

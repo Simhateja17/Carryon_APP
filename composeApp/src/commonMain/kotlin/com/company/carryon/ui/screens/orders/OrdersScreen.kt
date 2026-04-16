@@ -72,7 +72,9 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
 data class OrderItem(
@@ -107,10 +109,20 @@ private enum class OrdersTab(val label: String) {
     CANCELLED("Cancelled")
 }
 
+private val OrderCardCornerRadius = 20.dp
+private val OrderCardHeadingFontSize = 22.sp
+private val OrderCardValueFontSize = 18.sp
+private val OrderCardSubValueFontSize = 14.sp
+private val OrderCardLabelFontSize = 10.sp
+private val OrderCardMetaFontSize = 12.sp
+private val OrderCardActionFontSize = 14.sp
+private val OrderCardStatusFontSize = 12.sp
+
 @Composable
 fun OrdersScreen(
     onBack: () -> Unit,
-    onOrderClick: (orderId: String) -> Unit
+    onOrderClick: (orderId: String) -> Unit,
+    onTrackOrder: (orderId: String) -> Unit = onOrderClick
 ) {
     var selectedTab by remember { mutableStateOf(OrdersTab.ALL) }
 
@@ -120,8 +132,9 @@ fun OrdersScreen(
 
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        BookingApi.getBookings()
+    suspend fun loadBookings() {
+        val result = withContext(Dispatchers.Default) { BookingApi.getBookings() }
+        result
             .onSuccess { response ->
                 bookings = response.data ?: emptyList()
                 error = null
@@ -131,6 +144,10 @@ fun OrdersScreen(
                 error = it.message ?: "Failed to load orders"
                 isLoading = false
             }
+    }
+
+    LaunchedEffect(Unit) {
+        loadBookings()
     }
 
     val orders = bookings.map { it.toOrderItem() }
@@ -209,7 +226,7 @@ fun OrdersScreen(
                         text = tab.label,
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                         color = if (isSelected) Color.White else Color(0xFF111827),
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Normal,
                         fontSize = 14.sp
                     )
                 }
@@ -231,16 +248,7 @@ fun OrdersScreen(
                     isLoading = true
                     error = null
                     scope.launch {
-                        BookingApi.getBookings()
-                            .onSuccess { response ->
-                                bookings = response.data ?: emptyList()
-                                error = null
-                                isLoading = false
-                            }
-                            .onFailure {
-                                error = it.message ?: "Failed to load orders"
-                                isLoading = false
-                            }
+                        loadBookings()
                     }
                 }
             )
@@ -385,7 +393,7 @@ private fun CompletedOrdersScreen(
                 text = "Orders",
                 color = Color(0xFF1D254B),
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium
             )
         }
 
@@ -407,7 +415,7 @@ private fun CompletedOrdersScreen(
                     text = "Scheduled",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                     color = Color(0xFF111827),
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Normal,
                     fontSize = 14.sp
                 )
             }
@@ -421,7 +429,7 @@ private fun CompletedOrdersScreen(
                     text = "Active",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                     color = Color(0xFF111827),
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Normal,
                     fontSize = 14.sp
                 )
             }
@@ -434,7 +442,7 @@ private fun CompletedOrdersScreen(
                     text = "Completed",
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Normal,
                     fontSize = 14.sp
                 )
             }
@@ -445,7 +453,7 @@ private fun CompletedOrdersScreen(
         Text(
             text = "Order History",
             color = Color(0xFF28345E),
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Medium,
             fontSize = 28.sp,
             lineHeight = 34.sp
         )
@@ -521,7 +529,7 @@ private fun OngoingDeliveriesScreen(
             Text(
                 text = "Deliveries",
                 color = PrimaryBlue,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 fontSize = 18.sp
             )
             Spacer(modifier = Modifier.weight(1f))
@@ -548,7 +556,7 @@ private fun OngoingDeliveriesScreen(
                 text = "Scheduled",
                 color = Color(0xFF94A3B8),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Normal,
                 modifier = Modifier.clickable { onDraftsClick() }
             )
             Text(
@@ -568,7 +576,7 @@ private fun OngoingDeliveriesScreen(
                     text = "Ongoing",
                     color = PrimaryBlue,
                     fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(
@@ -603,7 +611,7 @@ private fun OngoingDeliveryCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(1.dp, Color(0x10A7AAD7))
@@ -626,8 +634,8 @@ private fun OngoingDeliveryCard(
                     Text(
                         text = formatOrderDisplayId(card.orderId),
                         color = Color.Black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold
+                        fontSize = OrderCardHeadingFontSize,
+                        fontWeight = FontWeight.Medium
                     )
                 }
 
@@ -647,8 +655,8 @@ private fun OngoingDeliveryCard(
                         Text(
                             text = card.statusLabel,
                             color = PrimaryBlue,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = OrderCardLabelFontSize,
+                            fontWeight = FontWeight.Medium,
                             letterSpacing = 0.25.sp
                         )
                     }
@@ -686,12 +694,12 @@ private fun OngoingDeliveryCard(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("COURIER", fontSize = 9.sp, color = Color(0xFF71749E), fontWeight = FontWeight.SemiBold)
-                        Text(card.courierName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+                        Text("COURIER", fontSize = OrderCardLabelFontSize, color = Color(0xFF71749E), fontWeight = FontWeight.Normal)
+                        Text(card.courierName, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium, color = Color.Black)
                     }
                     Column(horizontalAlignment = Alignment.End) {
-                        Text("ETA", fontSize = 9.sp, color = Color(0xFF71749E), fontWeight = FontWeight.SemiBold)
-                        Text("${card.etaMinutes} MINS", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = PrimaryBlue)
+                        Text("ETA", fontSize = OrderCardLabelFontSize, color = Color(0xFF71749E), fontWeight = FontWeight.Normal)
+                        Text("${card.etaMinutes} MINS", fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium, color = PrimaryBlue)
                     }
                 }
             }
@@ -752,14 +760,14 @@ private fun OngoingDeliveryCard(
 
                     Column(modifier = Modifier.weight(1f)) {
                         if (hasDrop) {
-                            Text("PICKUP", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(card.primaryValue, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("PICKUP", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
+                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                             Spacer(modifier = Modifier.height(10.dp))
-                            Text("DROPOFF", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(card.secondaryValue, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("DROPOFF", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
+                            Text(card.secondaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                         } else {
-                            Text("CURRENT GOAL", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(card.primaryValue, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("CURRENT GOAL", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
+                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                         }
                     }
                 }
@@ -776,7 +784,7 @@ private fun OngoingDeliveryCard(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
                 ) {
-                    Text(card.buttonText, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(card.buttonText, color = Color.White, fontWeight = FontWeight.Medium, fontSize = OrderCardActionFontSize)
                 }
             }
         }
@@ -803,13 +811,13 @@ private fun OrdersHeader(
         Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = "Orders",
-            fontSize = 40.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Medium,
             color = Color(0xFF1D254B)
         )
         Spacer(modifier = Modifier.weight(1f))
-        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = 22.sp)
-        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.Bold, fontSize = 22.sp)
+        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 22.sp)
+        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.Medium, fontSize = 22.sp)
     }
     HorizontalDivider(color = Color(0xFFE9ECF2))
 }
@@ -826,7 +834,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
     }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF2FC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -842,8 +850,8 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("ID: #${formatOrderId(order.id)}", color = Color(0xFF8F9BB3), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Bold, fontSize = 22.sp, maxLines = 1)
+                    Text("ID: #${formatOrderId(order.id)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
+                    Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Medium, fontSize = OrderCardHeadingFontSize, maxLines = 1)
                 }
 
                 StatusPill(text = statusText, color = PrimaryBlue)
@@ -870,7 +878,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
                 ) {
-                    Text("Track Order", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text("Track Order", color = Color.White, fontWeight = FontWeight.Medium)
                 }
             }
         }
@@ -885,7 +893,7 @@ private fun ScheduledOrderCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F0FA)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -899,16 +907,16 @@ private fun ScheduledOrderCard(
                     Text(
                         text = "ORDER ID",
                         color = Color(0xFF64748B),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontSize = OrderCardLabelFontSize,
+                        fontWeight = FontWeight.Normal,
                         letterSpacing = 0.8.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = formatOrderDisplayId(order.id),
                         color = Color(0xFF0F172A),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = OrderCardHeadingFontSize,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 StatusPill(text = "AWAITING DRIVER", color = PrimaryBlue)
@@ -940,16 +948,16 @@ private fun ScheduledOrderCard(
                         Text(
                             text = "PICKUP SCHEDULED",
                             color = Color(0xFF64748B),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            fontSize = OrderCardLabelFontSize,
+                            fontWeight = FontWeight.Normal,
                             letterSpacing = 0.6.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = order.date.ifBlank { "Pending schedule" },
                             color = Color(0xFF0F172A),
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = OrderCardValueFontSize,
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -999,16 +1007,16 @@ private fun ScheduledOrderCard(
                     Text(
                         text = "PICKUP",
                         color = Color(0xFF64748B),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
+                            fontSize = OrderCardLabelFontSize,
+                        fontWeight = FontWeight.Normal,
                         letterSpacing = 0.6.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = order.pickup,
                         color = Color(0xFF0F172A),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                            fontSize = OrderCardSubValueFontSize,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1016,16 +1024,16 @@ private fun ScheduledOrderCard(
                     Text(
                         text = "DROP-OFF",
                         color = Color(0xFF64748B),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.SemiBold,
+                            fontSize = OrderCardLabelFontSize,
+                        fontWeight = FontWeight.Normal,
                         letterSpacing = 0.6.sp
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = order.delivery,
                         color = Color(0xFF0F172A),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                            fontSize = OrderCardSubValueFontSize,
+                        fontWeight = FontWeight.Medium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -1042,7 +1050,7 @@ private fun ScheduledOrderCard(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
                     contentPadding = PaddingValues(vertical = 10.dp)
                 ) {
-                    Text("Modify", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    Text("Modify", color = Color.White, fontWeight = FontWeight.Medium)
                 }
                 OutlinedActionButton(modifier = Modifier.weight(1f), text = "Cancel", onClick = onCancel)
             }
@@ -1058,7 +1066,7 @@ private fun CompletedOrderCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF2FC)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -1069,8 +1077,8 @@ private fun CompletedOrderCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Column {
-                    Text("ORDER ID", color = Color(0xFF555881), fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                    Text(formatOrderDisplayId(card.order.id), color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("ORDER ID", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 1.sp)
+                    Text(formatOrderDisplayId(card.order.id), color = Color.Black, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
                 }
                 Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
                     Row(
@@ -1080,9 +1088,9 @@ private fun CompletedOrderCard(
                         Box(
                             modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape),
                             contentAlignment = Alignment.Center
-                        ) { Text("✓", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold) }
+                        ) { Text("✓", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Medium) }
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(card.statusText, color = Color(0xFF2F80ED), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(card.statusText, color = Color(0xFF2F80ED), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -1110,12 +1118,12 @@ private fun CompletedOrderCard(
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("PICKUP", color = Color(0xFF555881), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(card.order.pickup, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("PICKUP", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
+                        Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                     }
                     Column {
-                        Text("DROP", color = Color(0xFF555881), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text(card.order.delivery, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                        Text("DROP", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
+                        Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                     }
                 }
             }
@@ -1130,8 +1138,8 @@ private fun CompletedOrderCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(card.dateTime, color = Color(0xFF555881), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text(card.amountText, color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                    Text(card.dateTime, color = Color(0xFF555881), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
+                    Text(card.amountText, color = Color.Black, fontSize = OrderCardValueFontSize, fontWeight = FontWeight.Medium)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
@@ -1141,7 +1149,7 @@ private fun CompletedOrderCard(
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Text("View Details", color = Color(0xFF2F80ED), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("View Details", color = Color(0xFF2F80ED), fontSize = OrderCardActionFontSize, fontWeight = FontWeight.Medium)
                     }
                     Button(
                         onClick = onRepeat,
@@ -1150,14 +1158,13 @@ private fun CompletedOrderCard(
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         modifier = Modifier.shadow(4.dp, RoundedCornerShape(16.dp))
                     ) {
-                        Text("Repeat", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Re-book", color = Color.White, fontSize = OrderCardActionFontSize, fontWeight = FontWeight.Medium)
                     }
                 }
             }
             Spacer(modifier = Modifier.height(2.dp))
         }
     }
-    Box(modifier = Modifier.fillMaxWidth().height(4.dp).background(Color(0xFF2F80ED), RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)))
 }
 
 @Composable
@@ -1167,7 +1174,7 @@ private fun CancelledOrderCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
         border = BorderStroke(1.dp, Color(0x1AA7AAD7)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -1182,14 +1189,14 @@ private fun CancelledOrderCard(
                     Text(
                         text = formatOrderDisplayId(card.order.id),
                         color = Color.Black,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = OrderCardHeadingFontSize,
+                        fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("📅", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(card.dateTime, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
                     }
                 }
                 Surface(
@@ -1200,8 +1207,8 @@ private fun CancelledOrderCard(
                         text = "CANCELLED",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         color = card.statusColor,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = OrderCardLabelFontSize,
+                        fontWeight = FontWeight.Medium,
                         letterSpacing = 1.sp
                     )
                 }
@@ -1238,8 +1245,8 @@ private fun CancelledOrderCard(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("PICKUP", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                            Text(card.order.pickup, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("PICKUP", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
+                            Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                         }
                     }
 
@@ -1264,8 +1271,8 @@ private fun CancelledOrderCard(
                         }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("DROP-OFF", color = Color.Black, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
-                            Text(card.order.delivery, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text("DROP-OFF", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
+                            Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
                         }
                     }
                 }
@@ -1294,7 +1301,7 @@ private fun CancelledOrderCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (card.reasonLeftBorder) {
-                        Text("⊗", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("⊗", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
                     } else {
                         Image(
                             painter = painterResource(Res.drawable.icon_profile),
@@ -1309,7 +1316,7 @@ private fun CancelledOrderCard(
                             card.reasonTitle,
                             color = if (card.reasonTitleBlue) Color(0xFF2F80ED) else Color.Black,
                             fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Medium
                         )
                         Text(card.reasonText, color = Color.Black, fontSize = 14.sp)
                     }
@@ -1351,8 +1358,8 @@ private fun CancelledOrderCard(
                     Text(
                         card.actionLabel,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontWeight = FontWeight.Medium,
+                        fontSize = OrderCardActionFontSize
                     )
                 }
             }
@@ -1401,7 +1408,7 @@ private fun ProMembershipBanner() {
                 color = Color.White,
                 fontSize = 24.sp,
                 lineHeight = 30.sp,
-                fontWeight = FontWeight.ExtraBold
+                fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -1417,7 +1424,7 @@ private fun ProMembershipBanner() {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
             ) {
-                Text("CONTACT SALES", color = Color(0xFF2F80ED), fontWeight = FontWeight.Bold, fontSize = 12.sp, letterSpacing = 0.6.sp)
+                Text("CONTACT SALES", color = Color(0xFF2F80ED), fontWeight = FontWeight.Medium, fontSize = 12.sp, letterSpacing = 0.6.sp)
             }
         }
     }
@@ -1431,7 +1438,7 @@ private fun UtilitySectionCards() {
     ) {
         Card(
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(OrderCardCornerRadius),
             colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -1443,13 +1450,13 @@ private fun UtilitySectionCards() {
                     colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("24/7 Support", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("24/7 Support", color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium)
                 Text("Chat with us now", color = Color.Black, fontSize = 10.sp)
             }
         }
         Card(
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(OrderCardCornerRadius),
             colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
@@ -1461,7 +1468,7 @@ private fun UtilitySectionCards() {
                     colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Loyalty Perks", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("Loyalty Perks", color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium)
                 Text("Points: 1,450", color = Color.Black, fontSize = 10.sp)
             }
         }
@@ -1477,7 +1484,7 @@ private fun OutlinedActionButton(modifier: Modifier = Modifier, text: String, on
         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
         border = ButtonDefaults.outlinedButtonBorder
     ) {
-        Text(text, color = PrimaryBlue, fontWeight = FontWeight.SemiBold)
+        Text(text, color = PrimaryBlue, fontWeight = FontWeight.Normal, fontSize = OrderCardActionFontSize)
     }
 }
 
@@ -1491,8 +1498,8 @@ private fun StatusPill(text: String, color: Color) {
             text = text,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
             color = color,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp
+            fontWeight = FontWeight.Medium,
+            fontSize = OrderCardStatusFontSize
         )
     }
 }
@@ -1501,7 +1508,7 @@ private fun StatusPill(text: String, color: Color) {
 private fun RetryBlock(message: String, onRetry: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(OrderCardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3F3))
     ) {
         Row(

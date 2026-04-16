@@ -55,6 +55,13 @@ import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.car_two_seater
 import carryon.composeapp.generated.resources.ellipse_4
+import carryon.composeapp.generated.resources.home_current_location_icon
+import carryon.composeapp.generated.resources.home_delivery_progress_icon
+import carryon.composeapp.generated.resources.home_estimated_logistics_icon
+import carryon.composeapp.generated.resources.home_recent_delivery_icon
+import carryon.composeapp.generated.resources.home_work_icon
+import carryon.composeapp.generated.resources.icon_home
+import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.mini_van
 import carryon.composeapp.generated.resources.truck
 import com.company.carryon.data.network.BookingApi
@@ -72,7 +79,6 @@ import com.company.carryon.ui.theme.BackgroundLight
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.PrimaryBlueSurface
-import com.company.carryon.ui.theme.SuccessGreen
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import kotlinx.coroutines.Job
@@ -86,6 +92,8 @@ private data class VehicleOption(
     val name: String,
     val price: String
 )
+
+private val HomeCardBackground = Color(0x33A6D2F3)
 
 @Composable
 fun HomeScreen(
@@ -130,35 +138,51 @@ fun HomeScreen(
             isLoadingVehicles = true
             vehicleError = null
             val iconMap = mapOf(
+                "2 wheeler" to Res.drawable.bike,
                 "bike" to Res.drawable.bike,
-                "auto" to Res.drawable.car_two_seater,
                 "car" to Res.drawable.car_4_seater,
+                "auto" to Res.drawable.car_4_seater,
+                "4x4 pickup" to Res.drawable.truck,
+                "van 7ft" to Res.drawable.mini_van,
+                "van 9ft" to Res.drawable.mini_van,
+                "small lorry 10ft" to Res.drawable.truck,
+                "medium lorry 14ft" to Res.drawable.truck,
+                "large lorry 17ft" to Res.drawable.truck,
                 "mini truck" to Res.drawable.mini_van,
                 "minitruck" to Res.drawable.mini_van,
                 "truck" to Res.drawable.truck
             )
             val defaultVehicles = listOf(
-                VehicleOption(Res.drawable.bike, "Bike", "RM 8"),
-                VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "RM 15"),
-                VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "RM 20"),
-                VehicleOption(Res.drawable.mini_van, "Mini Van", "RM 30"),
-                VehicleOption(Res.drawable.truck, "Truck", "RM 45"),
-                VehicleOption(Res.drawable.truck, "Open Truck", "RM 40")
+                VehicleOption(Res.drawable.bike,       "2 Wheeler",         "RM 0.90/km"),
+                VehicleOption(Res.drawable.car_4_seater, "Car",             "RM 1.17/km"),
+                VehicleOption(Res.drawable.truck, "4x4 Pickup",             "RM 3.40/km"),
+                VehicleOption(Res.drawable.mini_van,   "Van 7ft",           "RM 5.40/km"),
+                VehicleOption(Res.drawable.mini_van,   "Van 9ft",           "RM 6.40/km"),
+                VehicleOption(Res.drawable.truck,      "Small Lorry 10ft",  "RM 8.23/km"),
+                VehicleOption(Res.drawable.truck,      "Medium Lorry 14ft", "RM 11.60/km"),
+                VehicleOption(Res.drawable.truck,      "Large Lorry 17ft",  "RM 15.60/km")
             )
             BookingApi.getVehicles()
                 .onSuccess { response ->
                     val apiVehicles = response.data.orEmpty()
                     vehicleOptions = apiVehicles.map { vehicle ->
-                        val icon = iconMap[vehicle.type.lowercase()] ?: Res.drawable.car_4_seater
-                        val displayName = when (vehicle.type.lowercase()) {
-                            "bike" -> "Bike"
-                            "auto" -> "Car (2-Seat)"
-                            "car" -> "Car (4-Seat)"
-                            "mini truck", "minitruck" -> "Mini Van"
-                            "truck" -> "Truck"
+                        val key = vehicle.type.lowercase()
+                        val icon = iconMap[key] ?: Res.drawable.car_4_seater
+                        val displayName = when (key) {
+                            "2 wheeler", "bike" -> "2 Wheeler"
+                            "car", "auto" -> "Car"
+                            "4x4 pickup" -> "4x4 Pickup"
+                            "van 7ft" -> "Van 7ft"
+                            "van 9ft" -> "Van 9ft"
+                            "small lorry 10ft" -> "Small Lorry 10ft"
+                            "medium lorry 14ft" -> "Medium Lorry 14ft"
+                            "large lorry 17ft" -> "Large Lorry 17ft"
+                            "mini truck", "minitruck" -> "Van 7ft"
+                            "truck" -> "Small Lorry 10ft"
                             else -> vehicle.type
                         }
-                        VehicleOption(icon, displayName, "RM ${vehicle.basePrice.toInt()}")
+                        val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(displayName, "Regular")
+                        VehicleOption(icon, displayName, "RM %.2f/km".format(rate))
                     }
                     if (vehicleOptions.isEmpty()) {
                         vehicleOptions = defaultVehicles
@@ -175,7 +199,7 @@ fun HomeScreen(
     }
 
     fun proceedToBooking() {
-        val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: return
+        val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: "Car (4-Seat)"
         val safePickup = pickupLocation.ifBlank { "Pickup Location" }
         val safeDelivery = deliveryLocation.ifBlank { "Delivery Location" }
         onNavigateToBooking(safePickup, safeDelivery, selectedVehicleName)
@@ -421,7 +445,14 @@ fun HomeScreen(
                         color = Color(0xFF90A0B7)
                     )
                 },
-                leadingIcon = { Text("◉", color = PrimaryBlue, fontSize = 12.sp) },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(Res.drawable.icon_map),
+                        contentDescription = "Enter pickup location",
+                        modifier = Modifier.size(14.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                },
                 trailingIcon = if (isGettingLocation || isSearchingPickup) {
                     {
                         CircularProgressIndicator(
@@ -484,7 +515,14 @@ fun HomeScreen(
                     showPickupSuggestions = false
                 },
                 placeholder = { Text("Where should we deliver?", color = Color(0xFF90A0B7)) },
-                leadingIcon = { Text("●", color = SuccessGreen, fontSize = 12.sp) },
+                leadingIcon = {
+                    Image(
+                        painter = painterResource(Res.drawable.icon_home),
+                        contentDescription = "Where should we deliver",
+                        modifier = Modifier.size(14.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                },
                 trailingIcon = if (isSearchingDelivery) {
                     {
                         CircularProgressIndicator(
@@ -547,12 +585,24 @@ fun HomeScreen(
             QuickLocationChip(
                 title = "Current Location",
                 selected = true,
+                iconRes = Res.drawable.home_current_location_icon,
                 onClick = {
                     isGettingLocation = true
                     requestLocation()
                 }
             )
-            // TODO: Add saved address quick-selects when addresses are fetched from API
+            QuickLocationChip(
+                title = "Home",
+                selected = false,
+                iconRes = Res.drawable.icon_home,
+                onClick = { pickupLocation = "Home" }
+            )
+            QuickLocationChip(
+                title = "Work",
+                selected = false,
+                iconRes = Res.drawable.home_work_icon,
+                onClick = { deliveryLocation = "Work" }
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -613,7 +663,11 @@ fun HomeScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.23f), modifier = Modifier.size(30.dp)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("◷", color = Color.White, fontSize = 13.sp)
+                            Image(
+                                painter = painterResource(Res.drawable.home_estimated_logistics_icon),
+                                contentDescription = "Estimated logistics",
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.width(10.dp))
@@ -685,7 +739,12 @@ fun HomeScreen(
 }
 
 @Composable
-private fun QuickLocationChip(title: String, selected: Boolean, onClick: () -> Unit) {
+private fun QuickLocationChip(
+    title: String,
+    selected: Boolean,
+    iconRes: DrawableResource,
+    onClick: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(22.dp),
         color = if (selected) PrimaryBlue else Color(0xFFF0F2F5),
@@ -695,10 +754,11 @@ private fun QuickLocationChip(title: String, selected: Boolean, onClick: () -> U
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (selected) "➤" else "⌂",
-                color = if (selected) Color.White else TextSecondary,
-                fontSize = 10.sp
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(14.dp),
+                contentScale = ContentScale.Fit
             )
             Spacer(modifier = Modifier.width(5.dp))
             Text(
@@ -739,7 +799,7 @@ private fun VehicleCard(
                     .fillMaxWidth()
                     .height(72.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (selected) Color(0xFF1F3F78) else Color(0xFFF3F5F8)),
+                    .background(if (selected) Color(0xFF1F3F78) else HomeCardBackground),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -771,7 +831,7 @@ private fun VehicleCard(
 @Composable
 private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> Unit) {
     Surface(
-        color = Color(0xFFEFF2F6),
+        color = HomeCardBackground,
         shape = RoundedCornerShape(14.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -782,7 +842,13 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(26.dp)) {
-                Box(contentAlignment = Alignment.Center) { Text("↻", color = TextSecondary, fontSize = 11.sp) }
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(Res.drawable.home_recent_delivery_icon),
+                        contentDescription = "Recent delivery",
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -807,14 +873,24 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
 }
 
 @Composable
-private fun SavedAddressCard(title: String, subtitle: String, modifier: Modifier = Modifier) {
+private fun SavedAddressCard(
+    title: String,
+    subtitle: String,
+    iconRes: DrawableResource,
+    modifier: Modifier = Modifier
+) {
     Surface(
-        color = Color(0xFFF6F7FA),
+        color = HomeCardBackground,
         shape = RoundedCornerShape(12.dp),
         modifier = modifier.border(1.dp, Color(0xFFD8DEE8), RoundedCornerShape(12.dp))
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
-            Text("⌂", color = PrimaryBlue, fontSize = 12.sp)
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = title,
+                modifier = Modifier.size(14.dp),
+                contentScale = ContentScale.Fit
+            )
             Spacer(modifier = Modifier.height(4.dp))
             Text(title, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             Text(subtitle, color = TextSecondary, fontSize = 9.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

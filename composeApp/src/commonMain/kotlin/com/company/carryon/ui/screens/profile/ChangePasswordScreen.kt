@@ -108,7 +108,7 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(160.dp)
+                        .height(190.dp)
                         .clip(RoundedCornerShape(32.dp))
                         .background(PrimaryBlue, RoundedCornerShape(32.dp))
                         .padding(32.dp)
@@ -137,7 +137,12 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
                         }
                         Spacer(modifier = Modifier.height(12.dp))
                         Text("Encryption Active", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                        Text("Your data is secured with AES-256", color = Color(0xCCF1F2FF), fontSize = 12.sp)
+                        Text(
+                            "Your data is secured with AES-256",
+                            color = Color(0xCCF1F2FF),
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp
+                        )
                     }
                 }
 

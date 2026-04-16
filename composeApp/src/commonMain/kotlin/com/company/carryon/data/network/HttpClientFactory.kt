@@ -1,6 +1,5 @@
 package com.company.carryon.data.network
 
-import io.github.jan.supabase.auth.auth
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -9,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.github.jan.supabase.auth.auth
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -47,6 +47,24 @@ object HttpClientFactory {
         defaultRequest {
             url.takeFrom(apiBaseUrl())
             getStoredToken()?.let { headers.append("Authorization", "Bearer $it") }
+        }
+        HttpResponseValidator {
+            validateResponse { response ->
+                if (response.status == HttpStatusCode.Unauthorized) {
+                    AuthStateManager.onAuthExpired()
+                    throw SessionExpiredException()
+                }
+                if (response.status.value >= 400) {
+                    val body = response.bodyAsText()
+                    val message = try {
+                        networkJson.parseToJsonElement(body).jsonObject["message"]?.jsonPrimitive?.content
+                            ?: "Request failed"
+                    } catch (_: Exception) {
+                        "Request failed (${response.status.value})"
+                    }
+                    throw Exception(message)
+                }
+            }
         }
     }
 
