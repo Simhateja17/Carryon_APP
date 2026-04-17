@@ -354,10 +354,7 @@ fun App() {
                     onNavigateToPromo = { currentScreen = AppScreen.PrivacySecurity },
                     onLogout = {
                         AuthStateManager.setLoggedIn(false)
-                        clearToken()
-                        scope.launch {
-                            try { SupabaseConfig.client.auth.signOut() } catch (_: Exception) { }
-                        }
+                        scope.launch { AuthStateManager.logout() }
                         currentScreen = AppScreen.Welcome
                     },
                     onBack = { currentScreen = AppScreen.Home }

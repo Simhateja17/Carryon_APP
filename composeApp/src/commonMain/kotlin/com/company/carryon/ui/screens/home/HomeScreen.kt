@@ -78,6 +78,7 @@ import com.company.carryon.ui.components.rememberLocationRequester
 import com.company.carryon.ui.theme.BackgroundLight
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.util.formatDecimal
 import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
@@ -182,7 +183,7 @@ fun HomeScreen(
                             else -> vehicle.type
                         }
                         val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(displayName, "Regular")
-                        VehicleOption(icon, displayName, "RM %.2f/km".format(rate))
+                        VehicleOption(icon, displayName, "RM ${rate.formatDecimal(2)}/km")
                     }
                     if (vehicleOptions.isEmpty()) {
                         vehicleOptions = defaultVehicles

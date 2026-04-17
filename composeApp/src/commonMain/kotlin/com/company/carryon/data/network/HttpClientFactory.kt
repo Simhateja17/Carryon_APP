@@ -2,13 +2,13 @@ package com.company.carryon.data.network
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.github.jan.supabase.auth.auth
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -18,24 +18,19 @@ private val networkJson = Json {
     isLenient = true
 }
 
-private fun getStoredToken(): String? {
-    return try {
-        val session = SupabaseConfig.client.auth.currentSessionOrNull()
-        if (session != null) {
-            saveToken(session.accessToken)
-            session.accessToken
-        } else {
-            getToken()
+class SessionExpiredException(message: String = "Session expired") : Exception(message)
+
+private val AuthHeaderPlugin = createClientPlugin("AuthHeaderPlugin") {
+    onRequest { request, _ ->
+        request.headers.remove(HttpHeaders.Authorization)
+        AuthStateManager.getValidAccessToken()?.let { token ->
+            request.headers.append(HttpHeaders.Authorization, "Bearer $token")
         }
-    } catch (_: Exception) {
-        getToken()
     }
 }
 
-class SessionExpiredException(message: String = "Session expired") : Exception(message)
-
 object HttpClientFactory {
-    private val rawClient = HttpClient {
+    private fun buildClient(includeAuth: Boolean, notifyAuthExpiry: Boolean): HttpClient = HttpClient {
         install(ContentNegotiation) {
             json(networkJson)
         }
@@ -46,12 +41,16 @@ object HttpClientFactory {
         }
         defaultRequest {
             url.takeFrom(apiBaseUrl())
-            getStoredToken()?.let { headers.append("Authorization", "Bearer $it") }
+        }
+        if (includeAuth) {
+            install(AuthHeaderPlugin)
         }
         HttpResponseValidator {
             validateResponse { response ->
                 if (response.status == HttpStatusCode.Unauthorized) {
-                    AuthStateManager.onAuthExpired()
+                    if (notifyAuthExpiry) {
+                        AuthStateManager.onAuthExpired()
+                    }
                     throw SessionExpiredException()
                 }
                 if (response.status.value >= 400) {
@@ -68,10 +67,11 @@ object HttpClientFactory {
         }
     }
 
-    val client: HttpClient by lazy { rawClient }
+    val client: HttpClient by lazy { buildClient(includeAuth = true, notifyAuthExpiry = true) }
+    val publicClient: HttpClient by lazy { buildClient(includeAuth = false, notifyAuthExpiry = false) }
 
     suspend fun execute(request: HttpRequestBuilder.() -> Unit): HttpResponse {
-        val response = rawClient.request(request)
+        val response = client.request(request)
         if (response.status == HttpStatusCode.Unauthorized) {
             AuthStateManager.onAuthExpired()
             throw SessionExpiredException()

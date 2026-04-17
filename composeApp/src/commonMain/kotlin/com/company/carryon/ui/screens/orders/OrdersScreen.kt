@@ -72,6 +72,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.util.formatOrderDisplayId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,6 +80,7 @@ import org.jetbrains.compose.resources.painterResource
 
 data class OrderItem(
     val id: String,
+    val orderCode: String? = null,
     val date: String,
     val pickup: String,
     val delivery: String,
@@ -91,6 +93,7 @@ data class OrderItem(
 
 private fun Booking.toOrderItem() = OrderItem(
     id          = id,
+    orderCode   = orderCode,
     date        = createdAt.take(10),
     pickup      = pickupAddress.label.ifEmpty { pickupAddress.address },
     delivery    = deliveryAddress.label.ifEmpty { deliveryAddress.address },
@@ -350,6 +353,7 @@ private data class CompletedOrderPreview(
 
 private data class OngoingDeliveryPreview(
     val orderId: String,
+    val orderCode: String? = null,
     val statusLabel: String,
     val etaMinutes: Int,
     val courierName: String,
@@ -493,6 +497,7 @@ private fun OngoingDeliveriesScreen(
     val cards = ongoingOrders.take(2).mapIndexed { idx, order ->
         OngoingDeliveryPreview(
             orderId = order.id,
+            orderCode = order.orderCode,
             statusLabel = if (idx == 0) "IN TRANSIT" else "OUT FOR PICKUP",
             etaMinutes = order.estimatedMinutes ?: 0,
             courierName = order.driverName ?: "",
@@ -632,7 +637,7 @@ private fun OngoingDeliveryCard(
                         letterSpacing = 0.6.sp
                     )
                     Text(
-                        text = formatOrderDisplayId(card.orderId),
+                        text = formatOrderDisplayId(card.orderId, card.orderCode),
                         color = Color.Black,
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -850,7 +855,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("ID: #${formatOrderId(order.id)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
+                    Text("ID: ${formatOrderDisplayId(order.id, order.orderCode)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
                     Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Medium, fontSize = OrderCardHeadingFontSize, maxLines = 1)
                 }
 
@@ -913,7 +918,7 @@ private fun ScheduledOrderCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = formatOrderDisplayId(order.id),
+                        text = formatOrderDisplayId(order.id, order.orderCode),
                         color = Color(0xFF0F172A),
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -1078,7 +1083,7 @@ private fun CompletedOrderCard(
             ) {
                 Column {
                     Text("ORDER ID", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 1.sp)
-                    Text(formatOrderDisplayId(card.order.id), color = Color.Black, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
+                    Text(formatOrderDisplayId(card.order.id, card.order.orderCode), color = Color.Black, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
                 }
                 Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
                     Row(
@@ -1187,7 +1192,7 @@ private fun CancelledOrderCard(
             ) {
                 Column {
                     Text(
-                        text = formatOrderDisplayId(card.order.id),
+                        text = formatOrderDisplayId(card.order.id, card.order.orderCode),
                         color = Color.Black,
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -1537,16 +1542,4 @@ private fun EmptyOrdersState(message: String) {
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
         )
     }
-}
-
-private fun formatOrderId(id: String): String {
-    if (id.isBlank()) return "CO-0000"
-    val cleaned = id.removePrefix("#").uppercase()
-    return if (cleaned.startsWith("CO-")) cleaned else "CO-$cleaned"
-}
-
-private fun formatOrderDisplayId(id: String): String {
-    if (id.isBlank()) return "#CO-0000"
-    val trimmed = id.trim().removePrefix("#").uppercase()
-    return if (trimmed.startsWith("VL-") || trimmed.contains("VL-")) "#$trimmed" else "#${formatOrderId(id)}"
 }

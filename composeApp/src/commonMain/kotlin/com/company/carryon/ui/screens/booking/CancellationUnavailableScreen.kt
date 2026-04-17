@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.util.formatOrderDisplayId
 
 @Composable
 fun CancellationUnavailableScreen(
@@ -128,7 +129,7 @@ fun CancellationUnavailableScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Order ID: #${bookingId.ifBlank { "CO-98745" }}",
+                            "Order ID: ${formatOrderDisplayId(bookingId)}",
                             color = Color(0xFF1E2345),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold

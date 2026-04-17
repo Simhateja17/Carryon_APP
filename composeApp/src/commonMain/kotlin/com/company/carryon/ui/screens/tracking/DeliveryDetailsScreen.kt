@@ -25,6 +25,7 @@ import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
+import com.company.carryon.util.formatOrderDisplayId
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
@@ -208,7 +209,7 @@ fun DeliveryDetailsScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(strings.yourPackage, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                                Text("Order #${currentBooking.id}", fontSize = 12.sp, color = TextSecondary)
+                                Text("Order ${formatOrderDisplayId(currentBooking.id, currentBooking.orderCode)}", fontSize = 12.sp, color = TextSecondary)
                             }
                         }
 

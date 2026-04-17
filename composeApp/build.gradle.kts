@@ -62,6 +62,7 @@ kotlin {
             implementation(libs.supabase.auth.kt)
             implementation(libs.supabase.compose.auth)
             implementation(libs.supabase.realtime.kt)
+            implementation("com.russhwolf:multiplatform-settings-no-arg:1.3.0")
             // Kotlinx
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)

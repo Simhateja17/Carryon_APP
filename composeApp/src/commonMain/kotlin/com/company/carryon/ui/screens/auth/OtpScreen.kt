@@ -17,8 +17,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.data.network.AuthStateManager
 import com.company.carryon.data.network.AuthApi
-import com.company.carryon.data.network.saveToken
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.delay
@@ -48,7 +48,7 @@ fun OtpScreen(
             scope.launch {
                 AuthApi.verifyOtp(email, otpValue, mode, name).fold(
                     onSuccess = { authResponse ->
-                        saveToken(authResponse.token)
+                        AuthStateManager.onOtpAuthenticated(authResponse)
                         onVerifySuccess()
                     },
                     onFailure = { e ->

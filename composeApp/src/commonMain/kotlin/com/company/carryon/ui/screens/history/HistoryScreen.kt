@@ -28,9 +28,11 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
+import com.company.carryon.util.formatOrderDisplayId
 
 data class OrderHistory(
     val orderId: String,
+    val orderCode: String? = null,
     val recipient: String,
     val location: String,
     val date: String,
@@ -40,6 +42,7 @@ data class OrderHistory(
 
 private fun Booking.toOrderHistory() = OrderHistory(
     orderId = id,
+    orderCode = orderCode,
     recipient = deliveryAddress.contactName.ifBlank { deliveryAddress.label.ifBlank { "—" } },
     location = deliveryAddress.address,
     date = createdAt,
@@ -171,7 +174,7 @@ fun HistoryScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = activeBooking.id,
+                                    text = formatOrderDisplayId(activeBooking.id, activeBooking.orderCode),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryBlue
@@ -387,7 +390,7 @@ private fun HistoryItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = order.orderId,
+                    text = formatOrderDisplayId(order.orderId, order.orderCode),
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = PrimaryBlue

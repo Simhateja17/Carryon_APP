@@ -25,8 +25,8 @@ import carryon.composeapp.generated.resources.sign_in_apple
 import carryon.composeapp.generated.resources.sign_in_facebook
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.AuthApi
+import com.company.carryon.data.network.AuthStateManager
 import com.company.carryon.data.network.SupabaseConfig
-import com.company.carryon.data.network.saveToken
 import com.company.carryon.getPlatform
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
@@ -57,7 +57,7 @@ fun LoginScreen(
             if (status is io.github.jan.supabase.auth.status.SessionStatus.Authenticated) {
                 val session = SupabaseConfig.client.auth.currentSessionOrNull()
                 if (session != null) {
-                    saveToken(session.accessToken)
+                    AuthStateManager.onSupabaseAuthenticated(session.accessToken)
                     onGoogleSignInSuccess()
                 }
             }
@@ -72,7 +72,7 @@ fun LoginScreen(
                     scope.launch {
                         val session = SupabaseConfig.client.auth.currentSessionOrNull()
                         if (session != null) {
-                            saveToken(session.accessToken)
+                            AuthStateManager.onSupabaseAuthenticated(session.accessToken)
                             onGoogleSignInSuccess()
                         }
                     }

@@ -22,6 +22,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatOrderDisplayId
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,6 +70,7 @@ fun OrderDetailScreen(
         else                 -> "Cash"
     }
     val bookingStatus = booking?.status ?: BookingStatus.DELIVERED
+    val displayOrderId = formatOrderDisplayId(orderId, booking?.orderCode)
     val statusText = when (bookingStatus) {
         BookingStatus.DELIVERED        -> "✅ ${strings.delivered}"
         BookingStatus.CANCELLED        -> "❌ ${strings.cancelled}"
@@ -128,7 +130,7 @@ fun OrderDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column {
-                                    Text(text = "Order #$orderId", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text(text = "Order $displayOrderId", fontSize = 18.sp, fontWeight = FontWeight.Bold)
                                     Text(text = orderDate, fontSize = 13.sp, color = Color.Gray)
                                 }
                                 Box(

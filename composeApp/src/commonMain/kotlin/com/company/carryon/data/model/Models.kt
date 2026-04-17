@@ -49,6 +49,7 @@ data class Vehicle(
 @Serializable
 data class Booking(
     val id: String = "",
+    val orderCode: String? = null,
     val userId: String = "",
     val pickupAddress: Address = Address(),
     val deliveryAddress: Address = Address(),
@@ -164,7 +165,21 @@ data class OtpResponse(
 data class AuthResponse(
     val token: String,
     val user: User,
-    val isNewUser: Boolean
+    val isNewUser: Boolean,
+    val refreshToken: String? = null,
+    val expiresIn: Long? = null
+)
+
+@Serializable
+data class RefreshTokenRequest(
+    val refreshToken: String
+)
+
+@Serializable
+data class RefreshResponse(
+    val token: String,
+    val refreshToken: String? = null,
+    val expiresIn: Long? = null
 )
 
 @Serializable

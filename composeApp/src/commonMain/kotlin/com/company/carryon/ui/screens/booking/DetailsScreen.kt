@@ -53,6 +53,7 @@ import com.company.carryon.ui.components.ContactPickerButton
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.util.formatDecimal
 
 private val SectionTint20 = Color(0x33A6D2F3)
 private const val DeliveryModePooling = "Pooling"
@@ -65,11 +66,12 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, deliveryMode: String, offloading: Boolean) -> Unit,
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
-    var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModePooling) }
+    var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
+    var offloading by rememberSaveable { mutableStateOf(false) }
     var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
     var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
     var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
@@ -143,7 +145,9 @@ fun DetailsScreen(
                                     senderName,
                                     senderPhone,
                                     receiverName,
-                                    receiverPhone
+                                    receiverPhone,
+                                    deliveryMode,
+                                    offloading
                                 )
                             },
                         contentAlignment = Alignment.Center
@@ -648,6 +652,38 @@ fun DetailsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Offloading add-on
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = SectionTint20,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Offloading Service",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.Black
+                            )
+                            Text(
+                                "+RM 30.00 per booking",
+                                fontSize = 12.sp,
+                                color = Color(0xFF2F80ED)
+                            )
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = offloading,
+                            onCheckedChange = { offloading = it }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -674,7 +710,7 @@ fun DetailsScreen(
                                     Text("⚲", color = Color.White, fontSize = 10.sp)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = vehicleType.ifBlank { "STANDARD BIKE" }.uppercase(),
+                                        text = vehicleType.ifBlank { "VEHICLE" }.uppercase(),
                                         color = Color.White,
                                         fontSize = 10.sp,
                                         letterSpacing = 1.sp,
@@ -684,13 +720,33 @@ fun DetailsScreen(
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Estimated Arrival", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text("25 mins", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp)
+                            Text("Delivery Mode", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                         }
 
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("Total Cost", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text("RM 150", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
+                            Text(
+                                "Rate / km",
+                                color = Color(0xFFDBEAFE),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(vehicleType, deliveryMode)
+                            Text(
+                                "RM ${rate.formatDecimal(2)}/km",
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.5).sp,
+                                lineHeight = 30.sp
+                            )
+                            if (offloading) {
+                                Text(
+                                    "+RM 30 offloading",
+                                    color = Color(0xFFDBEAFE),
+                                    fontSize = 11.sp
+                                )
+                            }
                         }
                     }
                 }

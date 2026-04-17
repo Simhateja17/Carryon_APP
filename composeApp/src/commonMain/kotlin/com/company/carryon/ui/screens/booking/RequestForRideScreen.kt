@@ -27,6 +27,7 @@ import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -342,7 +343,7 @@ fun RequestForRideScreen(
                         Text(vehicleDisplayName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            "$deliveryMode · RM %.2f/km".format(pricePerKm),
+                            "$deliveryMode · RM ${pricePerKm.formatDecimal(2)}/km",
                             fontSize = 12.sp, color = PrimaryBlue
                         )
                         if (distanceKm > 0) {
@@ -373,26 +374,26 @@ fun RequestForRideScreen(
             } else {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.fairPrice, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM %.2f".format(estimatedPrice), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text("RM ${estimatedPrice.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
                 if (offloading) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Offloading", fontSize = 14.sp, color = TextSecondary)
-                        Text("RM %.2f".format(com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                        Text("RM ${com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.taxPercent, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM %.2f".format(taxAmount), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text("RM ${taxAmount.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = Color(0xFFE0E0E0))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.totalAmount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                    Text("RM %.2f".format(estimatedPrice + taxAmount), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                    Text("RM ${(estimatedPrice + taxAmount).formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
             }
 

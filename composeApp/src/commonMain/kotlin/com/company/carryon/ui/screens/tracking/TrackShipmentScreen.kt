@@ -35,6 +35,7 @@ import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
+import com.company.carryon.util.formatOrderDisplayId
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
@@ -376,7 +377,7 @@ fun TrackShipmentScreen(
                                     color = Color.White
                                 )
                                 Text(
-                                    text = booking.id,
+                                    text = formatOrderDisplayId(booking.id, booking.orderCode),
                                     fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.7f)
                                 )
