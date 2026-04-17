@@ -159,8 +159,8 @@ fun OrdersScreen(
     } ?: OrderItem(
         id = "CO-9842",
         date = "",
-        pickup = "Sector 15, Urban Complex",
-        delivery = "Building 10C, Phase II",
+        pickup = "Jalan Ampang, Kuala Lumpur",
+        delivery = "Seksyen 13, Petaling Jaya",
         vehicleType = "Bike",
         price = 0.0,
         status = BookingStatus.IN_TRANSIT
@@ -173,8 +173,8 @@ fun OrdersScreen(
         OrderItem(
             id = "VL-8829-01",
             date = "",
-            pickup = "32nd Avenue, Sector 15",
-            delivery = "DLF Cyber City, Phase 2",
+            pickup = "Jalan Tun Razak, Kuala Lumpur",
+            delivery = "KL Sentral, Kuala Lumpur",
             vehicleType = "Bike",
             price = 0.0,
             status = BookingStatus.PENDING
@@ -182,8 +182,8 @@ fun OrdersScreen(
         OrderItem(
             id = "VL-8830-02",
             date = "",
-            pickup = "Connaught Place, Block A",
-            delivery = "Indirapuram Hub, Tower 3",
+            pickup = "George Town, Penang",
+            delivery = "Bayan Lepas, Penang",
             vehicleType = "Bike",
             price = 0.0,
             status = BookingStatus.PENDING
@@ -197,7 +197,7 @@ fun OrdersScreen(
             CompletedOrderPreview(
                 order = order,
                 dateTime = if (order.date.isBlank()) if (index == 0) "Oct 24, 2:30 PM" else "Oct 22, 11:45 AM" else order.date,
-                amountText = "₹${order.price.toInt()}",
+                amountText = "RM ${order.price.toInt()}",
                 statusText = "DELIVERED"
             )
         }
@@ -214,7 +214,7 @@ fun OrdersScreen(
                     status = BookingStatus.DELIVERED
                 ),
                 dateTime = "Oct 24, 2:30 PM",
-                amountText = "₹249",
+                amountText = "RM 249",
                 statusText = "DELIVERED"
             ),
             CompletedOrderPreview(
@@ -228,7 +228,7 @@ fun OrdersScreen(
                     status = BookingStatus.DELIVERED
                 ),
                 dateTime = "Oct 22, 11:45 AM",
-                amountText = "₹150",
+                amountText = "RM 150",
                 statusText = "DELIVERED"
             )
         )
@@ -258,8 +258,8 @@ fun OrdersScreen(
                 order = OrderItem(
                     id = "VL-8829-X9",
                     date = "",
-                    pickup = "Harrington Fashion Hub, London",
-                    delivery = "Baker Street Residences, NW1 6XE",
+                    pickup = "Bukit Bintang, Kuala Lumpur",
+                    delivery = "Mont Kiara, Kuala Lumpur",
                     vehicleType = "Bike",
                     price = 0.0,
                     status = BookingStatus.CANCELLED
@@ -280,8 +280,8 @@ fun OrdersScreen(
                 order = OrderItem(
                     id = "VL-9102-M1",
                     date = "",
-                    pickup = "Westfield Shopping Centre",
-                    delivery = "Kensington High Street, W8 4NS",
+                    pickup = "Johor Bahru City Square",
+                    delivery = "Taman Molek, Johor Bahru",
                     vehicleType = "Bike",
                     price = 0.0,
                     status = BookingStatus.CANCELLED
@@ -596,8 +596,8 @@ private fun OngoingDeliveriesScreen(
                 statusLabel = "IN TRANSIT",
                 etaMinutes = 12,
                 courierName = "Marcus Jensen",
-                primaryValue = "Global Logistics Hub, Bld 4",
-                secondaryValue = "242 West 11th Street, Unit 4B",
+                primaryValue = "Port Klang Logistics Hub, Block 4",
+                secondaryValue = "Jalan Bangsar, Unit 4B, Kuala Lumpur",
                 buttonText = "Track Order"
             ),
             OngoingDeliveryPreview(

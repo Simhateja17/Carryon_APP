@@ -136,7 +136,7 @@ fun WalletScreen(
                 ) {
                     Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text("₹${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+                    Text("RM ${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(14.dp))
                     Button(
                         onClick = onAddMoney,
@@ -290,7 +290,7 @@ private fun ActionItem(iconRes: DrawableResource, label: String, onClick: (() ->
 @Composable
 private fun TransactionRow(txn: WalletTransaction) {
     val isCredit = txn.amount >= 0
-    val amountText = "${if (isCredit) "+" else "-"}₹${kotlin.math.abs(txn.amount).formatDecimal(0)}"
+    val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(0)}"
     val title = txn.description.ifBlank {
         if (txn.type == "TOP_UP") "Wallet Top-up" else "Delivery #CN-0000"
     }

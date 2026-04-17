@@ -74,14 +74,14 @@ fun DeliveryReceiptsScreen(
             ReceiptRow(
                 orderId = "#CR-99210",
                 subtitle = "Delivered Oct 24, 2023 •\nExpress",
-                amount = "$245.00",
+                amount = "RM 245.00",
                 selected = false
             )
             Spacer(modifier = Modifier.height(12.dp))
             ReceiptRow(
                 orderId = "#CR-99188",
                 subtitle = "Delivered Oct 22, 2023 •\nStandard",
-                amount = "$1,120.50",
+                amount = "RM 1,120.50",
                 selected = true
             )
 
@@ -92,7 +92,7 @@ fun DeliveryReceiptsScreen(
             ReceiptRow(
                 orderId = "#CR-98772",
                 subtitle = "Delivered Oct 15, 2023 •\nEconomy",
-                amount = "$56.20",
+                amount = "RM 56.20",
                 selected = false
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -152,7 +152,7 @@ private fun SpendingCard() {
         Text("Total Spending", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "$12,450.00",
+            text = "RM 12,450.00",
             color = Color(0xFFF1F2FF),
             fontSize = 40.sp,
             lineHeight = 44.sp,
@@ -347,16 +347,16 @@ private fun DetailedReceiptCard() {
             HorizontalDivider(color = Color(0xFFA7AAD7).copy(alpha = 0.8f))
             Spacer(modifier = Modifier.height(16.dp))
 
-            LineAmountRow("Logistics Service (International)", "$850.00")
+            LineAmountRow("Logistics Service (International)", "RM 850.00")
             Spacer(modifier = Modifier.height(12.dp))
-            LineAmountRow("Insurance Premium", "$45.00")
+            LineAmountRow("Insurance Premium", "RM 45.00")
             Spacer(modifier = Modifier.height(12.dp))
-            LineAmountRow("Priority Handling Fee", "$25.00")
+            LineAmountRow("Priority Handling Fee", "RM 25.00")
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-                Text("$920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+                Text("RM 920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }

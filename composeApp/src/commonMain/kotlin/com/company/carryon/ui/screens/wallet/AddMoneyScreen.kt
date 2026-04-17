@@ -115,7 +115,7 @@ fun AddMoneyScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("₹", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
+                Text("RM ", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(amount.toString(), color = PrimaryBlue, fontSize = 66.sp, fontWeight = FontWeight.Bold)
             }
@@ -128,19 +128,19 @@ fun AddMoneyScreen(
             ) {
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ ₹100",
+                    label = "+ RM 100",
                     selected = amount == 100,
                     onClick = { amount = 100 }
                 )
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ ₹500",
+                    label = "+ RM 500",
                     selected = amount == 500,
                     onClick = { amount = 500 }
                 )
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ ₹1000",
+                    label = "+ RM 1000",
                     selected = amount == 1000,
                     onClick = { amount = 1000 }
                 )

@@ -94,11 +94,11 @@ fun ScheduledOrderDetailsScreen(
                 val pickupAddress =
                     currentBooking?.pickupAddress?.label
                         ?.ifBlank { currentBooking.pickupAddress.address }
-                        .ifNullOrBlank("32nd Avenue, Sector 15")
+                        .ifNullOrBlank("Jalan Tun Razak, Kuala Lumpur")
                 val dropAddress =
                     currentBooking?.deliveryAddress?.label
                         ?.ifBlank { currentBooking.deliveryAddress.address }
-                        .ifNullOrBlank("DLF Cyber City, Phase 2")
+                        .ifNullOrBlank("KL Sentral, Kuala Lumpur")
                 val paymentMethod = currentBooking?.paymentMethod?.name
                     ?.lowercase()
                     ?.replaceFirstChar { it.uppercase() }
@@ -288,7 +288,7 @@ fun ScheduledOrderDetailsScreen(
                             .background(Color(0xFFDCE6F1), RoundedCornerShape(20.dp))
                             .padding(20.dp)
                     ) {
-                        SectionHeader(icon = "₹", title = "Payment")
+                        SectionHeader(icon = "RM", title = "Payment")
                         Spacer(modifier = Modifier.height(16.dp))
                         KeyValueRow(
                             "Method",
@@ -305,7 +305,7 @@ fun ScheduledOrderDetailsScreen(
                         ) {
                             Text("Total Paid", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             Text(
-                                "₹${totalPaid.toInt()}",
+                                "RM ${totalPaid.toInt()}",
                                 color = Color(0xFF2F80ED),
                                 fontSize = 42.sp,
                                 fontWeight = FontWeight.Medium

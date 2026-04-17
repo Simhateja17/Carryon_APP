@@ -640,13 +640,13 @@ fun HomeScreen(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             SavedAddressCard(
                 title = "Home",
-                subtitle = "Sector 45, Gurgaon...",
+                subtitle = "Bukit Jalil, Kuala Lumpur...",
                 iconRes = Res.drawable.icon_home,
                 modifier = Modifier.weight(1f)
             )
             SavedAddressCard(
                 title = "Work",
-                subtitle = "Cyber Hub, Phase 2...",
+                subtitle = "KL Sentral, Kuala Lumpur...",
                 iconRes = Res.drawable.home_work_icon,
                 modifier = Modifier.weight(1f)
             )

@@ -46,17 +46,17 @@ fun SavedAddressesScreen(
         SavedAddressUi(
             icon = Res.drawable.saved_address_primary,
             title = "Home",
-            lines = listOf("1248 North Sheridan Rd,", "Apt 4B", "Chicago, IL 60660")
+            lines = listOf("No. 18, Jalan SS 2/24,", "47300 Petaling Jaya,", "Selangor, Malaysia")
         ),
         SavedAddressUi(
             icon = Res.drawable.saved_address_primary,
             title = "Main Warehouse",
-            lines = listOf("Global Logistics Center, Bay", "12", "8800 West Bryn Mawr Ave,", "IL 60631")
+            lines = listOf("Lot 12, Kawasan Perindustrian,", "Pelabuhan Klang,", "42000 Klang, Selangor")
         ),
         SavedAddressUi(
             icon = Res.drawable.saved_address_hub,
             title = "Downtown Hub",
-            lines = listOf("Central Distribution Point", "200 East Randolph St,", "Chicago, IL 60601")
+            lines = listOf("Central Distribution Point", "Jalan Raja Chulan,", "50200 Kuala Lumpur")
         )
     )
 

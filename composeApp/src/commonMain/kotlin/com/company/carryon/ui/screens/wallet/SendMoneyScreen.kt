@@ -83,7 +83,7 @@ fun SendMoneyScreen(
 
         CardBlock {
             Text("Wallet Balance", color = Color(0xFF111827), fontSize = 22.sp)
-            Text("$12,450.00", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp)
+            Text("RM 12,450.00", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
@@ -120,7 +120,7 @@ fun SendMoneyScreen(
         CardBlock {
             Text("Amount", color = Color(0xFF111827), fontSize = 16.sp)
             Spacer(modifier = Modifier.height(8.dp))
-            Field(value = amount, onValueChange = { amount = it }, hint = "$ 0.00")
+            Field(value = amount, onValueChange = { amount = it }, hint = "RM 0.00")
 
             Spacer(modifier = Modifier.height(10.dp))
             Text("Category", color = Color(0xFF111827), fontSize = 16.sp)
@@ -189,13 +189,13 @@ fun SendMoneyScreen(
         CardBlock {
             Text("Transfer Summary", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(12.dp))
-            SummaryRow("Transaction Fee", "$0.00")
+            SummaryRow("Transaction Fee", "RM 0.00")
             Spacer(modifier = Modifier.height(8.dp))
             SummaryRow("Estimated Arrival", "Instant", rightColor = PrimaryBlue)
             Spacer(modifier = Modifier.height(10.dp))
             Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFD5DEE9)))
             Spacer(modifier = Modifier.height(10.dp))
-            SummaryRow("Total Amount", "$${if (amount.isBlank()) "0.00" else amount}", bold = true, large = true)
+            SummaryRow("Total Amount", "RM ${if (amount.isBlank()) "0.00" else amount}", bold = true, large = true)
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = { },

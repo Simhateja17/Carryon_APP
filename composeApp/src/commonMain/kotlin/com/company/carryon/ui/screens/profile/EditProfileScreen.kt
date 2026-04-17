@@ -34,7 +34,7 @@ fun EditProfileScreen(
     var name by remember { mutableStateOf("Marcus Holloway") }
     var email by remember { mutableStateOf("m.holloway@carryon.logistics") }
     var phone by remember { mutableStateOf("+1 (555) 0123-4567") }
-    var city by remember { mutableStateOf("Chicago, IL") }
+    var city by remember { mutableStateOf("Kuala Lumpur") }
     var language by remember { mutableStateOf("English") }
     var isLoading by remember { mutableStateOf(false) }
     var isFetching by remember { mutableStateOf(true) }
@@ -296,4 +296,3 @@ private fun SelectField(value: String) {
         )
     )
 }
-

@@ -130,12 +130,12 @@ fun DeliveryScheduledScreen(
                     Spacer(modifier = Modifier.height(14.dp))
                     Text("PICKUP", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("32nd Avenue, Sector 15", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Jalan Tun Razak, Kuala Lumpur", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("DROP-OFF", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("DLF Cyber City, Phase 2", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("KL Sentral, Kuala Lumpur", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(

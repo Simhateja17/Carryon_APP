@@ -38,9 +38,9 @@ fun InvoiceHubScreen(
     onBack: () -> Unit
 ) {
     val invoiceItems = listOf(
-        InvoiceItem("Logistics Express - NYC", "Sep 18, 2023 • 2 Heavy Packages", "$420.00"),
-        InvoiceItem("Global Cargo - Tokyo", "Sep 23, 2023 • Standard Air", "$1,150.00"),
-        InvoiceItem("Instant Ship - London", "Sep 22, 2023 • Files Delivery", "$290.00")
+        InvoiceItem("Logistics Express - Kuala Lumpur", "Sep 18, 2023 • 2 Heavy Packages", "RM 420.00"),
+        InvoiceItem("Global Cargo - Penang", "Sep 23, 2023 • Standard Air", "RM 1,150.00"),
+        InvoiceItem("Instant Ship - Johor Bahru", "Sep 22, 2023 • Files Delivery", "RM 290.00")
     )
 
     Scaffold(containerColor = Color(0xFFF7F9FC)) { paddingValues ->
@@ -104,7 +104,7 @@ fun InvoiceHubScreen(
                 ) {
                     Text("Unpaid Balance", color = Color(0xFF334155), fontSize = 10.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("$1,240.50", color = Color(0xFF3A7BC8), fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                    Text("RM 1,240.50", color = Color(0xFF3A7BC8), fontSize = 26.sp, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
@@ -176,7 +176,7 @@ fun InvoiceHubScreen(
                     )
                     Text("Total Amount", color = Color(0xFF334155), fontSize = 10.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("$8,450.00", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.Bold)
+                        Text("RM 8,450.00", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.Bold)
                         Button(
                             onClick = { },
                             shape = RoundedCornerShape(10.dp),

@@ -111,7 +111,7 @@ fun AddAddressScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Label("FULL ADDRESS")
-                FilledField("123 Precision Way, Logistics District")
+                FilledField("No. 21, Jalan Teknologi 3/6, Kota Damansara")
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("FLOOR / UNIT / LANDMARK")
@@ -119,11 +119,11 @@ fun AddAddressScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("CITY")
-                FilledField("Chicago")
+                FilledField("Petaling Jaya")
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("POSTAL CODE")
-                FilledField("60601")
+                FilledField("47810")
 
                 Spacer(modifier = Modifier.height(18.dp))
 
