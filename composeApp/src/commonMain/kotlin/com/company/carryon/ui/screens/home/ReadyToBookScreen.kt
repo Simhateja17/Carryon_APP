@@ -68,7 +68,7 @@ fun ReadyToBookScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = ScreenHorizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.weight(0.6f))

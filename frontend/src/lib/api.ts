@@ -106,7 +106,7 @@ export interface DriverDocument {
 export interface DriverVehicle {
   id: string;
   driverId: string;
-  type: "BIKE" | "CAR" | "VAN" | "TRUCK";
+  type: "BIKE" | "CAR" | "PICKUP" | "VAN_7FT" | "VAN_9FT" | "LORRY_10FT" | "LORRY_14FT" | "LORRY_17FT";
   make: string;
   model: string;
   year: number;
@@ -219,7 +219,7 @@ export interface CreateRideRequestPayload {
   from: RideLocationPayload;
   to: RideLocationPayload;
   price: number;
-  vehicleType: "BIKE" | "CAR" | "VAN" | "TRUCK";
+  vehicleType: "BIKE" | "CAR" | "PICKUP" | "VAN_7FT" | "VAN_9FT" | "LORRY_10FT" | "LORRY_14FT" | "LORRY_17FT";
   paymentMethod?: "CASH" | "UPI" | "CARD" | "WALLET";
   driverIds?: string[];
 }

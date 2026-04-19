@@ -65,7 +65,11 @@ fun PaymentScreen(
         containerColor = Color.White
     ) { paddingValues ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(paddingValues).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = ScreenHorizontalPadding)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 

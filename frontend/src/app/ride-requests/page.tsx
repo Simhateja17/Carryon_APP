@@ -10,7 +10,7 @@ import {
   type DriverRef,
 } from "@/lib/api";
 
-const VEHICLE_TYPES = ["BIKE", "CAR", "VAN", "TRUCK"] as const;
+const VEHICLE_TYPES = ["BIKE", "CAR", "PICKUP", "VAN_7FT", "VAN_9FT", "LORRY_10FT", "LORRY_14FT", "LORRY_17FT"] as const;
 
 type ColorClass = "green" | "red" | "yellow";
 
