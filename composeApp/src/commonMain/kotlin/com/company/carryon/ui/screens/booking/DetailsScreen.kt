@@ -554,7 +554,7 @@ fun DetailsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SectionCard(title = "INSTRUCTIONS", icon = "☰") {
+                SectionCard(title = "INSTRUCTIONS", icon = "✎") {
                     OutlinedTextField(
                         value = instructions,
                         onValueChange = { instructions = it },

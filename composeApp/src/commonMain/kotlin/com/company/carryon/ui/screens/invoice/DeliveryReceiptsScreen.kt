@@ -2,7 +2,6 @@ package com.company.carryon.ui.screens.invoice
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +38,7 @@ fun DeliveryReceiptsScreen(
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
-        topBar = { FinancialHubTopBar(onBack = onBack) },
+        topBar = { FinancialHubTopBar() },
         bottomBar = { ReceiptsBottomBar() }
     ) { paddingValues ->
         Column(
@@ -101,7 +100,7 @@ fun DeliveryReceiptsScreen(
 }
 
 @Composable
-private fun FinancialHubTopBar(onBack: () -> Unit) {
+private fun FinancialHubTopBar() {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Row(
             modifier = Modifier
@@ -110,13 +109,6 @@ private fun FinancialHubTopBar(onBack: () -> Unit) {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "☰",
-                color = PrimaryBlue,
-                fontSize = 16.sp,
-                modifier = Modifier.clickable { onBack() }
-            )
-            Spacer(modifier = Modifier.width(14.dp))
             Text(
                 text = "Financial Hub",
                 color = PrimaryBlue,

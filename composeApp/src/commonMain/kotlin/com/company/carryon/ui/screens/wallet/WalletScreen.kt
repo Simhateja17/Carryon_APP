@@ -107,8 +107,6 @@ fun WalletScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("☰", color = Color(0xFF64748B), fontSize = 20.sp)
-                        Spacer(modifier = Modifier.width(12.dp))
                         Text("Payments", color = Color(0xFF1E293B), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Box(

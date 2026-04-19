@@ -309,7 +309,7 @@ fun OrdersScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        OrdersHeader(onMenuClick = onBack)
+        OrdersHeader()
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -902,7 +902,6 @@ private fun OngoingDeliveryCard(
 }
 @Composable
 private fun OrdersHeader(
-    onMenuClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -910,15 +909,6 @@ private fun OrdersHeader(
             .padding(top = 4.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "≡",
-            modifier = Modifier
-                .size(30.dp)
-                .clickable { onMenuClick() },
-            color = PrimaryBlue,
-            fontSize = 22.sp
-        )
-        Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = "Orders",
             fontSize = 28.sp,
