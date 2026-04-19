@@ -21,12 +21,14 @@ import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.ui.components.ContactInfo
+import com.company.carryon.ui.components.ContactPickerButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SenderReceiverScreen(
     onBack: () -> Unit,
-    onNext: (senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, notes: String) -> Unit
+    onNext: (senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, receiverEmail: String, notes: String) -> Unit
 ) {
     var locationType by remember { mutableStateOf("Current Location") }
     var whatSending by remember { mutableStateOf("") }
@@ -37,6 +39,7 @@ fun SenderReceiverScreen(
     var overallTrack by remember { mutableStateOf("") }
     var receiverName by remember { mutableStateOf("") }
     var recipientContact by remember { mutableStateOf("") }
+    var recipientEmail by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     
     // Validation error states
@@ -119,6 +122,13 @@ fun SenderReceiverScreen(
                     recipientContactError = recipientContact.isBlank() || recipientContact.filter { it.isDigit() }.length < 9
                 }
             }, isError = recipientContactError, errorMessage = if (recipientContact.isBlank()) "Contact number is required" else "Enter a valid Malaysian phone number (at least 9 digits)")
+            Spacer(modifier = Modifier.height(8.dp))
+            ContactPickerButton { contact ->
+                receiverName = contact.name
+                recipientContact = contact.phone
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            BookingInputField(label = "Recipient Email (OTP)", value = recipientEmail, placeholder = "e.g. receiver@example.com", onValueChange = { recipientEmail = it })
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.address, value = address, placeholder = "e.g. Jalan Bukit Bintang, KL", onValueChange = { address = it })
 
@@ -139,6 +149,7 @@ fun SenderReceiverScreen(
                             recipientContact,
                             receiverName,
                             recipientContact,
+                            recipientEmail,
                             request
                         )
                     }

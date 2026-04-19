@@ -42,6 +42,8 @@ fun InvoiceHubScreen(
         InvoiceItem("Global Cargo - Penang", "Sep 23, 2023 • Standard Air", "RM 1,150.00"),
         InvoiceItem("Instant Ship - Johor Bahru", "Sep 22, 2023 • Files Delivery", "RM 290.00")
     )
+    // TODO: Fetch invoice items from API
+    val invoiceItems = emptyList<InvoiceItem>()
 
     Scaffold(containerColor = Color(0xFFF7F9FC)) { paddingValues ->
         LazyColumn(

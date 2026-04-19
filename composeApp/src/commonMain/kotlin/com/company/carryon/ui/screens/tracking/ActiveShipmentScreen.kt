@@ -28,6 +28,7 @@ import com.company.carryon.ui.components.MapMarker
 import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatOrderDisplayId
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 
@@ -123,6 +124,7 @@ fun ActiveShipmentScreen(
     }
     val etaText = fallbackEta?.let { "$it min  ●●●" } ?: "—  ●●●"
     val orderId = activeBooking?.id ?: "—"
+    val displayOrderId = activeBooking?.let { formatOrderDisplayId(it.id, it.orderCode) } ?: "ord 0000"
     val pickupAddress = activeBooking?.pickupAddress?.address ?: "—"
     val recipientName = activeBooking?.deliveryAddress?.contactName?.ifBlank {
         activeBooking?.deliveryAddress?.label
@@ -285,7 +287,7 @@ fun ActiveShipmentScreen(
 
                     // Order Info
                     Text(
-                        text = "order: $orderId | $pickupAddress",
+                        text = "order: $displayOrderId | $pickupAddress",
                         fontSize = 13.sp,
                         color = TextSecondary
                     )

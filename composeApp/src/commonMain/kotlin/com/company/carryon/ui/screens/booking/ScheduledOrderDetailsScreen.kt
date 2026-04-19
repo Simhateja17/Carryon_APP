@@ -99,6 +99,11 @@ fun ScheduledOrderDetailsScreen(
                     currentBooking?.deliveryAddress?.label
                         ?.ifBlank { currentBooking.deliveryAddress.address }
                         .ifNullOrBlank("KL Sentral, Kuala Lumpur")
+                        .ifNullOrBlank("")
+                val dropAddress =
+                    currentBooking?.deliveryAddress?.label
+                        ?.ifBlank { currentBooking.deliveryAddress.address }
+                        .ifNullOrBlank("")
                 val paymentMethod = currentBooking?.paymentMethod?.name
                     ?.lowercase()
                     ?.replaceFirstChar { it.uppercase() }

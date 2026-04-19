@@ -231,11 +231,15 @@ private fun AddressCard() {
                     Text("PICKUP ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
                     Text("Jalan Tun Razak, Kuala Lumpur", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    // TODO: Get pickup address from booking data
+                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
                 }
                 Column {
                     Text("DROP-OFF ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
                     Text("KL Sentral, Kuala Lumpur", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    // TODO: Get drop-off address from booking data
+                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
                 }
             }
         }

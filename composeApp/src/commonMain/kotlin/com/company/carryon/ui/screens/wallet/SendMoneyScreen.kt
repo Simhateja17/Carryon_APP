@@ -107,11 +107,9 @@ fun SendMoneyScreen(
                 Text("View All", color = PrimaryBlue, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.height(8.dp))
+            // TODO: Fetch recent recipients from API
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 RecipientChip("+", "New")
-                RecipientChip("👩", "Sarah L.")
-                RecipientChip("👨", "Mark R.")
-                RecipientChip("👩", "Elena K.")
             }
         }
 

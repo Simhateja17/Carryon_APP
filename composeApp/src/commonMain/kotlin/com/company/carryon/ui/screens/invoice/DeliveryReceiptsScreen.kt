@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
 
+private const val DeliveryModePooling = "Pooling"
+private const val DeliveryModePriority = "Priority"
+private const val DeliveryModeRegular = "Regular"
+
 @Composable
 fun DeliveryReceiptsScreen(
     onBack: () -> Unit
@@ -174,6 +178,40 @@ private fun SearchCard() {
     ) {
         Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(14.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
+                .padding(14.dp)
+        ) {
+            Text("Quick Search", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(10.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF3F6FB), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                Text("⌕  Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\n$DeliveryModePriority", "RM 245.00")
+        Spacer(modifier = Modifier.height(10.dp))
+        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\n$DeliveryModeRegular", "RM 1,120.50", selected = true)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        DetailedReceiptCard()
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\n$DeliveryModePooling", "RM 56.20")
+
+        Spacer(modifier = Modifier.height(14.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -193,7 +231,7 @@ private fun ReceiptRow(
     orderId: String,
     subtitle: String,
     amount: String,
-    selected: Boolean
+    selected: Boolean = false
 ) {
     Row(
         modifier = Modifier

@@ -27,6 +27,7 @@ import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +43,9 @@ fun RequestForRideScreen(
     senderPhone: String = "",
     receiverName: String = "",
     receiverPhone: String = "",
+    receiverEmail: String = "",
+    deliveryMode: String = "Regular",
+    offloading: Boolean = false,
     onContinue: (bookingId: String, amount: Double) -> Unit,
     onBack: () -> Unit
 ) {
@@ -49,10 +53,12 @@ fun RequestForRideScreen(
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
-    // Vehicle pricing from API
-    var basePrice by remember { mutableStateOf(15.0) }
-    var pricePerKm by remember { mutableStateOf(2.0) }
-    var isLoadingVehicles by remember { mutableStateOf(true) }
+    // Pricing is fully determined by VehiclePricing constants — no API fetch needed
+    val pricePerKm by remember(vehicleType, deliveryMode) {
+        mutableStateOf(com.company.carryon.data.model.VehiclePricing.ratePerKm(vehicleType, deliveryMode))
+    }
+    val basePrice = 0.0
+    val isLoadingVehicles = false
 
     // Geocoded coordinates (null = not yet geocoded)
     var pickupLat by remember { mutableStateOf<Double?>(null) }
@@ -68,35 +74,11 @@ fun RequestForRideScreen(
     var isCreatingBooking by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Fetch vehicle prices from API
-    LaunchedEffect(vehicleType) {
-        isLoadingVehicles = true
-        withContext(Dispatchers.Default) { BookingApi.getVehicles() }.onSuccess { response ->
-            val vehicles = response.data ?: emptyList()
-            // Map vehicle type to API vehicle
-            val vehicleTypeMapping = mapOf(
-                "Bike" to "bike",
-                "Car (2-Seat)" to "auto",
-                "Car (4-Seat)" to "car",
-                "Mini Van" to "mini truck",
-                "Truck" to "truck",
-                "Open Truck" to "truck"
-            )
-            val apiType = vehicleTypeMapping[vehicleType] ?: vehicleType.lowercase()
-            val vehicle = vehicles.find { it.type.lowercase() == apiType }
-            if (vehicle != null) {
-                basePrice = vehicle.basePrice
-                pricePerKm = vehicle.pricePerKm
-            }
-        }
-        isLoadingVehicles = false
-    }
-
     // Calculate price based on distance
-    LaunchedEffect(pickupAddress, deliveryAddress, basePrice, pricePerKm) {
+    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm) {
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
-            estimatedPrice = basePrice
-            taxAmount = kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0
+            estimatedPrice = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
+            taxAmount = 0.0
             isCalculating = false
             geocodeError = null
             return@LaunchedEffect
@@ -117,7 +99,9 @@ fun RequestForRideScreen(
             ).getOrNull()
             if (route != null && route.distance > 0) {
                 distanceKm = route.distance
-                val calculatedPrice = basePrice + (route.distance * pricePerKm)
+                val calculatedPrice = com.company.carryon.data.model.VehiclePricing.calculate(
+                    vehicleType, deliveryMode, route.distance, offloading
+                )
                 estimatedPrice = kotlin.math.round(calculatedPrice * 100).toDouble() / 100.0
                 taxAmount = kotlin.math.round(calculatedPrice * 0.06 * 100).toDouble() / 100.0
             }
@@ -132,13 +116,20 @@ fun RequestForRideScreen(
     }
 
     val vehicleImageRes = when (vehicleType) {
-        "Bike" -> Res.drawable.bike
-        "Car (2-Seat)" -> Res.drawable.car_two_seater
-        "Car (4-Seat)" -> Res.drawable.car_4_seater
-        "Mini Van" -> Res.drawable.mini_van
-        "Truck" -> Res.drawable.truck
-        "Open Truck" -> Res.drawable.open_truck
-        else -> Res.drawable.car_mustang
+        "2 Wheeler"                         -> Res.drawable.bike
+        "Car"                               -> Res.drawable.car_4_seater
+        "4x4 Pickup"                        -> Res.drawable.truck
+        "Van 7ft", "Van 9ft"               -> Res.drawable.mini_van
+        "Small Lorry 10ft",
+        "Medium Lorry 14ft",
+        "Large Lorry 17ft"                  -> Res.drawable.truck
+        // Legacy names kept for compatibility
+        "Bike"                              -> Res.drawable.bike
+        "Car (2-Seat)"                      -> Res.drawable.car_two_seater
+        "Car (4-Seat)"                      -> Res.drawable.car_4_seater
+        "Mini Van"                          -> Res.drawable.mini_van
+        "Truck", "Open Truck"              -> Res.drawable.truck
+        else                               -> Res.drawable.car_mustang
     }
     val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
 
@@ -152,13 +143,21 @@ fun RequestForRideScreen(
 
     // Map vehicle type to API format
     val vehicleTypeApi = when (vehicleType) {
-        "Bike" -> "BIKE"
-        "Car (2-Seat)" -> "AUTO"
-        "Car (4-Seat)" -> "CAR"
-        "Mini Van" -> "MINI_TRUCK"
-        "Truck" -> "TRUCK"
-        "Open Truck" -> "TRUCK"
-        else -> "CAR"
+        "2 Wheeler"        -> "BIKE"
+        "Car"              -> "CAR"
+        "4x4 Pickup"       -> "PICKUP"
+        "Van 7ft"          -> "VAN_7FT"
+        "Van 9ft"          -> "VAN_9FT"
+        "Small Lorry 10ft" -> "LORRY_10FT"
+        "Medium Lorry 14ft"-> "LORRY_14FT"
+        "Large Lorry 17ft" -> "LORRY_17FT"
+        // Legacy
+        "Bike"             -> "BIKE"
+        "Car (2-Seat)"     -> "AUTO"
+        "Car (4-Seat)"     -> "CAR"
+        "Mini Van"         -> "MINI_TRUCK"
+        "Truck", "Open Truck" -> "TRUCK"
+        else               -> "CAR"
     }
 
     Scaffold(
@@ -189,7 +188,8 @@ fun RequestForRideScreen(
                                     latitude = deliveryLat!!,
                                     longitude = deliveryLng!!,
                                     contactName = receiverName,
-                                    contactPhone = receiverPhone
+                                    contactPhone = receiverPhone,
+                                    contactEmail = receiverEmail
                                 ),
                                 vehicleType = vehicleTypeApi,
                                 paymentMethod = paymentMethodApi,
@@ -197,6 +197,7 @@ fun RequestForRideScreen(
                                 senderPhone = senderPhone,
                                 receiverName = receiverName,
                                 receiverPhone = receiverPhone,
+                                receiverEmail = receiverEmail,
                                 estimatedPrice = estimatedPrice + taxAmount,
                                 distance = distanceKm,
                                 duration = 0
@@ -340,9 +341,18 @@ fun RequestForRideScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(vehicleDisplayName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            "$deliveryMode · RM ${pricePerKm.formatDecimal(2)}/km",
+                            fontSize = 12.sp, color = PrimaryBlue
+                        )
                         if (distanceKm > 0) {
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text("${(distanceKm * 10).toInt().toDouble() / 10.0} km", fontSize = 12.sp, color = TextSecondary)
+                        }
+                        if (offloading) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("+ Offloading service", fontSize = 12.sp, color = TextSecondary)
                         }
                     }
                     Image(
@@ -364,19 +374,26 @@ fun RequestForRideScreen(
             } else {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.fairPrice, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM ${estimatedPrice.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text("RM ${estimatedPrice.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                }
+                if (offloading) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Offloading", fontSize = 14.sp, color = TextSecondary)
+                        Text("RM ${com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.taxPercent, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM ${taxAmount.toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                    Text("RM ${taxAmount.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider(color = Color(0xFFE0E0E0))
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.totalAmount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                    Text("RM ${(estimatedPrice + taxAmount).toInt()}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                    Text("RM ${(estimatedPrice + taxAmount).formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
             }
 

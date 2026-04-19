@@ -1,7 +1,9 @@
 package com.company.carryon.data.network
 
+import com.russhwolf.settings.Settings
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.FlowType
+import io.github.jan.supabase.auth.SettingsSessionManager
 import io.github.jan.supabase.compose.auth.ComposeAuth
 import io.github.jan.supabase.compose.auth.googleNativeLogin
 import io.github.jan.supabase.createSupabaseClient
@@ -22,6 +24,12 @@ object SupabaseConfig {
     ) {
         install(Auth) {
             flowType = FlowType.IMPLICIT
+            autoLoadFromStorage = true
+            alwaysAutoRefresh = true
+            sessionManager = SettingsSessionManager(
+                settings = Settings(),
+                key = "carryon-supabase-session"
+            )
             scheme = DEEP_LINK_SCHEME
             host = "login-callback"
         }

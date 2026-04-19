@@ -91,7 +91,7 @@ fun WalletScreen(
         }
 
         val transactions = (wallet?.transactions ?: emptyList()).take(3)
-        val balance = wallet?.balance ?: 500.0
+        val balance = wallet?.balance ?: 0.0
 
         LazyColumn(
             modifier = Modifier
@@ -203,19 +203,14 @@ fun WalletScreen(
             }
 
             item {
-                PaymentMethodItem(
-                    iconRes = Res.drawable.wallet_google_pay_upi_icon,
-                    title = "Google Pay (UPI)",
-                    subtitle = "linked: user@okaxis"
-                )
-            }
-
-            item {
-                PaymentMethodItem(
-                    iconRes = Res.drawable.wallet_hdfc_bank_card_icon,
-                    title = "HDFC Bank Card",
-                    subtitle = "Ending in •••• 4421"
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFFDCE6F1), RoundedCornerShape(14.dp))
+                        .padding(14.dp)
+                ) {
+                    Text("No payment methods available", color = TextSecondary, fontSize = 14.sp)
+                }
             }
 
             item {
@@ -290,7 +285,7 @@ private fun TransactionRow(txn: WalletTransaction) {
     val isCredit = txn.amount >= 0
     val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(0)}"
     val title = txn.description.ifBlank {
-        if (txn.type == "TOP_UP") "Wallet Top-up" else "Delivery #CN-0000"
+        if (txn.type == "TOP_UP") "Wallet top-up" else "Wallet transaction"
     }
 
     Row(

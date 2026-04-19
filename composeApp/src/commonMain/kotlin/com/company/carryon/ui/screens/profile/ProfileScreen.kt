@@ -56,16 +56,35 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
-    var userName by remember { mutableStateOf("") }
-    var profileError by remember { mutableStateOf(false) }
+    var userName by remember { mutableStateOf("—") }
+    var userPhone by remember { mutableStateOf("—") }
+    var isLoading by remember { mutableStateOf(true) }
+    var profileError by remember { mutableStateOf<String?>(null) }
+    var totalShipments by remember { mutableStateOf(0) }
+    var userRating by remember { mutableStateOf(0.0) }
+    var statsError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         UserApi.getProfile()
-            .onSuccess { user -> userName = user.name; profileError = false }
-            .onFailure { profileError = true }
+            .onSuccess { user ->
+                userName = user.name.ifBlank { "—" }
+                userPhone = user.phone.ifBlank { "—" }
+                profileError = null
+            }
+            .onFailure { profileError = it.message ?: "Failed to load profile" }
+
+        UserApi.getUserStats()
+            .onSuccess { stats ->
+                totalShipments = stats.totalShipments
+                userRating = stats.userRating
+                statsError = null
+            }
+            .onFailure { statsError = it.message ?: "Failed to load stats" }
+
+        isLoading = false
     }
 
-    val displayName = if (profileError) "Guest User" else userName.ifBlank { "Devansh" }
+    val displayName = if (isLoading) "Loading..." else userName
 
     Scaffold(
         containerColor = Color(0xFFF5F6F8)
@@ -139,11 +158,21 @@ fun ProfileScreen(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = "+1 (555) 0123-4567",
+                text = if (isLoading) "Loading..." else userPhone,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 color = Color(0xFF111827),
                 fontSize = 16.sp
             )
+
+            if (profileError != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = profileError ?: "",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -156,7 +185,7 @@ fun ProfileScreen(
                         .weight(1f)
                         .height(142.dp),
                     iconRes = Res.drawable.profile_shipments_icon,
-                    value = "24",
+                    value = if (statsError != null) "—" else totalShipments.toString(),
                     label = "TOTAL SHIPMENTS"
                 )
                 StatCard(
@@ -164,7 +193,7 @@ fun ProfileScreen(
                         .weight(1f)
                         .height(142.dp),
                     iconRes = Res.drawable.profile_rating_icon,
-                    value = "4.9",
+                    value = if (statsError != null) "—" else "${userRating.toInt()}.0",
                     label = "USER RATING"
                 )
             }
@@ -312,4 +341,3 @@ private fun ProfileOptionCard(
         Text(">", fontSize = 20.sp, color = Color(0xFF111827))
     }
 }
-

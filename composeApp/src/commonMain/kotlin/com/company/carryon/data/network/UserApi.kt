@@ -37,4 +37,13 @@ object UserApi {
         }.body<ApiResponse<User>>()
         response.data ?: throw Exception("Update failed")
     }
+
+    @Serializable
+    data class UserStats(val totalShipments: Int = 0, val userRating: Double = 0.0, val ratingCount: Int = 0)
+
+    suspend fun getUserStats(): Result<UserStats> = runCatching {
+        val response = client.get("/api/users/me/stats")
+            .body<ApiResponse<UserStats>>()
+        response.data ?: throw Exception("Stats not found")
+    }
 }

@@ -63,7 +63,6 @@ import carryon.composeapp.generated.resources.home_work_icon
 import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.mini_van
-import carryon.composeapp.generated.resources.open_truck
 import carryon.composeapp.generated.resources.truck
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.LocationApi
@@ -71,20 +70,21 @@ import com.company.carryon.data.network.UserApi
 import com.company.carryon.data.network.getLanguage
 import com.company.carryon.data.network.saveLanguage
 import com.company.carryon.data.model.AutocompleteResult
+import com.company.carryon.data.model.Booking
+import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.LanguageSelectionDialog
 import com.company.carryon.ui.components.rememberLocationRequester
 import com.company.carryon.ui.theme.BackgroundLight
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.util.formatDecimal
 import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -118,6 +118,10 @@ fun HomeScreen(
 
     var vehicleOptions by remember { mutableStateOf<List<VehicleOption>>(emptyList()) }
     var isLoadingVehicles by remember { mutableStateOf(true) }
+    var vehicleError by remember { mutableStateOf<String?>(null) }
+    var userName by remember { mutableStateOf<String?>(null) }
+    var activeBooking by remember { mutableStateOf<Booking?>(null) }
+    var recentDeliveredBookings by remember { mutableStateOf<List<Booking>>(emptyList()) }
 
     val scope = rememberCoroutineScope()
 
@@ -129,6 +133,71 @@ fun HomeScreen(
     var isSearchingDelivery by remember { mutableStateOf(false) }
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
+
+    fun loadVehicles() {
+        scope.launch {
+            isLoadingVehicles = true
+            vehicleError = null
+            val iconMap = mapOf(
+                "2 wheeler" to Res.drawable.bike,
+                "bike" to Res.drawable.bike,
+                "car" to Res.drawable.car_4_seater,
+                "auto" to Res.drawable.car_4_seater,
+                "4x4 pickup" to Res.drawable.truck,
+                "van 7ft" to Res.drawable.mini_van,
+                "van 9ft" to Res.drawable.mini_van,
+                "small lorry 10ft" to Res.drawable.truck,
+                "medium lorry 14ft" to Res.drawable.truck,
+                "large lorry 17ft" to Res.drawable.truck,
+                "mini truck" to Res.drawable.mini_van,
+                "minitruck" to Res.drawable.mini_van,
+                "truck" to Res.drawable.truck
+            )
+            val defaultVehicles = listOf(
+                VehicleOption(Res.drawable.bike,       "2 Wheeler",         "RM 0.90/km"),
+                VehicleOption(Res.drawable.car_4_seater, "Car",             "RM 1.17/km"),
+                VehicleOption(Res.drawable.truck, "4x4 Pickup",             "RM 3.40/km"),
+                VehicleOption(Res.drawable.mini_van,   "Van 7ft",           "RM 5.40/km"),
+                VehicleOption(Res.drawable.mini_van,   "Van 9ft",           "RM 6.40/km"),
+                VehicleOption(Res.drawable.truck,      "Small Lorry 10ft",  "RM 8.23/km"),
+                VehicleOption(Res.drawable.truck,      "Medium Lorry 14ft", "RM 11.60/km"),
+                VehicleOption(Res.drawable.truck,      "Large Lorry 17ft",  "RM 15.60/km")
+            )
+            BookingApi.getVehicles()
+                .onSuccess { response ->
+                    val apiVehicles = response.data.orEmpty()
+                    vehicleOptions = apiVehicles.map { vehicle ->
+                        val key = vehicle.type.lowercase()
+                        val icon = iconMap[key] ?: Res.drawable.car_4_seater
+                        val displayName = when (key) {
+                            "2 wheeler", "bike" -> "2 Wheeler"
+                            "car", "auto" -> "Car"
+                            "4x4 pickup" -> "4x4 Pickup"
+                            "van 7ft" -> "Van 7ft"
+                            "van 9ft" -> "Van 9ft"
+                            "small lorry 10ft" -> "Small Lorry 10ft"
+                            "medium lorry 14ft" -> "Medium Lorry 14ft"
+                            "large lorry 17ft" -> "Large Lorry 17ft"
+                            "mini truck", "minitruck" -> "Van 7ft"
+                            "truck" -> "Small Lorry 10ft"
+                            else -> vehicle.type
+                        }
+                        val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(displayName, "Regular")
+                        VehicleOption(icon, displayName, "RM ${rate.formatDecimal(2)}/km")
+                    }
+                    if (vehicleOptions.isEmpty()) {
+                        vehicleOptions = defaultVehicles
+                        vehicleError = "Using default vehicle list"
+                    }
+                    if (selectedVehicle !in vehicleOptions.indices) selectedVehicle = 0
+                }
+                .onFailure {
+                    vehicleOptions = defaultVehicles
+                    vehicleError = "Using default vehicle list"
+                }
+            isLoadingVehicles = false
+        }
+    }
 
     fun proceedToBooking() {
         val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: "Car (4-Seat)"
@@ -143,50 +212,31 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        isLoadingVehicles = true
-        val iconMap = mapOf(
-            "bike" to Res.drawable.bike,
-            "auto" to Res.drawable.car_two_seater,
-            "car" to Res.drawable.car_4_seater,
-            "mini truck" to Res.drawable.mini_van,
-            "minitruck" to Res.drawable.mini_van,
-            "truck" to Res.drawable.truck
-        )
-        val defaultVehicles = listOf(
-            VehicleOption(Res.drawable.bike, "Bike", "RM 8"),
-            VehicleOption(Res.drawable.car_two_seater, "Car (2-Seat)", "RM 15"),
-            VehicleOption(Res.drawable.car_4_seater, "Car (4-Seat)", "RM 20"),
-            VehicleOption(Res.drawable.mini_van, "Mini Van", "RM 30"),
-            VehicleOption(Res.drawable.truck, "Truck", "RM 45"),
-            VehicleOption(Res.drawable.open_truck, "Open Truck", "RM 40")
-        )
-
-        try {
-            withContext(Dispatchers.Default) { BookingApi.getVehicles() }
-                .onSuccess { response ->
-                    val apiVehicles = response.data.orEmpty()
-                    vehicleOptions = if (apiVehicles.isNotEmpty()) {
-                        apiVehicles.map { vehicle ->
-                            val type = vehicle.type.lowercase()
-                            val icon = iconMap[type] ?: Res.drawable.car_4_seater
-                            val displayName = when (type) {
-                                "bike" -> "Bike"
-                                "auto" -> "Car (2-Seat)"
-                                "car" -> "Car (4-Seat)"
-                                "mini truck", "minitruck" -> "Mini Van"
-                                "truck" -> "Truck"
-                                else -> vehicle.type
-                            }
-                            VehicleOption(icon, displayName, "RM ${vehicle.basePrice.toInt()}")
-                        }
-                    } else defaultVehicles
-                }
-                .onFailure { vehicleOptions = defaultVehicles }
-        } catch (_: Throwable) {
-            vehicleOptions = defaultVehicles
-        } finally {
-            isLoadingVehicles = false
+        UserApi.getProfile().onSuccess { profile ->
+            userName = profile.name.ifBlank { null }
         }
+
+        BookingApi.getBookings().onSuccess { response ->
+            val allBookings = response.data.orEmpty()
+            activeBooking = allBookings.firstOrNull {
+                it.status in setOf(
+                    BookingStatus.PENDING,
+                    BookingStatus.SEARCHING_DRIVER,
+                    BookingStatus.DRIVER_ASSIGNED,
+                    BookingStatus.DRIVER_ARRIVED,
+                    BookingStatus.PICKUP_DONE,
+                    BookingStatus.IN_TRANSIT
+                )
+            }
+            recentDeliveredBookings = allBookings
+                .asSequence()
+                .filter { it.status == BookingStatus.DELIVERED }
+                .sortedByDescending { it.updatedAt }
+                .take(2)
+                .toList()
+        }
+
+        loadVehicles()
     }
 
     val requestLocation = rememberLocationRequester(
@@ -299,7 +349,7 @@ fun HomeScreen(
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "Hello, Devansh",
+                    text = "Hello, ${userName ?: "—"}",
                     color = TextPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
@@ -321,39 +371,58 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = Color(0xFFE8EEF7),
-            tonalElevation = 0.dp,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically
+        if (activeBooking != null) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFE8EEF7),
+                tonalElevation = 0.dp,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White,
-                    modifier = Modifier.size(28.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Image(
-                                painter = painterResource(Res.drawable.home_delivery_progress_icon),
-                            contentDescription = "Delivery in progress",
-                            modifier = Modifier.size(14.dp)
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("🚚", fontSize = 13.sp)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Your delivery is in progress", color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                        Text(
+                            activeBooking?.eta?.let { "Arriving in approx. $it mins" } ?: "Driver details updating",
+                            color = TextSecondary,
+                            fontSize = 11.sp
                         )
                     }
+                    TextButton(
+                        onClick = { activeBooking?.id?.let(onNavigateToTracking) },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text("Track now  →", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 12.sp)
+                    }
                 }
-                Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Your delivery is in progress", color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
-                    Text("Arriving in approx. 12 mins", color = TextSecondary, fontSize = 11.sp)
-                }
-                TextButton(onClick = { onNavigateToTracking("active") }, contentPadding = PaddingValues(0.dp)) {
-                    Text("Track now  →", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 12.sp)
-                }
+            }
+        } else {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFE8EEF7),
+                tonalElevation = 0.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "No active deliveries right now",
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+                )
             }
         }
 
@@ -579,7 +648,7 @@ fun HomeScreen(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { proceedToBooking() },
+                .clickable(enabled = vehicleOptions.isNotEmpty()) { proceedToBooking() },
             shape = RoundedCornerShape(16.dp),
             color = Color.Transparent
         ) {
@@ -605,7 +674,13 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("ESTIMATED LOGISTICS", color = Color.White.copy(alpha = 0.72f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
-                        Text("25 mins · ${vehicleOptions.getOrNull(selectedVehicle)?.price ?: "RM 15"} - RM 150", color = Color.White, fontSize = 23.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (vehicleOptions.isNotEmpty()) "25 mins · ${vehicleOptions.getOrNull(selectedVehicle)?.price ?: "—"}"
+                            else "Unavailable right now",
+                            color = Color.White,
+                            fontSize = 23.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                     Text("→", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -617,17 +692,34 @@ fun HomeScreen(
         Text("Recent Deliveries", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(10.dp))
 
-        RecentDeliveryCard(
-            title = "Office to Home",
-            subtitle = "Last delivered 2 days ago",
-            onRepeat = { onNavigateToOrders() }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        RecentDeliveryCard(
-            title = "Warehouse to Shop",
-            subtitle = "Last delivered 5 days ago",
-            onRepeat = { onNavigateToOrders() }
-        )
+        if (recentDeliveredBookings.isEmpty()) {
+            Surface(
+                color = Color(0xFFEFF2F6),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "No recent deliveries",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+                )
+            }
+        } else {
+            recentDeliveredBookings.forEachIndexed { index, booking ->
+                val pickupTitle = booking.pickupAddress.label.ifBlank { booking.pickupAddress.address }.ifBlank { "Pickup" }
+                val deliveryTitle = booking.deliveryAddress.label.ifBlank { booking.deliveryAddress.address }.ifBlank { "Delivery" }
+                val deliveredDate = booking.updatedAt.take(10)
+                RecentDeliveryCard(
+                    title = "$pickupTitle to $deliveryTitle",
+                    subtitle = if (deliveredDate.isNotBlank()) "Delivered on $deliveredDate" else "Delivered",
+                    onRepeat = { onNavigateToOrders() }
+                )
+                if (index != recentDeliveredBookings.lastIndex) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -651,6 +743,11 @@ fun HomeScreen(
                 modifier = Modifier.weight(1f)
             )
         }
+        // TODO: Fetch saved addresses from API
+        // Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        //     SavedAddressCard(title = "Home", subtitle = "Sector 45, Gurgaon...", modifier = Modifier.weight(1f))
+        //     SavedAddressCard(title = "Work", subtitle = "Cyber Hub, Phase 2...", modifier = Modifier.weight(1f))
+        // }
 
         Spacer(modifier = Modifier.height(14.dp))
     }

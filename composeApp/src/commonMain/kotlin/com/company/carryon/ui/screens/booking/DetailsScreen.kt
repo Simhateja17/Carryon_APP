@@ -48,11 +48,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.ui.components.ContactInfo
+import com.company.carryon.ui.components.ContactPickerButton
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.util.formatDecimal
 
 private val SectionTint20 = Color(0x33A6D2F3)
+private const val DeliveryModePooling = "Pooling"
+private const val DeliveryModePriority = "Priority"
+private const val DeliveryModeRegular = "Regular"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,11 +66,17 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String) -> Unit,
-    onBack: () -> Unit
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, deliveryMode: String, offloading: Boolean) -> Unit,
+    onBack: () -> Unit,
+    onContactSelected: (ContactInfo) -> Unit = {}
 ) {
     var deliveryMode by rememberSaveable { mutableStateOf("Priority") }
     var regularSlot by rememberSaveable { mutableStateOf("Afternoon") }
+    var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
+    var offloading by rememberSaveable { mutableStateOf(false) }
+    var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
+    var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
+    var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
     var parcelWeight by rememberSaveable { mutableStateOf("0.0") }
     var parcelType by rememberSaveable { mutableStateOf("Documents") }
     var instructions by rememberSaveable { mutableStateOf("") }
@@ -135,7 +147,9 @@ fun DetailsScreen(
                                     senderName,
                                     senderPhone,
                                     receiverName,
-                                    receiverPhone
+                                    receiverPhone,
+                                    deliveryMode,
+                                    offloading
                                 )
                             },
                         contentAlignment = Alignment.Center
@@ -184,6 +198,12 @@ fun DetailsScreen(
                     }
 
                     if (deliveryMode == "Priority") {
+                        DeliveryModeChip(DeliveryModePooling, deliveryMode == DeliveryModePooling, modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = DeliveryModePooling }
+                        DeliveryModeChip(DeliveryModePriority, deliveryMode == DeliveryModePriority, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModePriority }
+                        DeliveryModeChip(DeliveryModeRegular, deliveryMode == DeliveryModeRegular, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModeRegular }
+                    }
+
+                    if (deliveryMode == DeliveryModePooling) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Box(
                             modifier = Modifier
@@ -207,6 +227,8 @@ fun DetailsScreen(
                                     Column {
                                         Text("Priority Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
                                         Text("Top choice for the fastest pickup", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                                        Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -218,6 +240,11 @@ fun DetailsScreen(
                             }
                         }
                     } else if (deliveryMode == "Regular") {
+                                    Text("Orders may be grouped to reduce delivery cost", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    } else if (deliveryMode == DeliveryModePriority) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(24.dp),
@@ -239,6 +266,9 @@ fun DetailsScreen(
                                     Text("Regular Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
                                     Text(
                                         "Balanced speed and price for\ndaily deliveries.",
+                                    Text("Priority Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        "Faster dispatch for urgent\nshipments that need priority handling.",
                                         color = Color.Black,
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp
@@ -247,6 +277,7 @@ fun DetailsScreen(
                             }
                         }
                     } else if (deliveryMode == "Pooling") {
+                    } else if (deliveryMode == DeliveryModeRegular) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(24.dp),
@@ -270,6 +301,7 @@ fun DetailsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
             if (deliveryMode == "Priority") {
+            if (deliveryMode == DeliveryModePooling) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressInputCard(
@@ -330,6 +362,12 @@ fun DetailsScreen(
                     onValueChange = { receiverPhone = it },
                     keyboardType = KeyboardType.Phone
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                ContactPickerButton { contact ->
+                    receiverName = contact.name
+                    receiverPhone = contact.phone
+                    onContactSelected(contact)
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Box(
@@ -365,6 +403,11 @@ fun DetailsScreen(
                     }
                 }
             } else if (deliveryMode == "Regular") {
+                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
+                        }
+                    }
+                }
+            } else if (deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
@@ -465,6 +508,12 @@ fun DetailsScreen(
                 SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
                 Spacer(modifier = Modifier.height(12.dp))
                 SameDayReceiverRow(icon = "✆", placeholder = "Phone Number", value = receiverPhone, onValueChange = { receiverPhone = it }, keyboardType = KeyboardType.Phone)
+                Spacer(modifier = Modifier.height(12.dp))
+                ContactPickerButton { contact ->
+                    receiverName = contact.name
+                    receiverPhone = contact.phone
+                    onContactSelected(contact)
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Surface(shape = RoundedCornerShape(32.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
@@ -482,6 +531,7 @@ fun DetailsScreen(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("RM 7.70", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                            Text("RM 180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("EST. TOTAL", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                         }
                     }
@@ -610,6 +660,44 @@ fun DetailsScreen(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    ContactPickerButton { contact ->
+                        receiverName = contact.name
+                        receiverPhone = contact.phone
+                        onContactSelected(contact)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Offloading add-on
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = SectionTint20,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Offloading Service",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.Black
+                            )
+                            Text(
+                                "+RM 30.00 per booking",
+                                fontSize = 12.sp,
+                                color = Color(0xFF2F80ED)
+                            )
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = offloading,
+                            onCheckedChange = { offloading = it }
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -640,7 +728,7 @@ fun DetailsScreen(
                                     Text("⚲", color = Color.White, fontSize = 10.sp)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = vehicleType.ifBlank { "STANDARD BIKE" }.uppercase(),
+                                        text = vehicleType.ifBlank { "VEHICLE" }.uppercase(),
                                         color = Color.White,
                                         fontSize = 10.sp,
                                         letterSpacing = 1.sp,
@@ -650,13 +738,35 @@ fun DetailsScreen(
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Estimated Arrival", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text("25 mins", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp)
+                            Text("Delivery Mode", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                         }
 
                         Column(horizontalAlignment = Alignment.End) {
                             Text("Total Cost", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                             Text("RM 5.80", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
+                            Text(
+                                "Rate / km",
+                                color = Color(0xFFDBEAFE),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(vehicleType, deliveryMode)
+                            Text(
+                                "RM ${rate.formatDecimal(2)}/km",
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                letterSpacing = (-0.5).sp,
+                                lineHeight = 30.sp
+                            )
+                            if (offloading) {
+                                Text(
+                                    "+RM 30 offloading",
+                                    color = Color(0xFFDBEAFE),
+                                    fontSize = 11.sp
+                                )
+                            }
                         }
                     }
                 }

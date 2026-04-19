@@ -36,10 +36,16 @@ fun EditProfileScreen(
     var phone by remember { mutableStateOf("+1 (555) 0123-4567") }
     var city by remember { mutableStateOf("Kuala Lumpur") }
     var language by remember { mutableStateOf("English") }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("—") }
+    var language by remember { mutableStateOf("—") }
     var isLoading by remember { mutableStateOf(false) }
     var isFetching by remember { mutableStateOf(true) }
     var showSuccessDialog by remember { mutableStateOf(false) }
     var saveError by remember { mutableStateOf<String?>(null) }
+    var profileLoadError by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -48,9 +54,11 @@ fun EditProfileScreen(
                 name = user.name.ifBlank { name }
                 email = user.email.ifBlank { email }
                 phone = user.phone.ifBlank { phone }
+                profileLoadError = null
                 isFetching = false
             }
-            .onFailure {
+            .onFailure { err ->
+                profileLoadError = err.message ?: "Failed to load profile"
                 isFetching = false
             }
     }
@@ -138,6 +146,16 @@ fun EditProfileScreen(
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
+
+                    if (profileLoadError != null) {
+                        Text(
+                            text = profileLoadError ?: "",
+                            color = ErrorRed,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
 
                     Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         ProfileFieldLabel("FULL NAME")

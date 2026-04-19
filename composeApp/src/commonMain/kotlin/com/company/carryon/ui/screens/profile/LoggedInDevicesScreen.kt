@@ -158,19 +158,6 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 28.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SecurityBottomTab("⌂", "Home", false)
-                SecurityBottomTab("🚚", "Deliveries", false)
-                SecurityBottomTab("🔒", "Security", true)
-                SecurityBottomTab("◉", "Profile", false)
-            }
         }
     }
 }
@@ -234,23 +221,5 @@ private fun DeviceCard(
         } else {
             Spacer(modifier = Modifier.width(24.dp))
         }
-    }
-}
-
-@Composable
-private fun SecurityBottomTab(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFEFF6FF) else Color.Transparent, RoundedCornerShape(12.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color(0xFF64748B), fontSize = 16.sp)
-        Text(
-            label,
-            color = if (selected) PrimaryBlue else Color(0xFF64748B),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium
-        )
     }
 }

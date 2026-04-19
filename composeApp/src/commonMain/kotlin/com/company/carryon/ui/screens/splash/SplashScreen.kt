@@ -13,10 +13,7 @@ import androidx.compose.ui.unit.dp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.carryon_logo
 import org.jetbrains.compose.resources.painterResource
-import com.company.carryon.data.network.SupabaseConfig
-import com.company.carryon.data.network.getToken
-import com.company.carryon.data.network.saveToken
-import io.github.jan.supabase.auth.auth
+import com.company.carryon.data.network.AuthStateManager
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -31,28 +28,7 @@ fun SplashScreen(
         val minSplashMs = 800L
         val hasValidSession = coroutineScope {
             val authDeferred = async {
-                try {
-                    val session = SupabaseConfig.client.auth.currentSessionOrNull()
-                    if (session != null) {
-                        saveToken(session.accessToken)
-                        true
-                    } else {
-                        try {
-                            SupabaseConfig.client.auth.refreshCurrentSession()
-                            val refreshed = SupabaseConfig.client.auth.currentSessionOrNull()
-                            if (refreshed != null) {
-                                saveToken(refreshed.accessToken)
-                                true
-                            } else {
-                                false
-                            }
-                        } catch (_: Throwable) {
-                            false
-                        }
-                    }
-                } catch (_: Throwable) {
-                    false
-                }
+                AuthStateManager.ensureFreshToken()
             }
             // Minimum splash display time
             delay(minSplashMs)
@@ -60,12 +36,6 @@ fun SplashScreen(
         }
 
         if (hasValidSession) {
-            onLoggedIn()
-        } else if (getToken() != null) {
-            // Fallback: we have a stored token but no Supabase session.
-            // The token might still be valid (within its expiry window).
-            // Navigate to home — API calls will fail with 401 if truly expired,
-            // and the app can handle that by redirecting to login.
             onLoggedIn()
         } else {
             onNotLoggedIn()

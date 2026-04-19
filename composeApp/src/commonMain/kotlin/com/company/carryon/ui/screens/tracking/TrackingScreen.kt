@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
+import com.company.carryon.util.formatOrderDisplayId
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.data.model.Booking
@@ -129,6 +130,7 @@ fun TrackingScreen(
     val driverRating = booking?.driver?.rating?.let { it.formatDecimal(1) } ?: "—"
     val etaMinutes = booking?.eta?.let { "$it min" } ?: strings.estimatedDelivery
     val vehicleType = booking?.vehicleType ?: "—"
+    val displayOrderId = formatOrderDisplayId(bookingId, booking?.orderCode)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -195,7 +197,7 @@ fun TrackingScreen(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         Text(
-                            text = strings.orderIdLabel(bookingId),
+                            text = strings.orderIdLabel(displayOrderId),
                             fontSize = 13.sp,
                             color = TextSecondary
                         )

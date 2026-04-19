@@ -38,6 +38,10 @@ data class PackageType(
     val name: String
 )
 
+private const val DeliveryModePooling = "Pooling"
+private const val DeliveryModePriority = "Priority"
+private const val DeliveryModeRegular = "Regular"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalculateScreen(
@@ -56,7 +60,7 @@ fun CalculateScreen(
     var selectedPackageType by remember { mutableStateOf(packageTypes[2]) }
     var fromAddress by remember { mutableStateOf("") }
     var destinationAddress by remember { mutableStateOf("") }
-    var selectedDeliveryOption by remember { mutableStateOf("Express") }
+    var selectedDeliveryOption by remember { mutableStateOf(DeliveryModePriority) }
     var itemWeight by remember { mutableStateOf("") }
     var showDeliveryOptions by remember { mutableStateOf(false) }
     
@@ -64,7 +68,7 @@ fun CalculateScreen(
     var destinationAddressError by remember { mutableStateOf(false) }
     var itemWeightError by remember { mutableStateOf(false) }
     
-    val deliveryOptions = listOf("Express", "Standard", "Economy", "Same Day")
+    val deliveryOptions = listOf(DeliveryModePriority, DeliveryModeRegular, DeliveryModePooling)
     
     Scaffold(
         topBar = {
@@ -454,4 +458,3 @@ private fun PackageTypeCard(
         }
     }
 }
-

@@ -116,6 +116,7 @@ fun AddMoneyScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("RM ", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
+                Text("RM", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(amount.toString(), color = PrimaryBlue, fontSize = 66.sp, fontWeight = FontWeight.Bold)
             }

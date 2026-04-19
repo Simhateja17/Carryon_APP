@@ -215,6 +215,8 @@ fun SearchingDriverScreen(
                     Text("PICKUP", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text("Jalan Tun Razak, Kuala Lumpur", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    // TODO: Get pickup address from booking data
+                    Text("—", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -225,6 +227,8 @@ fun SearchingDriverScreen(
                             Text("DROP OFF", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("KL Sentral, Kuala Lumpur", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                            // TODO: Get drop-off address from booking data
+                            Text("—", fontSize = 21.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
                         }
                         Box(
                             modifier = Modifier

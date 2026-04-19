@@ -59,6 +59,8 @@ fun SavedAddressesScreen(
             lines = listOf("Central Distribution Point", "Jalan Raja Chulan,", "50200 Kuala Lumpur")
         )
     )
+    // TODO: Fetch addresses from API
+    val addresses = emptyList<SavedAddressUi>()
 
     Scaffold(containerColor = Color(0xFFF3F4F6)) { paddingValues ->
         Box(

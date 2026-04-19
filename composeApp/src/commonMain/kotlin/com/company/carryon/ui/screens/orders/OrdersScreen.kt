@@ -72,6 +72,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.util.formatOrderDisplayId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -79,22 +80,28 @@ import org.jetbrains.compose.resources.painterResource
 
 data class OrderItem(
     val id: String,
+    val orderCode: String? = null,
     val date: String,
     val pickup: String,
     val delivery: String,
     val vehicleType: String,
     val price: Double,
-    val status: BookingStatus
+    val status: BookingStatus,
+    val estimatedMinutes: Int? = null,
+    val driverName: String? = null
 )
 
 private fun Booking.toOrderItem() = OrderItem(
     id          = id,
+    orderCode   = orderCode,
     date        = createdAt.take(10),
     pickup      = pickupAddress.label.ifEmpty { pickupAddress.address },
     delivery    = deliveryAddress.label.ifEmpty { deliveryAddress.address },
     vehicleType = vehicleType,
     price       = if (finalPrice > 0) finalPrice else estimatedPrice,
-    status      = status
+    status      = status,
+    estimatedMinutes = eta,
+    driverName  = driver?.name
 )
 
 private enum class OrdersTab(val label: String) {
@@ -165,8 +172,9 @@ fun OrdersScreen(
         price = 0.0,
         status = BookingStatus.IN_TRANSIT
     )
+    }
 
-    val scheduledFromApi = orders.filter {
+    val scheduledOrders = orders.filter {
         it.status == BookingStatus.PENDING || it.status == BookingStatus.SEARCHING_DRIVER
     }
     val placeholderScheduled = listOf(
@@ -231,6 +239,14 @@ fun OrdersScreen(
                 amountText = "RM 150",
                 statusText = "DELIVERED"
             )
+
+    val completedFromApi = orders.filter { it.status == BookingStatus.DELIVERED }
+    val completedCards = completedFromApi.map { order ->
+        CompletedOrderPreview(
+            order = order,
+            dateTime = order.date.ifBlank { "—" },
+            amountText = "RM ${order.price.toInt()}",
+            statusText = "DELIVERED"
         )
     }
 
@@ -298,6 +314,20 @@ fun OrdersScreen(
                 dropIconBg = Color(0xFFA6D2F3),
                 dropIconTint = Color(0xFF2F80ED)
             )
+    val cancelledCards = cancelledFromApi.map { order ->
+        CancelledOrderPreview(
+            order = order,
+            dateTime = order.date.ifBlank { "—" },
+            reasonTitle = "Cancellation Reason",
+            reasonText = "Cancelled",
+            statusColor = Color(0xFF64748B),
+            statusBgColor = Color(0xFFF1F5F9),
+            reasonLeftBorder = false,
+            reasonTitleBlue = true,
+            actionLabel = "Re-book",
+            footerText = "",
+            dropIconBg = Color(0xFFA6D2F3),
+            dropIconTint = Color(0xFF2F80ED)
         )
     }
 
@@ -368,39 +398,59 @@ fun OrdersScreen(
         val showCancelled = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.CANCELLED
 
         if (showOngoing) {
-            OngoingOrderCard(order = ongoingOrder, onTrack = { onTrackOrder(ongoingOrder.id) })
-            Spacer(modifier = Modifier.height(12.dp))
+            if (ongoingOrder != null) {
+                OngoingOrderCard(order = ongoingOrder, onTrack = { onOrderClick(ongoingOrder.id) })
+                Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                EmptyOrdersState("No ongoing deliveries")
+                Spacer(modifier = Modifier.height(12.dp))
+            }
         }
 
         if (showScheduled) {
-            scheduledOrders.forEach { scheduled ->
-                ScheduledOrderCard(
-                    order = scheduled,
-                    onModify = { onOrderClick(scheduled.id) },
-                    onCancel = { onOrderClick(scheduled.id) }
-                )
+            if (scheduledOrders.isEmpty()) {
+                EmptyOrdersState("No scheduled deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                scheduledOrders.forEach { scheduled ->
+                    ScheduledOrderCard(
+                        order = scheduled,
+                        onModify = { onOrderClick(scheduled.id) },
+                        onCancel = { onOrderClick(scheduled.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
         if (showCompleted) {
-            completedCards.forEach { completed ->
-                CompletedOrderCard(
-                    card = completed,
-                    onViewDetails = { onOrderClick(completed.order.id) },
-                    onRepeat = { onOrderClick(completed.order.id) }
-                )
+            if (completedCards.isEmpty()) {
+                EmptyOrdersState("No completed deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                completedCards.forEach { completed ->
+                    CompletedOrderCard(
+                        card = completed,
+                        onViewDetails = { onOrderClick(completed.order.id) },
+                        onRepeat = { onOrderClick(completed.order.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
         if (showCancelled) {
-            cancelledCards.forEach { cancelled ->
-                CancelledOrderCard(
-                    card = cancelled,
-                    onAction = { onOrderClick(cancelled.order.id) }
-                )
+            if (cancelledCards.isEmpty()) {
+                EmptyOrdersState("No cancelled deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
+            } else {
+                cancelledCards.forEach { cancelled ->
+                    CancelledOrderCard(
+                        card = cancelled,
+                        onAction = { onOrderClick(cancelled.order.id) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
@@ -437,6 +487,7 @@ private data class CompletedOrderPreview(
 
 private data class OngoingDeliveryPreview(
     val orderId: String,
+    val orderCode: String? = null,
     val statusLabel: String,
     val etaMinutes: Int,
     val courierName: String,
@@ -609,6 +660,16 @@ private fun OngoingDeliveriesScreen(
                 secondaryValue = "",
                 buttonText = "View Details"
             )
+    val cards = ongoingOrders.take(2).mapIndexed { idx, order ->
+        OngoingDeliveryPreview(
+            orderId = order.id,
+            orderCode = order.orderCode,
+            statusLabel = if (idx == 0) "IN TRANSIT" else "OUT FOR PICKUP",
+            etaMinutes = order.estimatedMinutes ?: 0,
+            courierName = order.driverName ?: "",
+            primaryValue = order.pickup,
+            secondaryValue = order.delivery,
+            buttonText = if (idx == 0) "Track Order" else "View Details"
         )
     }
 
@@ -742,7 +803,7 @@ private fun OngoingDeliveryCard(
                         letterSpacing = 0.6.sp
                     )
                     Text(
-                        text = formatOrderDisplayId(card.orderId),
+                        text = formatOrderDisplayId(card.orderId, card.orderCode),
                         color = Color.Black,
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -924,6 +985,14 @@ private fun OrdersHeader(
 
 @Composable
 private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
+    val statusText = when (order.status) {
+        BookingStatus.SEARCHING_DRIVER -> "SEARCHING DRIVER"
+        BookingStatus.DRIVER_ASSIGNED -> "DRIVER ASSIGNED"
+        BookingStatus.DRIVER_ARRIVED -> "DRIVER ARRIVED"
+        BookingStatus.PICKUP_DONE -> "PICKUP DONE"
+        BookingStatus.IN_TRANSIT -> "IN TRANSIT"
+        else -> order.status.name.replace('_', ' ')
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(OrderCardCornerRadius),
@@ -942,11 +1011,11 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("ID: #${formatOrderId(order.id)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
+                    Text("ID: ${formatOrderDisplayId(order.id, order.orderCode)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
                     Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Medium, fontSize = OrderCardHeadingFontSize, maxLines = 1)
                 }
 
-                StatusPill(text = "IN TRANSIT", color = PrimaryBlue)
+                StatusPill(text = statusText, color = PrimaryBlue)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -961,8 +1030,8 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("ETA", color = Color(0xFF7A88A7), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Normal)
-                    Text("15 mins", color = PrimaryBlue, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
+                    Text("ETA", color = Color(0xFF7A88A7), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(if (order.date.isBlank()) "—" else order.date, color = PrimaryBlue, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 }
                 Button(
                     onClick = onTrack,
@@ -1005,7 +1074,7 @@ private fun ScheduledOrderCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = formatOrderDisplayId(order.id),
+                        text = formatOrderDisplayId(order.id, order.orderCode),
                         color = Color(0xFF0F172A),
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -1046,7 +1115,7 @@ private fun ScheduledOrderCard(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Today, 5:00 PM",
+                            text = order.date.ifBlank { "Pending schedule" },
                             color = Color(0xFF0F172A),
                             fontSize = OrderCardValueFontSize,
                             fontWeight = FontWeight.Medium
@@ -1170,7 +1239,7 @@ private fun CompletedOrderCard(
             ) {
                 Column {
                     Text("ORDER ID", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 1.sp)
-                    Text(formatOrderDisplayId(card.order.id), color = Color.Black, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
+                    Text(formatOrderDisplayId(card.order.id, card.order.orderCode), color = Color.Black, fontSize = OrderCardHeadingFontSize, fontWeight = FontWeight.Medium)
                 }
                 Surface(shape = RoundedCornerShape(999.dp), color = Color.White) {
                     Row(
@@ -1279,7 +1348,7 @@ private fun CancelledOrderCard(
             ) {
                 Column {
                     Text(
-                        text = formatOrderDisplayId(card.order.id),
+                        text = formatOrderDisplayId(card.order.id, card.order.orderCode),
                         color = Color.Black,
                         fontSize = OrderCardHeadingFontSize,
                         fontWeight = FontWeight.Medium
@@ -1615,14 +1684,18 @@ private fun RetryBlock(message: String, onRetry: () -> Unit) {
     }
 }
 
-private fun formatOrderId(id: String): String {
-    if (id.isBlank()) return "CO-0000"
-    val cleaned = id.removePrefix("#").uppercase()
-    return if (cleaned.startsWith("CO-")) cleaned else "CO-$cleaned"
-}
-
-private fun formatOrderDisplayId(id: String): String {
-    if (id.isBlank()) return "#CO-0000"
-    val trimmed = id.trim().removePrefix("#").uppercase()
-    return if (trimmed.startsWith("VL-") || trimmed.contains("VL-")) "#$trimmed" else "#${formatOrderId(id)}"
+@Composable
+private fun EmptyOrdersState(message: String) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFFEAF2FC),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = message,
+            color = Color(0xFF64748B),
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
+        )
+    }
 }
