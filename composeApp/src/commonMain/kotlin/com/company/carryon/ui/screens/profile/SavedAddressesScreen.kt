@@ -42,23 +42,6 @@ fun SavedAddressesScreen(
     onAddNewAddress: () -> Unit,
     onBack: () -> Unit
 ) {
-    val addresses = listOf(
-        SavedAddressUi(
-            icon = Res.drawable.saved_address_primary,
-            title = "Home",
-            lines = listOf("No. 18, Jalan SS 2/24,", "47300 Petaling Jaya,", "Selangor, Malaysia")
-        ),
-        SavedAddressUi(
-            icon = Res.drawable.saved_address_primary,
-            title = "Main Warehouse",
-            lines = listOf("Lot 12, Kawasan Perindustrian,", "Pelabuhan Klang,", "42000 Klang, Selangor")
-        ),
-        SavedAddressUi(
-            icon = Res.drawable.saved_address_hub,
-            title = "Downtown Hub",
-            lines = listOf("Central Distribution Point", "Jalan Raja Chulan,", "50200 Kuala Lumpur")
-        )
-    )
     // TODO: Fetch addresses from API
     val addresses = emptyList<SavedAddressUi>()
 

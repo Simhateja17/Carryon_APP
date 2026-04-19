@@ -94,11 +94,6 @@ fun ScheduledOrderDetailsScreen(
                 val pickupAddress =
                     currentBooking?.pickupAddress?.label
                         ?.ifBlank { currentBooking.pickupAddress.address }
-                        .ifNullOrBlank("Jalan Tun Razak, Kuala Lumpur")
-                val dropAddress =
-                    currentBooking?.deliveryAddress?.label
-                        ?.ifBlank { currentBooking.deliveryAddress.address }
-                        .ifNullOrBlank("KL Sentral, Kuala Lumpur")
                         .ifNullOrBlank("")
                 val dropAddress =
                     currentBooking?.deliveryAddress?.label

@@ -163,82 +163,11 @@ fun OrdersScreen(
             BookingStatus.PICKUP_DONE,
             BookingStatus.IN_TRANSIT
         )
-    } ?: OrderItem(
-        id = "CO-9842",
-        date = "",
-        pickup = "Jalan Ampang, Kuala Lumpur",
-        delivery = "Seksyen 13, Petaling Jaya",
-        vehicleType = "Bike",
-        price = 0.0,
-        status = BookingStatus.IN_TRANSIT
-    )
     }
 
     val scheduledOrders = orders.filter {
         it.status == BookingStatus.PENDING || it.status == BookingStatus.SEARCHING_DRIVER
     }
-    val placeholderScheduled = listOf(
-        OrderItem(
-            id = "VL-8829-01",
-            date = "",
-            pickup = "Jalan Tun Razak, Kuala Lumpur",
-            delivery = "KL Sentral, Kuala Lumpur",
-            vehicleType = "Bike",
-            price = 0.0,
-            status = BookingStatus.PENDING
-        ),
-        OrderItem(
-            id = "VL-8830-02",
-            date = "",
-            pickup = "George Town, Penang",
-            delivery = "Bayan Lepas, Penang",
-            vehicleType = "Bike",
-            price = 0.0,
-            status = BookingStatus.PENDING
-        )
-    )
-    val scheduledOrders = if (scheduledFromApi.isNotEmpty()) scheduledFromApi else placeholderScheduled
-
-    val completedFromApi = orders.filter { it.status == BookingStatus.DELIVERED }
-    val completedCards = if (completedFromApi.isNotEmpty()) {
-        completedFromApi.take(2).mapIndexed { index, order ->
-            CompletedOrderPreview(
-                order = order,
-                dateTime = if (order.date.isBlank()) if (index == 0) "Oct 24, 2:30 PM" else "Oct 22, 11:45 AM" else order.date,
-                amountText = "RM ${order.price.toInt()}",
-                statusText = "DELIVERED"
-            )
-        }
-    } else {
-        listOf(
-            CompletedOrderPreview(
-                order = OrderItem(
-                    id = "VL-882910",
-                    date = "",
-                    pickup = "Warehouse",
-                    delivery = "Retail Store",
-                    vehicleType = "Car",
-                    price = 249.0,
-                    status = BookingStatus.DELIVERED
-                ),
-                dateTime = "Oct 24, 2:30 PM",
-                amountText = "RM 249",
-                statusText = "DELIVERED"
-            ),
-            CompletedOrderPreview(
-                order = OrderItem(
-                    id = "VL-882890",
-                    date = "",
-                    pickup = "Home",
-                    delivery = "Office",
-                    vehicleType = "Car",
-                    price = 150.0,
-                    status = BookingStatus.DELIVERED
-                ),
-                dateTime = "Oct 22, 11:45 AM",
-                amountText = "RM 150",
-                statusText = "DELIVERED"
-            )
 
     val completedFromApi = orders.filter { it.status == BookingStatus.DELIVERED }
     val completedCards = completedFromApi.map { order ->
@@ -251,69 +180,6 @@ fun OrdersScreen(
     }
 
     val cancelledFromApi = orders.filter { it.status == BookingStatus.CANCELLED }
-    val cancelledCards = if (cancelledFromApi.isNotEmpty()) {
-        cancelledFromApi.take(2).mapIndexed { index, order ->
-            CancelledOrderPreview(
-                order = order,
-                dateTime = if (order.date.isBlank()) if (index == 0) "Oct 24, 2023 • 14:30 PM" else "Oct 22, 2023 • 09:15 AM" else order.date,
-                reasonTitle = "Cancellation Reason",
-                reasonText = if (index == 0) "Driver unavailable in your area" else "Cancelled by user",
-                statusColor = if (index == 0) Color(0xFF2F80ED) else Color(0xFF64748B),
-                statusBgColor = if (index == 0) Color.White else Color(0xFFF1F5F9),
-                reasonLeftBorder = index == 0,
-                reasonTitleBlue = index != 0,
-                actionLabel = if (index == 0) "Re-book" else "Repeat\nOrder",
-                footerText = if (index == 0) "" else "Refund processed to\nWallet",
-                dropIconBg = if (index == 0) Color(0x1AFB5151) else Color(0xFFA6D2F3),
-                dropIconTint = if (index == 0) Color(0xFF2F80ED) else Color(0xFF2F80ED)
-            )
-        }
-    } else {
-        listOf(
-            CancelledOrderPreview(
-                order = OrderItem(
-                    id = "VL-8829-X9",
-                    date = "",
-                    pickup = "Bukit Bintang, Kuala Lumpur",
-                    delivery = "Mont Kiara, Kuala Lumpur",
-                    vehicleType = "Bike",
-                    price = 0.0,
-                    status = BookingStatus.CANCELLED
-                ),
-                dateTime = "Oct 24, 2023 • 14:30 PM",
-                reasonTitle = "Cancellation Reason",
-                reasonText = "Driver unavailable in your area",
-                statusColor = Color(0xFF2F80ED),
-                statusBgColor = Color.White,
-                reasonLeftBorder = true,
-                reasonTitleBlue = false,
-                actionLabel = "Re-book",
-                footerText = "",
-                dropIconBg = Color(0x1AFB5151),
-                dropIconTint = Color(0xFF2F80ED)
-            ),
-            CancelledOrderPreview(
-                order = OrderItem(
-                    id = "VL-9102-M1",
-                    date = "",
-                    pickup = "Johor Bahru City Square",
-                    delivery = "Taman Molek, Johor Bahru",
-                    vehicleType = "Bike",
-                    price = 0.0,
-                    status = BookingStatus.CANCELLED
-                ),
-                dateTime = "Oct 22, 2023 • 09:15 AM",
-                reasonTitle = "Cancellation Reason",
-                reasonText = "Cancelled by user",
-                statusColor = Color(0xFF64748B),
-                statusBgColor = Color(0xFFF1F5F9),
-                reasonLeftBorder = false,
-                reasonTitleBlue = true,
-                actionLabel = "Repeat\nOrder",
-                footerText = "Refund processed to\nWallet",
-                dropIconBg = Color(0xFFA6D2F3),
-                dropIconTint = Color(0xFF2F80ED)
-            )
     val cancelledCards = cancelledFromApi.map { order ->
         CancelledOrderPreview(
             order = order,
@@ -628,38 +494,6 @@ private fun OngoingDeliveriesScreen(
     onHistoryClick: () -> Unit,
     onDraftsClick: () -> Unit
 ) {
-    val cards = if (ongoingOrders.isNotEmpty()) {
-        ongoingOrders.take(2).mapIndexed { idx, order ->
-            OngoingDeliveryPreview(
-                orderId = if (order.id.isBlank()) "VL-8829${idx + 40}" else order.id,
-                statusLabel = if (idx == 0) "IN TRANSIT" else "OUT FOR PICKUP",
-                etaMinutes = if (idx == 0) 12 else 5,
-                courierName = if (idx == 0) "Marcus Jensen" else "Elena Rodriguez",
-                primaryValue = if (idx == 0) order.pickup else "Arriving at Merchant: Artisan Bakes",
-                secondaryValue = if (idx == 0) order.delivery else "",
-                buttonText = if (idx == 0) "Track Order" else "View Details"
-            )
-        }
-    } else {
-        listOf(
-            OngoingDeliveryPreview(
-                orderId = "VL-882941",
-                statusLabel = "IN TRANSIT",
-                etaMinutes = 12,
-                courierName = "Marcus Jensen",
-                primaryValue = "Port Klang Logistics Hub, Block 4",
-                secondaryValue = "Jalan Bangsar, Unit 4B, Kuala Lumpur",
-                buttonText = "Track Order"
-            ),
-            OngoingDeliveryPreview(
-                orderId = "VL-882949",
-                statusLabel = "OUT FOR PICKUP",
-                etaMinutes = 5,
-                courierName = "Elena Rodriguez",
-                primaryValue = "Arriving at Merchant: Artisan Bakes",
-                secondaryValue = "",
-                buttonText = "View Details"
-            )
     val cards = ongoingOrders.take(2).mapIndexed { idx, order ->
         OngoingDeliveryPreview(
             orderId = order.id,

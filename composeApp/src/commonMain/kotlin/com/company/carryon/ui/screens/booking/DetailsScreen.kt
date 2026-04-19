@@ -70,8 +70,6 @@ fun DetailsScreen(
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
-    var deliveryMode by rememberSaveable { mutableStateOf("Priority") }
-    var regularSlot by rememberSaveable { mutableStateOf("Afternoon") }
     var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
     var offloading by rememberSaveable { mutableStateOf(false) }
     var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
@@ -113,7 +111,7 @@ fun DetailsScreen(
                             text = "Delivery Details",
                             color = Color(0xFF2563EB),
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 },
@@ -159,7 +157,7 @@ fun DetailsScreen(
                                 text = "Confirm Booking",
                                 color = Color.White,
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Medium,
                                 letterSpacing = 0.2.sp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -192,12 +190,6 @@ fun DetailsScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        DeliveryModeChip("Priority", deliveryMode == "Priority", modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = "Priority" }
-                        DeliveryModeChip("Regular", deliveryMode == "Regular", modifier = Modifier.weight(1f)) { deliveryMode = "Regular" }
-                        DeliveryModeChip("Pooling", deliveryMode == "Pooling", modifier = Modifier.weight(1f)) { deliveryMode = "Pooling" }
-                    }
-
-                    if (deliveryMode == "Priority") {
                         DeliveryModeChip(DeliveryModePooling, deliveryMode == DeliveryModePooling, modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = DeliveryModePooling }
                         DeliveryModeChip(DeliveryModePriority, deliveryMode == DeliveryModePriority, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModePriority }
                         DeliveryModeChip(DeliveryModeRegular, deliveryMode == DeliveryModeRegular, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModeRegular }
@@ -209,38 +201,19 @@ fun DetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color(0xFF2F80ED))
+                                .background(Color.White)
                                 .padding(25.dp)
                         ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Surface(
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = Color(0xFFA6D2F3),
-                                        modifier = Modifier.size(48.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Text("⚡", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.width(16.dp))
                                     Column {
-                                        Text("Priority Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
-                                        Text("Top choice for the fastest pickup", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                        Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
-                                        Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        Text("Pooling Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                                        Text("Grouped delivery with flexible timing", color = Color(0xFF000000), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("⚑", color = Color.White, fontSize = 12.sp)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Best for urgent deliveries", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    } else if (deliveryMode == "Regular") {
-                                    Text("Orders may be grouped to reduce delivery cost", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Text("Orders may be grouped to reduce delivery cost", color = Color(0xFF000000), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
@@ -248,51 +221,45 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(24.dp),
-                            color = SectionTint20,
+                            color = Color.White,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = Color(0xFF2F80ED),
-                                    modifier = Modifier.size(48.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text("◫", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Regular Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                                    Text(
-                                        "Balanced speed and price for\ndaily deliveries.",
-                                    Text("Priority Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                    Text("Priority Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
                                     Text(
                                         "Faster dispatch for urgent\nshipments that need priority handling.",
-                                        color = Color.Black,
+                                        color = Color(0xFF000000),
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp
                                     )
                                 }
                             }
                         }
-                    } else if (deliveryMode == "Pooling") {
                     } else if (deliveryMode == DeliveryModeRegular) {
                         Spacer(modifier = Modifier.height(12.dp))
-                        Surface(
-                            shape = RoundedCornerShape(24.dp),
-                            color = Color.White,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Pooling Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    "Save more with shared driver routes.\nEstimated delivery in 4–6 hours.",
-                                    color = Color(0xFF334155),
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp
-                                )
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text("SELECT DATE", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(selectedDate, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                }
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color.White,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text("TIME SLOT", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(timeSlot, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                }
                             }
                         }
                     }
@@ -300,7 +267,6 @@ fun DetailsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            if (deliveryMode == "Priority") {
             if (deliveryMode == DeliveryModePooling) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
@@ -392,26 +358,21 @@ fun DetailsScreen(
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
-                                Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                                Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                                Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp)
+                                Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                             }
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                            Text("RM 13.10", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
-                        }
-                    }
-                }
-            } else if (deliveryMode == "Regular") {
-                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
+                            Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp)
+                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp)
                         }
                     }
                 }
             } else if (deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
-                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -419,25 +380,25 @@ fun DetailsScreen(
                     SameDaySlotCard(
                         title = "Morning",
                         time = "10 AM – 12 PM",
-                        selected = regularSlot == "Morning",
+                        selected = sameDaySlot == "Morning",
                         modifier = Modifier.weight(1f)
-                    ) { regularSlot = "Morning" }
+                    ) { sameDaySlot = "Morning" }
                     SameDaySlotCard(
                         title = "Afternoon",
                         time = "12 PM – 2 PM",
-                        selected = regularSlot == "Afternoon",
+                        selected = sameDaySlot == "Afternoon",
                         modifier = Modifier.weight(1f)
-                    ) { regularSlot = "Afternoon" }
+                    ) { sameDaySlot = "Afternoon" }
                     SameDaySlotCard(
                         title = "Late Afr.",
                         time = "2 PM – 5 PM",
-                        selected = regularSlot == "Late Afr.",
+                        selected = sameDaySlot == "Late Afr.",
                         modifier = Modifier.weight(1f)
-                    ) { regularSlot = "Late Afr." }
+                    ) { sameDaySlot = "Late Afr." }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
@@ -503,7 +464,7 @@ fun DetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text("Receiver Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
+                Text("Receiver Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(12.dp))
                 SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
                 Spacer(modifier = Modifier.height(12.dp))
@@ -521,16 +482,11 @@ fun DetailsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Surface(shape = RoundedCornerShape(16.dp), color = Color.White, modifier = Modifier.size(64.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Text("🚴", fontSize = 30.sp) }
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Standard Bike", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("RM 7.70", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("RM 180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("EST. TOTAL", fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                         }
@@ -684,7 +640,7 @@ fun DetailsScreen(
                             Text(
                                 "Offloading Service",
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Medium,
                                 color = Color.Black
                             )
                             Text(
@@ -732,19 +688,17 @@ fun DetailsScreen(
                                         color = Color.White,
                                         fontSize = 10.sp,
                                         letterSpacing = 1.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("Delivery Mode", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp)
                         }
 
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("Total Cost", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text("RM 5.80", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.SemiBold, letterSpacing = (-1.5).sp, lineHeight = 36.sp)
                             Text(
                                 "Rate / km",
                                 color = Color(0xFFDBEAFE),
@@ -756,7 +710,7 @@ fun DetailsScreen(
                                 "RM ${rate.formatDecimal(2)}/km",
                                 color = Color.White,
                                 fontSize = 22.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.Medium,
                                 letterSpacing = (-0.5).sp,
                                 lineHeight = 30.sp
                             )
@@ -783,7 +737,7 @@ private fun SectionTitle(text: String) {
         text = text,
         color = Color.Black,
         fontSize = 14.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Medium,
         letterSpacing = 0.7.sp,
         modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
     )
@@ -819,7 +773,7 @@ private fun DeliveryModeChip(
                 text = text,
                 color = if (selected) Color.White else Color.Black,
                 fontSize = 14.sp,
-                fontWeight = if (selected && selectedBold) FontWeight.Bold else FontWeight.Medium
+                fontWeight = if (selected && selectedBold) FontWeight.SemiBold else FontWeight.Medium
             )
         }
     }
@@ -844,7 +798,7 @@ private fun SectionCard(
                     title,
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     letterSpacing = 0.7.sp
                 )
             }
@@ -927,14 +881,14 @@ private fun ExpressInputCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, color = Color.Black, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             valueText,
             color = Color(0x6671749E),
             fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -954,7 +908,7 @@ private fun ExpressDropdownCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, color = Color.Black, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { onToggle() }) {
@@ -977,7 +931,7 @@ private fun ExpressDropdownCard(
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 ),
                 modifier = Modifier.fillMaxWidth().menuAnchor()
             )
@@ -1005,7 +959,7 @@ private fun ExpressLabeledInputCard(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text(placeholder, color = Color(0xFF6B7280), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
+                placeholder = { Text(placeholder, color = Color(0xFF6B7280), fontSize = 16.sp, fontWeight = FontWeight.Medium) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
                 shape = RoundedCornerShape(12.dp),
@@ -1019,7 +973,7 @@ private fun ExpressLabeledInputCard(
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium
                 ),
                 modifier = Modifier.fillMaxWidth()
             )

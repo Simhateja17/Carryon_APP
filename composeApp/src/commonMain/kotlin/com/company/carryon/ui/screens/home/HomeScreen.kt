@@ -515,7 +515,7 @@ fun HomeScreen(
                     searchDelivery(it)
                     showPickupSuggestions = false
                 },
-                placeholder = { Text("Where should we deliver?", color = Color(0xFF90A0B7)) },
+                placeholder = { Text("Where should we deliver?", color = Color(0xFF000000)) },
                 leadingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.icon_home),

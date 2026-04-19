@@ -37,11 +37,6 @@ private val InvoiceCardBackground = Color(0x33A6D2F3)
 fun InvoiceHubScreen(
     onBack: () -> Unit
 ) {
-    val invoiceItems = listOf(
-        InvoiceItem("Logistics Express - Kuala Lumpur", "Sep 18, 2023 • 2 Heavy Packages", "RM 420.00"),
-        InvoiceItem("Global Cargo - Penang", "Sep 23, 2023 • Standard Air", "RM 1,150.00"),
-        InvoiceItem("Instant Ship - Johor Bahru", "Sep 22, 2023 • Files Delivery", "RM 290.00")
-    )
     // TODO: Fetch invoice items from API
     val invoiceItems = emptyList<InvoiceItem>()
 

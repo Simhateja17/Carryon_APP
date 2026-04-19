@@ -31,11 +31,6 @@ import kotlinx.coroutines.launch
 fun EditProfileScreen(
     onBack: () -> Unit
 ) {
-    var name by remember { mutableStateOf("Marcus Holloway") }
-    var email by remember { mutableStateOf("m.holloway@carryon.logistics") }
-    var phone by remember { mutableStateOf("+1 (555) 0123-4567") }
-    var city by remember { mutableStateOf("Kuala Lumpur") }
-    var language by remember { mutableStateOf("English") }
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
