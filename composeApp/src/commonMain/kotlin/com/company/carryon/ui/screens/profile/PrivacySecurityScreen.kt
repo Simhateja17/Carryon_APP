@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,15 +53,11 @@ fun PrivacySecurityScreen(
     var locationEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(false) }
 
-    Scaffold(
-        containerColor = Color(0xFFF5F6F8)
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFF5F6F8))
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F6F8))
+    ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,20 +173,6 @@ fun PrivacySecurityScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White, RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                    .padding(horizontal = 22.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                BottomMiniTab(icon = "🚚", label = "Ship", selected = false)
-                BottomMiniTab(icon = "🧭", label = "Track", selected = false)
-                BottomMiniTab(icon = "🧾", label = "History", selected = false)
-                BottomMiniTab(icon = "⚙", label = "Settings", selected = true)
-            }
-        }
     }
 }
 
@@ -273,24 +254,5 @@ private fun ToggleRow(
                     .border(1.dp, Color.White, CircleShape)
             )
         }
-    }
-}
-
-@Composable
-private fun BottomMiniTab(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFEFF6FF) else Color.Transparent, RoundedCornerShape(16.dp))
-            .padding(horizontal = 20.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, fontSize = 20.sp, color = if (selected) PrimaryBlue else Color(0xFF94A3B8))
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            text = label,
-            color = if (selected) PrimaryBlue else Color(0xFF94A3B8),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold
-        )
     }
 }

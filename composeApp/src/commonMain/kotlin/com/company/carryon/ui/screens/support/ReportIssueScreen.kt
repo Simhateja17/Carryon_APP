@@ -43,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
+import com.company.carryon.ui.theme.ScreenVerticalPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +77,7 @@ fun ReportIssueScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = ScreenHorizontalPadding, vertical = ScreenVerticalPadding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Button(
@@ -103,7 +105,7 @@ fun ReportIssueScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = ScreenHorizontalPadding, vertical = ScreenVerticalPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SectionLabel("ORDER REFERENCE")

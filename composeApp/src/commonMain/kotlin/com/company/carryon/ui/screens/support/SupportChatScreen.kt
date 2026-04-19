@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
+import com.company.carryon.ui.theme.ScreenVerticalPadding
 
 @Composable
 fun SupportChatScreen(onBack: () -> Unit) {
@@ -152,7 +154,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 24.dp)
+                .padding(horizontal = ScreenHorizontalPadding, vertical = ScreenVerticalPadding)
         ) {
             Box(
                 modifier = Modifier

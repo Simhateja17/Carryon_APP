@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,15 +41,11 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ChangePasswordScreen(onBack: () -> Unit) {
-    Scaffold(
-        containerColor = Color(0xFFF5F6F8)
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFF5F6F8))
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F6F8))
+    ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -232,7 +227,6 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
                 SecurityTab("🔒", "Security", selected = true)
                 SecurityTab("◉", "Profile", selected = false)
             }
-        }
     }
 }
 

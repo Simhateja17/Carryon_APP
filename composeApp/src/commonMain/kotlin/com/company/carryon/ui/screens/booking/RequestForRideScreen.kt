@@ -46,6 +46,7 @@ fun RequestForRideScreen(
     receiverEmail: String = "",
     deliveryMode: String = "Regular",
     offloading: Boolean = false,
+    scheduledTime: String? = null,
     onContinue: (bookingId: String, amount: Double) -> Unit,
     onBack: () -> Unit
 ) {
@@ -68,17 +69,18 @@ fun RequestForRideScreen(
     var geocodeError by remember { mutableStateOf<String?>(null) }
 
     var estimatedPrice by remember { mutableStateOf(basePrice) }
-    var taxAmount by remember { mutableStateOf(kotlin.math.round(basePrice * 0.06 * 100).toDouble() / 100.0) }
+    var taxAmount by remember { mutableStateOf(kotlin.math.round(basePrice * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0) }
     var distanceKm by remember { mutableStateOf(0.0) }
     var isCalculating by remember { mutableStateOf(pickupAddress.isNotBlank() && deliveryAddress.isNotBlank()) }
     var isCreatingBooking by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     // Calculate price based on distance
-    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm) {
+    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm, offloading) {
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
-            estimatedPrice = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
-            taxAmount = 0.0
+            estimatedPrice = 0.0
+            val subtotal = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
+            taxAmount = kotlin.math.round(subtotal * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0
             isCalculating = false
             geocodeError = null
             return@LaunchedEffect
@@ -99,11 +101,12 @@ fun RequestForRideScreen(
             ).getOrNull()
             if (route != null && route.distance > 0) {
                 distanceKm = route.distance
-                val calculatedPrice = com.company.carryon.data.model.VehiclePricing.calculate(
-                    vehicleType, deliveryMode, route.distance, offloading
+                val fairPrice = com.company.carryon.data.model.VehiclePricing.calculateBaseFare(
+                    vehicleType, deliveryMode, route.distance
                 )
-                estimatedPrice = kotlin.math.round(calculatedPrice * 100).toDouble() / 100.0
-                taxAmount = kotlin.math.round(calculatedPrice * 0.06 * 100).toDouble() / 100.0
+                val subtotal = fairPrice + if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
+                estimatedPrice = kotlin.math.round(fairPrice * 100).toDouble() / 100.0
+                taxAmount = kotlin.math.round(subtotal * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0
             }
         } else {
             geocodeError = "Could not determine location coordinates. Please check the addresses."
@@ -132,6 +135,9 @@ fun RequestForRideScreen(
         else                               -> Res.drawable.car_mustang
     }
     val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
+    val offloadingFee = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
+    val subtotal = estimatedPrice + offloadingFee
+    val totalAmount = subtotal + taxAmount
 
     // Map payment selection to API format
     val paymentMethodApi = when (selectedPayment) {
@@ -193,12 +199,13 @@ fun RequestForRideScreen(
                                 ),
                                 vehicleType = vehicleTypeApi,
                                 paymentMethod = paymentMethodApi,
+                                scheduledTime = scheduledTime,
                                 senderName = senderName,
                                 senderPhone = senderPhone,
                                 receiverName = receiverName,
                                 receiverPhone = receiverPhone,
                                 receiverEmail = receiverEmail,
-                                estimatedPrice = estimatedPrice + taxAmount,
+                                estimatedPrice = totalAmount,
                                 distance = distanceKm,
                                 duration = 0
                             )
@@ -207,7 +214,6 @@ fun RequestForRideScreen(
                                 .onSuccess { response ->
                                     val booking = response.data
                                     if (booking != null) {
-                                        val totalAmount = estimatedPrice + taxAmount
                                         onContinue(booking.id, totalAmount)
                                     } else {
                                         errorMessage = "Failed to create booking"
@@ -254,7 +260,7 @@ fun RequestForRideScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = ScreenHorizontalPadding)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -393,7 +399,7 @@ fun RequestForRideScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.totalAmount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-                    Text("RM ${(estimatedPrice + taxAmount).formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                    Text("RM ${totalAmount.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
             }
 

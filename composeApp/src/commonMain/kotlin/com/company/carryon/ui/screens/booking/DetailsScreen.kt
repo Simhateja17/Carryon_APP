@@ -1,6 +1,7 @@
 package com.company.carryon.ui.screens.booking
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,14 +52,28 @@ import com.company.carryon.data.network.UserApi
 import com.company.carryon.ui.components.ContactInfo
 import com.company.carryon.ui.components.ContactPickerButton
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atTime
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 
 private val SectionTint20 = Color(0x33A6D2F3)
 private const val DeliveryModePooling = "Pooling"
 private const val DeliveryModePriority = "Priority"
 private const val DeliveryModeRegular = "Regular"
+private val RegularTimeSlots = listOf(
+    TimeSlotOption("10 AM - 12 PM", 10),
+    TimeSlotOption("12 PM - 2 PM", 12),
+    TimeSlotOption("2 PM - 4 PM", 14),
+    TimeSlotOption("4 PM - 6 PM", 16),
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,26 +81,60 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, deliveryMode: String, offloading: Boolean) -> Unit,
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, deliveryMode: String, offloading: Boolean, scheduledTime: String?) -> Unit,
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
+    val now = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val defaultSchedule = remember(now) { defaultRegularSchedule(now) }
+    val availableDates: List<LocalDate> = remember(now.date) {
+        val startEpochDays = now.date.toEpochDays()
+        List(7) { offset -> LocalDate.fromEpochDays(startEpochDays + offset) }
+    }
+
     var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
     var offloading by rememberSaveable { mutableStateOf(false) }
-    var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
-    var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
+    var selectedDateIndex by rememberSaveable { mutableStateOf(defaultSchedule.dateOffset.coerceIn(0, availableDates.lastIndex)) }
+    var timeSlot by rememberSaveable { mutableStateOf(defaultSchedule.slot.label) }
     var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
     var parcelWeight by rememberSaveable { mutableStateOf("0.0") }
     var parcelType by rememberSaveable { mutableStateOf("Documents") }
     var instructions by rememberSaveable { mutableStateOf("") }
     var receiverName by rememberSaveable { mutableStateOf("") }
     var receiverPhone by rememberSaveable { mutableStateOf("") }
+    var showValidationError by rememberSaveable { mutableStateOf(false) }
 
     var senderName by rememberSaveable { mutableStateOf("") }
     var senderPhone by rememberSaveable { mutableStateOf("") }
 
     var parcelDropdownExpanded by remember { mutableStateOf(false) }
+    var dateDropdownExpanded by remember { mutableStateOf(false) }
+    var timeSlotDropdownExpanded by remember { mutableStateOf(false) }
     val parcelTypeOptions = listOf("Documents", "Electronics", "Clothes", "Groceries", "Other")
+    val selectedDate = availableDates.getOrElse(selectedDateIndex) { availableDates.first() }
+    val selectedTimeSlot = RegularTimeSlots.firstOrNull { it.label == timeSlot } ?: defaultSchedule.slot
+    val scheduledTime = remember(deliveryMode, selectedDate, selectedTimeSlot) {
+        if (deliveryMode != DeliveryModeRegular) {
+            null
+        } else {
+            selectedDate
+                .atTime(selectedTimeSlot.hour, selectedTimeSlot.minute)
+                .toInstant(TimeZone.currentSystemDefault())
+                .toString()
+        }
+    }
+
+    val normalizedReceiverName = receiverName.trim()
+    val normalizedPhoneDigits = receiverPhone.filter { it.isDigit() }
+    val normalizedInstructions = instructions.trim()
+    val parsedWeight = parcelWeight.toDoubleOrNull()
+    val requiresWeight = deliveryMode == DeliveryModeRegular
+    val hasValidWeight = !requiresWeight || (parsedWeight != null && parsedWeight > 0.0)
+    val hasValidParcelType = parcelType.isNotBlank()
+    val hasValidInstructions = normalizedInstructions.isNotBlank()
+    val hasValidReceiverName = normalizedReceiverName.isNotBlank()
+    val hasValidReceiverPhone = normalizedPhoneDigits.length >= 8
+    val canContinue = hasValidWeight && hasValidParcelType && hasValidInstructions && hasValidReceiverName && hasValidReceiverPhone
 
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { user ->
@@ -99,21 +148,22 @@ fun DetailsScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "←",
-                            color = Color(0xFF2563EB),
-                            fontSize = 16.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Delivery Details",
-                            color = Color(0xFF2563EB),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    Text(
+                        text = "Delivery Details",
+                        color = Color(0xFF2563EB),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                navigationIcon = {
+                    Text(
+                        text = "←",
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clickable { onBack() }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White
@@ -134,10 +184,18 @@ fun DetailsScreen(
                             .clip(CircleShape)
                             .background(
                                 Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFF2563EB), Color(0xFF60A5FA))
+                                    colors = if (canContinue) {
+                                        listOf(Color(0xFF2563EB), Color(0xFF60A5FA))
+                                    } else {
+                                        listOf(Color(0xFF9CB3E9), Color(0xFFB8C8EB))
+                                    }
                                 )
                             )
                             .clickable {
+                                if (!canContinue) {
+                                    showValidationError = true
+                                    return@clickable
+                                }
                                 onContinue(
                                     vehicleType,
                                     pickup,
@@ -147,7 +205,8 @@ fun DetailsScreen(
                                     receiverName,
                                     receiverPhone,
                                     deliveryMode,
-                                    offloading
+                                    offloading,
+                                    scheduledTime
                                 )
                             },
                         contentAlignment = Alignment.Center
@@ -157,7 +216,7 @@ fun DetailsScreen(
                                 text = "Confirm Booking",
                                 color = Color.White,
                                 fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = FontWeight.SemiBold,
                                 letterSpacing = 0.2.sp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -169,6 +228,23 @@ fun DetailsScreen(
                             )
                         }
                     }
+                    if (showValidationError && !canContinue) {
+                        val message = when {
+                            !hasValidWeight -> "Enter parcel weight greater than 0 kg."
+                            !hasValidInstructions -> "Add delivery instructions to continue."
+                            !hasValidReceiverName -> "Enter receiver name."
+                            !hasValidReceiverPhone -> "Enter a valid receiver phone number."
+                            !hasValidParcelType -> "Select parcel type."
+                            else -> "Fill all required details to continue."
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            color = Color(0xFFEB5757),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
             }
         }
@@ -178,17 +254,17 @@ fun DetailsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = ScreenHorizontalPadding)
         ) {
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             SectionTitle("DELIVERY TIME")
             Surface(
-                shape = RoundedCornerShape(24.dp),
+                shape = RoundedCornerShape(20.dp),
                 color = SectionTint20,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         DeliveryModeChip(DeliveryModePooling, deliveryMode == DeliveryModePooling, modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = DeliveryModePooling }
                         DeliveryModeChip(DeliveryModePriority, deliveryMode == DeliveryModePriority, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModePriority }
@@ -201,19 +277,31 @@ fun DetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(24.dp))
-                                .background(Color.White)
+                                .background(Color(0xFF2F80ED))
                                 .padding(25.dp)
                         ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Color(0xFFA6D2F3),
+                                        modifier = Modifier.size(48.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("⚡", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
                                     Column {
-                                        Text("Pooling Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
-                                        Text("Grouped delivery with flexible timing", color = Color(0xFF000000), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
+                                        Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("Orders may be grouped to reduce delivery cost", color = Color(0xFF000000), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    Text("⚑", color = Color.White, fontSize = 12.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Orders may be grouped to reduce delivery cost", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -221,15 +309,25 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             shape = RoundedCornerShape(24.dp),
-                            color = Color.White,
+                            color = SectionTint20,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFF2F80ED),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text("◫", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Priority Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                    Text("Priority Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
                                     Text(
                                         "Faster dispatch for urgent\nshipments that need priority handling.",
-                                        color = Color(0xFF000000),
+                                        color = Color.Black,
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp
                                     )
@@ -237,28 +335,48 @@ fun DetailsScreen(
                             }
                         }
                     } else if (deliveryMode == DeliveryModeRegular) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color.White,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text("SELECT DATE", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.Medium)
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(selectedDate, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Box(modifier = Modifier.weight(1f)) {
+                                ScheduleSelectorCard(
+                                    title = "SELECT DATE",
+                                    value = selectedDate.toReadableLabel(),
+                                    onClick = { dateDropdownExpanded = true }
+                                )
+                                DropdownMenu(
+                                    expanded = dateDropdownExpanded,
+                                    onDismissRequest = { dateDropdownExpanded = false }
+                                ) {
+                                    availableDates.forEachIndexed { index: Int, date: LocalDate ->
+                                        DropdownMenuItem(
+                                            text = { Text(date.toReadableLabel()) },
+                                            onClick = {
+                                                selectedDateIndex = index
+                                                dateDropdownExpanded = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color.White,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text("TIME SLOT", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.Medium)
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(timeSlot, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Box(modifier = Modifier.weight(1f)) {
+                                ScheduleSelectorCard(
+                                    title = "TIME SLOT",
+                                    value = timeSlot,
+                                    onClick = { timeSlotDropdownExpanded = true }
+                                )
+                                DropdownMenu(
+                                    expanded = timeSlotDropdownExpanded,
+                                    onDismissRequest = { timeSlotDropdownExpanded = false }
+                                ) {
+                                    RegularTimeSlots.forEach { slot ->
+                                        DropdownMenuItem(
+                                            text = { Text(slot.label) },
+                                            onClick = {
+                                                timeSlot = slot.label
+                                                timeSlotDropdownExpanded = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -266,7 +384,7 @@ fun DetailsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             if (deliveryMode == DeliveryModePooling) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
@@ -358,21 +476,21 @@ fun DetailsScreen(
                             }
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
-                                Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp)
-                                Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                                Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                                Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
                             }
                         }
                         Column(horizontalAlignment = Alignment.End) {
-                            Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.2.sp)
-                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, lineHeight = 32.sp)
+                            Text("COST", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                            Text("RM 150", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 32.sp)
                         }
                     }
                 }
             } else if (deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium, modifier = Modifier.weight(1f))
+                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
-                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -398,7 +516,7 @@ fun DetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                     Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
@@ -464,7 +582,7 @@ fun DetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text("Receiver Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                Text("Receiver Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(12.dp))
                 SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
                 Spacer(modifier = Modifier.height(12.dp))
@@ -482,6 +600,10 @@ fun DetailsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Surface(shape = RoundedCornerShape(16.dp), color = Color.White, modifier = Modifier.size(64.dp)) {
+                            Box(contentAlignment = Alignment.Center) { Text("🚴", fontSize = 30.sp) }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Standard Bike", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
@@ -494,7 +616,7 @@ fun DetailsScreen(
                 }
             } else {
                 SectionCard(title = "PARCEL DETAILS", icon = "◈") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.fillMaxWidth()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f)) {
                             SmallLabel("WEIGHT (KG)")
                             OutlinedTextField(
@@ -558,9 +680,9 @@ fun DetailsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-                SectionCard(title = "INSTRUCTIONS", icon = "✎") {
+                SectionCard(title = "INSTRUCTIONS", icon = "☰") {
                     OutlinedTextField(
                         value = instructions,
                         onValueChange = { instructions = it },
@@ -579,7 +701,7 @@ fun DetailsScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 SectionCard(title = "RECEIVER DETAILS", icon = "▣") {
                     OutlinedTextField(
@@ -624,7 +746,7 @@ fun DetailsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Offloading add-on
                 Surface(
@@ -640,7 +762,7 @@ fun DetailsScreen(
                             Text(
                                 "Offloading Service",
                                 fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = FontWeight.SemiBold,
                                 color = Color.Black
                             )
                             Text(
@@ -649,14 +771,30 @@ fun DetailsScreen(
                                 color = Color(0xFF2F80ED)
                             )
                         }
-                        androidx.compose.material3.Switch(
-                            checked = offloading,
-                            onCheckedChange = { offloading = it }
-                        )
+                        // Custom toggle with visible white knob
+                        Box(
+                            modifier = Modifier
+                                .width(44.dp)
+                                .height(24.dp)
+                                .background(
+                                    if (offloading) Color(0xFF2F80ED) else Color(0xFFA6D2F3),
+                                    CircleShape
+                                )
+                                .clickable { offloading = !offloading }
+                                .padding(horizontal = 2.dp),
+                            contentAlignment = if (offloading) Alignment.CenterEnd else Alignment.CenterStart
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .background(Color.White, CircleShape)
+                                    .border(1.dp, Color.White, CircleShape)
+                            )
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Box(
                     modifier = Modifier
@@ -688,14 +826,14 @@ fun DetailsScreen(
                                         color = Color.White,
                                         fontSize = 10.sp,
                                         letterSpacing = 1.sp,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("Delivery Mode", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Medium, lineHeight = 28.sp)
+                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                         }
 
                         Column(horizontalAlignment = Alignment.End) {
@@ -710,7 +848,7 @@ fun DetailsScreen(
                                 "RM ${rate.formatDecimal(2)}/km",
                                 color = Color.White,
                                 fontSize = 22.sp,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = FontWeight.SemiBold,
                                 letterSpacing = (-0.5).sp,
                                 lineHeight = 30.sp
                             )
@@ -726,7 +864,69 @@ fun DetailsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+    }
+}
+
+private data class TimeSlotOption(
+    val label: String,
+    val hour: Int,
+    val minute: Int = 0
+)
+
+private data class DefaultRegularSchedule(
+    val dateOffset: Int,
+    val slot: TimeSlotOption
+)
+
+private fun defaultRegularSchedule(now: LocalDateTime): DefaultRegularSchedule {
+    val currentMinutes = now.hour * 60 + now.minute
+    val sameDaySlot = RegularTimeSlots.firstOrNull { slot ->
+        (slot.hour * 60 + slot.minute) > currentMinutes
+    }
+    return if (sameDaySlot != null) {
+        DefaultRegularSchedule(dateOffset = 0, slot = sameDaySlot)
+    } else {
+        DefaultRegularSchedule(dateOffset = 1, slot = RegularTimeSlots.first())
+    }
+}
+
+private fun LocalDate.toReadableLabel(): String {
+    val month = when (monthNumber) {
+        1 -> "Jan"
+        2 -> "Feb"
+        3 -> "Mar"
+        4 -> "Apr"
+        5 -> "May"
+        6 -> "Jun"
+        7 -> "Jul"
+        8 -> "Aug"
+        9 -> "Sep"
+        10 -> "Oct"
+        11 -> "Nov"
+        else -> "Dec"
+    }
+    return "$month $dayOfMonth, $year"
+}
+
+@Composable
+private fun ScheduleSelectorCard(
+    title: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text(title, color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(value, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -737,9 +937,9 @@ private fun SectionTitle(text: String) {
         text = text,
         color = Color.Black,
         fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         letterSpacing = 0.7.sp,
-        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
     )
 }
 
@@ -766,14 +966,14 @@ private fun DeliveryModeChip(
         shape = RoundedCornerShape(999.dp),
         color = if (selected) Color(0xFF2F80ED) else Color.White,
         shadowElevation = if (selected) 3.dp else 0.dp,
-        modifier = modifier.height(36.dp).clickable(onClick = onClick)
+        modifier = modifier.height(34.dp).clickable(onClick = onClick)
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             Text(
                 text = text,
                 color = if (selected) Color.White else Color.Black,
-                fontSize = 14.sp,
-                fontWeight = if (selected && selectedBold) FontWeight.SemiBold else FontWeight.Medium
+                fontSize = 13.sp,
+                fontWeight = if (selected && selectedBold) FontWeight.Bold else FontWeight.Medium
             )
         }
     }
@@ -798,7 +998,7 @@ private fun SectionCard(
                     title,
                     color = Color.Black,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.7.sp
                 )
             }
@@ -881,14 +1081,14 @@ private fun ExpressInputCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, color = Color.Black, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             valueText,
             color = Color(0x6671749E),
             fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -908,7 +1108,7 @@ private fun ExpressDropdownCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, color = Color.Black, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { onToggle() }) {
@@ -931,7 +1131,7 @@ private fun ExpressDropdownCard(
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier.fillMaxWidth().menuAnchor()
             )
@@ -959,7 +1159,7 @@ private fun ExpressLabeledInputCard(
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text(placeholder, color = Color(0xFF6B7280), fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+                placeholder = { Text(placeholder, color = Color(0xFF6B7280), fontSize = 16.sp, fontWeight = FontWeight.SemiBold) },
                 singleLine = true,
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = keyboardType),
                 shape = RoundedCornerShape(12.dp),
@@ -973,7 +1173,7 @@ private fun ExpressLabeledInputCard(
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.SemiBold
                 ),
                 modifier = Modifier.fillMaxWidth()
             )

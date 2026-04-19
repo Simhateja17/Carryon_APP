@@ -39,6 +39,7 @@ import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.icon_profile
 import carryon.composeapp.generated.resources.icon_timer
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.painterResource
 
@@ -118,7 +119,7 @@ fun SupportCallScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = ScreenHorizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {

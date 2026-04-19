@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
 
 @Composable
 fun CancelDeliveryScreen(
@@ -51,7 +52,7 @@ fun CancelDeliveryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = ScreenHorizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(

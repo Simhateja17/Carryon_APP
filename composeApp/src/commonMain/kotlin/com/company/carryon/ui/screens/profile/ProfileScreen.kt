@@ -9,7 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +21,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.profile_help_support_icon
 import carryon.composeapp.generated.resources.profile_logout_icon
@@ -37,6 +35,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.DrawableResource
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 
@@ -86,165 +85,167 @@ fun ProfileScreen(
 
     val displayName = if (isLoading) "Loading..." else userName
 
-    Scaffold(
-        containerColor = Color(0xFFF5F6F8)
-    ) { paddingValues ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F6F8))
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = ScreenHorizontalPadding)
+    ) {
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFF5F6F8))
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Profile", color = Color(0xFF1F2937), fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFDDEAFE)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(Res.drawable.bell_icon),
-                        contentDescription = "Notification",
-                        modifier = Modifier.size(18.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Box(modifier = Modifier.size(130.dp)) {
-                    Image(
-                        painter = painterResource(Res.drawable.ellipse_4),
-                        contentDescription = "Avatar",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(34.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .align(Alignment.BottomEnd)
-                            .background(PrimaryBlue, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("✎", color = Color.White, fontSize = 14.sp)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = displayName,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color(0xFF111827),
-                fontSize = 44.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = if (isLoading) "Loading..." else userPhone,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color(0xFF111827),
-                fontSize = 16.sp
-            )
-
-            if (profileError != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = profileError ?: "",
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    color = TextSecondary,
-                    fontSize = 12.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                StatCard(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(142.dp),
-                    iconRes = Res.drawable.profile_shipments_icon,
-                    value = if (statsError != null) "—" else totalShipments.toString(),
-                    label = "TOTAL SHIPMENTS"
-                )
-                StatCard(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(142.dp),
-                    iconRes = Res.drawable.profile_rating_icon,
-                    value = if (statsError != null) "—" else "${userRating.toInt()}.0",
-                    label = "USER RATING"
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            ProfileOptionCard(iconRes = Res.drawable.profile_personal_info_icon, title = "Personal Info", onClick = onNavigateToEditProfile)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_saved_addresses_icon, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_payments_wallet_icon, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_settings_icon, title = "Settings", onClick = onNavigateToSettings)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_help_support_icon, title = "Help & Support", onClick = onNavigateToHelp)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_privacy_security_icon, title = "Privacy & Security", onClick = onNavigateToPromo)
-
-            Spacer(modifier = Modifier.height(18.dp))
-
+            Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Profile", color = Color(0xFF1F2937), fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.weight(1f))
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
-                    .clickable { onLogout() }
-                    .padding(vertical = 16.dp),
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFDDEAFE)),
                 contentAlignment = Alignment.Center
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(Res.drawable.profile_logout_icon),
-                        contentDescription = "Logout",
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
+                Image(
+                    painter = painterResource(Res.drawable.bell_icon),
+                    contentDescription = "Notification",
+                    modifier = Modifier.size(18.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.size(112.dp)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(Color(0xFFD9E8FF)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val initial = displayName.trim().firstOrNull()?.uppercase() ?: "C"
+                    Text(
+                        text = initial,
+                        color = PrimaryBlue,
+                        fontSize = 38.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Box(
+                    modifier = Modifier
+                        .size(30.dp)
+                        .align(Alignment.BottomEnd)
+                        .background(PrimaryBlue, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("✎", color = Color.White, fontSize = 14.sp)
                 }
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                "CARRYON V.2.4.0",
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = Color(0xFF6B7280),
-                fontSize = 10.sp,
-                letterSpacing = 1.sp
-            )
-
-            Spacer(modifier = Modifier.height(18.dp))
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = displayName,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Color(0xFF111827),
+            fontSize = 32.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = if (isLoading) "Loading..." else userPhone,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Color(0xFF111827),
+            fontSize = 15.sp
+        )
+
+        if (profileError != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = profileError ?: "",
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = TextSecondary,
+                fontSize = 12.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StatCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(122.dp),
+                iconRes = Res.drawable.profile_shipments_icon,
+                value = if (statsError != null) "—" else totalShipments.toString(),
+                label = "TOTAL SHIPMENTS"
+            )
+            StatCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(122.dp),
+                iconRes = Res.drawable.profile_rating_icon,
+                value = if (statsError != null) "—" else "${userRating.toInt()}.0",
+                label = "USER RATING"
+            )
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ProfileOptionCard(iconRes = Res.drawable.profile_personal_info_icon, title = "Personal Info", onClick = onNavigateToEditProfile)
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileOptionCard(iconRes = Res.drawable.profile_saved_addresses_icon, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileOptionCard(iconRes = Res.drawable.profile_payments_wallet_icon, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileOptionCard(iconRes = Res.drawable.profile_settings_icon, title = "Settings", onClick = onNavigateToSettings)
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileOptionCard(iconRes = Res.drawable.profile_help_support_icon, title = "Help & Support", onClick = onNavigateToHelp)
+        Spacer(modifier = Modifier.height(8.dp))
+        ProfileOptionCard(iconRes = Res.drawable.profile_privacy_security_icon, title = "Privacy & Security", onClick = onNavigateToPromo)
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
+                .clickable { onLogout() }
+                .padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(Res.drawable.profile_logout_icon),
+                    contentDescription = "Logout",
+                    modifier = Modifier.size(24.dp),
+                    contentScale = ContentScale.Fit
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "CARRYON V.2.4.0",
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Color(0xFF6B7280),
+            fontSize = 10.sp,
+            letterSpacing = 1.sp
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
     }
 }
 
@@ -264,29 +265,29 @@ private fun StatCard(
                 spotColor = Color(0x0D000000)
             )
             .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(36.dp)
                 .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(18.dp),
                 contentScale = ContentScale.Fit
             )
         }
-        Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp)
+        Text(value, color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium, lineHeight = 26.sp)
         Text(
             label,
             color = Color.Black,
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             letterSpacing = 0.6.sp,
-            lineHeight = 16.sp,
+            lineHeight = 14.sp,
             fontWeight = FontWeight.Normal
         )
     }

@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +49,7 @@ import com.company.carryon.data.model.Wallet
 import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Dispatchers
@@ -77,175 +77,173 @@ fun WalletScreen(
         isLoading = false
     }
 
-    Scaffold(containerColor = Color(0xFFF5F6F8)) { paddingValues ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = PrimaryBlue)
-            }
-            return@Scaffold
-        }
-
-        val transactions = (wallet?.transactions ?: emptyList()).take(3)
-        val balance = wallet?.balance ?: 0.0
-
-        LazyColumn(
+    if (isLoading) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(Color(0xFFF5F6F8)),
+            contentAlignment = Alignment.Center
         ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Payments", color = Color(0xFF1E293B), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(30.dp)
-                            .background(Color(0xFFDDEAFE), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("👤", fontSize = 14.sp)
-                    }
+            CircularProgressIndicator(color = PrimaryBlue)
+        }
+        return
+    }
+
+    val transactions = (wallet?.transactions ?: emptyList()).take(3)
+    val balance = wallet?.balance ?: 0.0
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F6F8)),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = ScreenHorizontalPadding, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Payments", color = Color(0xFF1E293B), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
                 }
-            }
-
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.horizontalGradient(
-                                listOf(Color(0xFF3B82F6), Color(0xFF2F80ED))
-                            ),
-                            shape = RoundedCornerShape(22.dp)
-                        )
-                        .padding(18.dp)
-                ) {
-                    Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text("RM ${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Button(
-                        onClick = onAddMoney,
-                        shape = RoundedCornerShape(999.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(46.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(Res.drawable.wallet_add_money_icon),
-                                contentDescription = "Add Money",
-                                modifier = Modifier.size(18.dp),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ActionItem(Res.drawable.wallet_add_money_icon, "Add Money", onClick = onAddMoney)
-                    ActionItem(Res.drawable.wallet_send_money_icon, "Send Money", onClick = onSendMoney)
-                    ActionItem(Res.drawable.wallet_google_pay_upi_icon, "Withdraw")
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    Text("See All", color = Color(0xFF3B82F6), fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                }
-            }
-
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    if (transactions.isEmpty()) {
-                        Text("No transactions yet", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(8.dp))
-                    } else {
-                        transactions.forEach { txn ->
-                            TransactionRow(txn)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Text("Saved Methods", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            }
-
-            item {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFDCE6F1), RoundedCornerShape(14.dp))
-                        .padding(14.dp)
-                ) {
-                    Text("No payment methods available", color = TextSecondary, fontSize = 14.sp)
-                }
-            }
-
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onAddNewMethod() }
-                        .border(1.dp, Color(0xFFD1D5DB), RoundedCornerShape(14.dp))
-                        .padding(vertical = 14.dp),
+                        .size(30.dp)
+                        .background(Color(0xFFDDEAFE), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("+ Add New Method", color = Color(0xFF3B82F6), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text("👤", fontSize = 14.sp)
                 }
             }
+        }
 
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            listOf(Color(0xFF3B82F6), Color(0xFF2F80ED))
+                        ),
+                        shape = RoundedCornerShape(22.dp)
+                    )
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("RM ${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onAddMoney,
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
                 ) {
-                    UtilityCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Download Invoice",
-                        subtitle = "Monthly statement",
-                        iconRes = Res.drawable.wallet_download_invoice_icon,
-                        onClick = onDownloadInvoices
-                    )
-                    UtilityCard(
-                        modifier = Modifier.weight(1f),
-                        title = "View Receipts",
-                        subtitle = "Individual orders",
-                        iconRes = Res.drawable.wallet_view_receipts_icon,
-                        onClick = onViewReceipts
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(Res.drawable.wallet_add_money_icon),
+                            contentDescription = "Add Money",
+                            modifier = Modifier.size(18.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                ActionItem(Res.drawable.wallet_add_money_icon, "Add Money", onClick = onAddMoney)
+                ActionItem(Res.drawable.wallet_send_money_icon, "Send Money", onClick = onSendMoney)
+                ActionItem(Res.drawable.wallet_google_pay_upi_icon, "Withdraw")
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text("See All", color = Color(0xFF3B82F6), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            }
+        }
+
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (transactions.isEmpty()) {
+                    Text("No transactions yet", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp))
+                } else {
+                    transactions.forEach { txn ->
+                        TransactionRow(txn)
+                    }
+                }
+            }
+        }
+
+        item {
+            Text("Saved Methods", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFDCE6F1), RoundedCornerShape(14.dp))
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
+            ) {
+                Text("No payment methods available", color = TextSecondary, fontSize = 14.sp)
+            }
+        }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAddNewMethod() }
+                    .border(1.dp, Color(0xFFD1D5DB), RoundedCornerShape(14.dp))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("+ Add New Method", color = Color(0xFF3B82F6), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                UtilityCard(
+                    modifier = Modifier.weight(1f),
+                    title = "Download Invoice",
+                    subtitle = "Monthly statement",
+                    iconRes = Res.drawable.wallet_download_invoice_icon,
+                    onClick = onDownloadInvoices
+                )
+                UtilityCard(
+                    modifier = Modifier.weight(1f),
+                    title = "View Receipts",
+                    subtitle = "Individual orders",
+                    iconRes = Res.drawable.wallet_view_receipts_icon,
+                    onClick = onViewReceipts
+                )
             }
         }
     }
@@ -259,22 +257,22 @@ private fun ActionItem(iconRes: DrawableResource, label: String, onClick: (() ->
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(52.dp)
                 .background(Color(0xFFE8F1FC), RoundedCornerShape(18.dp)),
             contentAlignment = Alignment.Center
         ) {
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = label,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(22.dp),
                 contentScale = ContentScale.Fit
             )
         }
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             label,
             color = Color.Black,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium
         )
     }

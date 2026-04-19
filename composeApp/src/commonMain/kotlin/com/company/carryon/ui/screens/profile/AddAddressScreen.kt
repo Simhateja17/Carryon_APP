@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,14 +30,12 @@ fun AddAddressScreen(
 ) {
     var selectedType by remember { mutableStateOf("Home") }
 
-    Scaffold(containerColor = Color(0xFFF3F4F6)) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(Color(0xFFF3F4F6))
-                .verticalScroll(rememberScrollState())
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF3F4F6))
+            .verticalScroll(rememberScrollState())
+    ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -185,7 +182,6 @@ fun AddAddressScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
             }
-        }
     }
 }
 

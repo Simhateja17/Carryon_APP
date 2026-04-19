@@ -453,7 +453,7 @@ data class Invoice(
     val tax: Double = 0.0,
     val discount: Double = 0.0,
     val total: Double = 0.0,
-    val taxRate: Double = 0.06,
+    val taxRate: Double = 0.05,
     val currency: String = "MYR",
     val issuedAt: String = ""
 )

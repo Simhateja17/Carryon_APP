@@ -25,7 +25,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -46,16 +45,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.car_two_seater
-import carryon.composeapp.generated.resources.ellipse_4
-import carryon.composeapp.generated.resources.home_current_location_icon
 import carryon.composeapp.generated.resources.home_delivery_progress_icon
 import carryon.composeapp.generated.resources.home_estimated_logistics_icon
 import carryon.composeapp.generated.resources.home_recent_delivery_icon
@@ -129,10 +126,12 @@ fun HomeScreen(
     var deliverySuggestions by remember { mutableStateOf<List<AutocompleteResult>>(emptyList()) }
     var showPickupSuggestions by remember { mutableStateOf(false) }
     var showDeliverySuggestions by remember { mutableStateOf(false) }
+    var deliveryLocationRecognized by remember { mutableStateOf(false) }
     var isSearchingPickup by remember { mutableStateOf(false) }
     var isSearchingDelivery by remember { mutableStateOf(false) }
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
+    var showDeliveryRequiredError by remember { mutableStateOf(false) }
 
     fun loadVehicles() {
         scope.launch {
@@ -200,10 +199,13 @@ fun HomeScreen(
     }
 
     fun proceedToBooking() {
+        if (deliveryLocation.isBlank() || !deliveryLocationRecognized) {
+            showDeliveryRequiredError = true
+            return
+        }
         val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: "Car (4-Seat)"
         val safePickup = pickupLocation.ifBlank { "Pickup Location" }
-        val safeDelivery = deliveryLocation.ifBlank { "Delivery Location" }
-        onNavigateToBooking(safePickup, safeDelivery, selectedVehicleName)
+        onNavigateToBooking(safePickup, deliveryLocation.trim(), selectedVehicleName)
     }
 
     LaunchedEffect(Unit) {
@@ -331,17 +333,15 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(Res.drawable.ellipse_4),
-                contentDescription = "Profile",
-                modifier = Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .clickable { onNavigateToProfile() },
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier.clickable { onNavigateToProfile() },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = "WELCOME BACK",
                     color = TextSecondary,
@@ -354,18 +354,6 @@ fun HomeScreen(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
                 )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Spacer(modifier = Modifier.width(8.dp))
-                IconButton(onClick = { }) {
-                    Image(
-                        painter = painterResource(Res.drawable.bell_icon),
-                        contentDescription = "Notifications",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
         }
 
@@ -512,6 +500,8 @@ fun HomeScreen(
                 value = deliveryLocation,
                 onValueChange = {
                     deliveryLocation = it
+                    deliveryLocationRecognized = false
+                    showDeliveryRequiredError = false
                     searchDelivery(it)
                     showPickupSuggestions = false
                 },
@@ -538,8 +528,8 @@ fun HomeScreen(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFE7ECF4),
                     unfocusedContainerColor = Color(0xFFE7ECF4),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = if (showDeliveryRequiredError) Color(0xFFEB5757) else Color.Transparent,
+                    unfocusedBorderColor = if (showDeliveryRequiredError) Color(0xFFEB5757) else Color.Transparent,
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
                 ),
@@ -565,6 +555,8 @@ fun HomeScreen(
                         },
                         onClick = {
                             deliveryLocation = place.title
+                            deliveryLocationRecognized = true
+                            showDeliveryRequiredError = false
                             showDeliverySuggestions = false
                             deliverySuggestions = emptyList()
                         },
@@ -575,34 +567,13 @@ fun HomeScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            QuickLocationChip(
-                title = "Current Location",
-                selected = true,
-                iconRes = Res.drawable.home_current_location_icon,
-                onClick = {
-                    isGettingLocation = true
-                    requestLocation()
-                }
-            )
-            QuickLocationChip(
-                title = "Home",
-                selected = false,
-                iconRes = Res.drawable.icon_home,
-                onClick = { pickupLocation = "Home" }
-            )
-            QuickLocationChip(
-                title = "Work",
-                selected = false,
-                iconRes = Res.drawable.home_work_icon,
-                onClick = { deliveryLocation = "Work" }
+        if (showDeliveryRequiredError) {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "Select a valid drop location from suggestions to continue",
+                color = Color(0xFFEB5757),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
             )
         }
 
@@ -648,7 +619,7 @@ fun HomeScreen(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = vehicleOptions.isNotEmpty()) { proceedToBooking() },
+                .clickable { proceedToBooking() },
             shape = RoundedCornerShape(16.dp),
             color = Color.Transparent
         ) {
@@ -754,39 +725,6 @@ fun HomeScreen(
 }
 
 @Composable
-private fun QuickLocationChip(
-    title: String,
-    selected: Boolean,
-    iconRes: DrawableResource,
-    onClick: () -> Unit
-) {
-    Surface(
-        shape = RoundedCornerShape(22.dp),
-        color = if (selected) PrimaryBlue else Color(0xFFF0F2F5),
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = title,
-                modifier = Modifier.size(14.dp),
-                contentScale = ContentScale.Fit
-            )
-            Spacer(modifier = Modifier.width(5.dp))
-            Text(
-                text = title,
-                color = if (selected) Color.White else TextPrimary,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-
-@Composable
 private fun VehicleCard(
     vehicle: VehicleOption,
     selected: Boolean,
@@ -834,7 +772,15 @@ private fun VehicleCard(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "From ${vehicle.price.removePrefix("RM ")}",
+                text = "From",
+                color = if (selected) Color.White.copy(alpha = 0.9f) else PrimaryBlue,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = vehicle.price.removePrefix("RM "),
                 color = if (selected) Color.White.copy(alpha = 0.9f) else PrimaryBlue,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
