@@ -46,11 +46,18 @@ fun SupportScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("←", color = PrimaryBlue, fontSize = 24.sp, modifier = Modifier.clickable { onBack() })
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Help & Support", color = Color(0xFF1E284F), fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("←", color = PrimaryBlue, fontSize = 24.sp, modifier = Modifier.clickable { onBack() })
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Help & Support", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -128,7 +135,7 @@ fun SupportScreen(
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("⚑  Report an Issue", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text("  Report an Issue", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -152,7 +159,7 @@ fun SupportScreen(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             MiniTab("⌂", "Home", false)
-            MiniTab("🚚", "Orders", false)
+            MiniTab("", "Orders", false)
             MiniTab("?", "Support", true)
             MiniTab("◉", "Profile", false)
         }

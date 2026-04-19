@@ -2,7 +2,6 @@ package com.company.carryon.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +17,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LaptopMac
+import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Smartphone
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.logged_in_device_iphone
-import carryon.composeapp.generated.resources.logged_in_device_logout_arrow
-import carryon.composeapp.generated.resources.logged_in_device_pc
 import com.company.carryon.ui.theme.PrimaryBlue
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun LoggedInDevicesScreen(onBack: () -> Unit) {
@@ -48,18 +46,24 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
                     .padding(horizontal = 24.dp, vertical = 18.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "←",
-                    color = PrimaryBlue,
-                    fontSize = 24.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text("Security", color = PrimaryBlue, fontSize = 40.sp, fontWeight = FontWeight.Medium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "←",
+                        color = PrimaryBlue,
+                        fontSize = 24.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text("Security", color = Color(0xFF000000), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Column(
@@ -86,7 +90,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(22.dp))
 
                 DeviceCard(
-                    icon = Res.drawable.logged_in_device_iphone,
+                    icon = Icons.Outlined.Smartphone,
                     title = "iPhone 15 Pro (Current\nDevice)",
                     location = "San Francisco,\nCA",
                     status = "Active\nnow",
@@ -96,7 +100,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 DeviceCard(
-                    icon = Res.drawable.logged_in_device_pc,
+                    icon = Icons.Outlined.LaptopMac,
                     title = "MacBook Pro 14\"",
                     location = "San\nFrancisco,\nCA",
                     status = "Last active: 2\nhours ago",
@@ -106,7 +110,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 DeviceCard(
-                    icon = Res.drawable.logged_in_device_iphone,
+                    icon = Icons.Outlined.Smartphone,
                     title = "Samsung Galaxy S23",
                     location = "New York,\nNY",
                     status = "Last active: 3\ndays ago",
@@ -137,7 +141,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                         .fillMaxWidth()
                         .heightIn(min = 150.dp)
                         .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
-                        .padding(24.dp)
+                        .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     Column {
                         Text(
@@ -149,7 +153,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Ensure your account stays\nprivate by regularly reviewing\nthese active sessions.",
+                            "Ensure your account stays private by regularly reviewing these active sessions.",
                             color = Color.Black,
                             fontSize = 14.sp,
                             lineHeight = 20.sp
@@ -164,7 +168,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
 
 @Composable
 private fun DeviceCard(
-    icon: DrawableResource,
+    icon: ImageVector,
     title: String,
     location: String,
     status: String,
@@ -185,38 +189,47 @@ private fun DeviceCard(
                     .background(Color.White, RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(icon),
+                Icon(
+                    imageVector = icon,
                     contentDescription = title,
-                    modifier = Modifier.size(30.dp),
-                    contentScale = ContentScale.Fit
+                    modifier = Modifier.size(26.dp),
+                    tint = PrimaryBlue
                 )
             }
             Column {
                 Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp)
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(location, color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(modifier = Modifier.size(4.dp).background(Color.White, RoundedCornerShape(99.dp)))
-                    Spacer(modifier = Modifier.width(8.dp))
+                val isActiveNow = status.startsWith("Active")
+                Spacer(modifier = Modifier.height(2.dp))
+                if (isActiveNow) {
+                    Text(
+                        "Active now",
+                        color = PrimaryBlue,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                }
+                Text(location, color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
+                if (!isActiveNow) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         status,
-                        color = if (status.startsWith("Active")) PrimaryBlue else Color.Black,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = if (status.startsWith("Active")) FontWeight.Medium else FontWeight.Normal
+                        color = Color.Black,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        fontWeight = FontWeight.Normal
                     )
                 }
             }
         }
 
         if (showLogoutIcon) {
-            Image(
-                painter = painterResource(Res.drawable.logged_in_device_logout_arrow),
+            Icon(
+                imageVector = Icons.Outlined.Logout,
                 contentDescription = "Log out session",
-                modifier = Modifier.size(28.dp),
-                contentScale = ContentScale.Fit
+                modifier = Modifier.size(24.dp),
+                tint = PrimaryBlue
             )
         } else {
             Spacer(modifier = Modifier.width(24.dp))

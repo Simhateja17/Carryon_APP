@@ -19,6 +19,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
@@ -31,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,12 +45,9 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
-import carryon.composeapp.generated.resources.icon_home
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_timer
-import carryon.composeapp.generated.resources.payment_icon
-import carryon.composeapp.generated.resources.van_vehicle
+import carryon.composeapp.generated.resources.mini_van
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -67,10 +71,10 @@ fun DefaultVehicleScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavItem(Res.drawable.icon_home, "Home", false)
-                BottomNavItem(Res.drawable.icon_timer, "Deliveries", false)
-                BottomNavItem(Res.drawable.payment_icon, "Wallet", false)
-                BottomNavItem(Res.drawable.icon_profile, "Profile", true)
+                BottomNavItem(Icons.Outlined.Home, "Home", false)
+                BottomNavItem(Icons.Outlined.Schedule, "Deliveries", false)
+                BottomNavItem(Icons.Outlined.AccountBalanceWallet, "Wallet", false)
+                BottomNavItem(Icons.Outlined.PersonOutline, "Profile", true)
             }
         }
     ) { paddingValues ->
@@ -82,15 +86,25 @@ fun DefaultVehicleScreen(
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 28.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(14.dp))
-                Text("Settings", color = Color(0xFF282B51), fontSize = 36.sp / 2, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 24.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Text("Default Vehicle", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -128,7 +142,7 @@ fun DefaultVehicleScreen(
             VehicleCard(
                 title = "Van",
                 description = "Bulk shipments.\nPerfect for furniture,\nlarge appliances, or\nbusiness inventory.",
-                imageRes = Res.drawable.van_vehicle,
+                imageRes = Res.drawable.mini_van,
                 selected = selectedVehicle == VehicleType.VAN,
                 onClick = { selectedVehicle = VehicleType.VAN }
             )
@@ -226,7 +240,7 @@ private fun VehicleCard(
             contentAlignment = Alignment.Center
         ) {
             if (selected) {
-                Text("✓", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -234,26 +248,32 @@ private fun VehicleCard(
 
 @Composable
 private fun BottomNavItem(
-    iconRes: DrawableResource,
+    icon: ImageVector,
     label: String,
     selected: Boolean
 ) {
     Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFDCE9FF) else Color.Transparent, RoundedCornerShape(16.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = label,
-            modifier = Modifier.size(20.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(if (selected) PrimaryBlue else Color.Transparent, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) Color.White else PrimaryBlue,
+                modifier = Modifier.size(20.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             fontSize = 11.sp,
-            color = if (selected) Color(0xFF2F55D4) else Color(0xFF8A94AA),
+            color = PrimaryBlue,
             fontWeight = FontWeight.Medium
         )
     }

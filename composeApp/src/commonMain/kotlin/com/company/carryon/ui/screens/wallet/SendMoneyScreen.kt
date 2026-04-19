@@ -56,21 +56,28 @@ fun SendMoneyScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "←",
-                color = PrimaryBlue,
-                fontSize = 20.sp,
-                modifier = Modifier.clickable { onBack() }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Financial Hub",
-                color = PrimaryBlue,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "←",
+                    color = PrimaryBlue,
+                    fontSize = 20.sp,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Financial Hub",
+                    color = PrimaryBlue,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -90,7 +97,7 @@ fun SendMoneyScreen(
                     .background(Color(0xFFE7F0FD), RoundedCornerShape(999.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text("🛡 Verified Account", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(" Verified Account", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -169,7 +176,7 @@ fun SendMoneyScreen(
                 .padding(16.dp)
         ) {
             Column {
-                Text("🛡", color = Color.White, fontSize = 22.sp)
+                Text("", color = Color.White, fontSize = 22.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Secure Transfer", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -225,7 +232,7 @@ fun SendMoneyScreen(
             BottomMiniTab("◷", "Payments", true)
             BottomMiniTab("▭", "Methods", false)
             BottomMiniTab("▤", "Invoices", false)
-            BottomMiniTab("⚙", "Settings", false)
+            BottomMiniTab("", "Settings", false)
         }
 
         Spacer(modifier = Modifier.height(12.dp))

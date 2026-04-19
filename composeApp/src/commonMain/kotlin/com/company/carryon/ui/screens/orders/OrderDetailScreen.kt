@@ -72,10 +72,10 @@ fun OrderDetailScreen(
     val bookingStatus = booking?.status ?: BookingStatus.DELIVERED
     val displayOrderId = formatOrderDisplayId(orderId, booking?.orderCode)
     val statusText = when (bookingStatus) {
-        BookingStatus.DELIVERED        -> "✅ ${strings.delivered}"
-        BookingStatus.CANCELLED        -> "❌ ${strings.cancelled}"
-        BookingStatus.IN_TRANSIT       -> "🚚 ${strings.inTransit}"
-        BookingStatus.SEARCHING_DRIVER -> "🔍 ${strings.findingDriver}"
+        BookingStatus.DELIVERED        -> " ${strings.delivered}"
+        BookingStatus.CANCELLED        -> " ${strings.cancelled}"
+        BookingStatus.IN_TRANSIT       -> " ${strings.inTransit}"
+        BookingStatus.SEARCHING_DRIVER -> " ${strings.findingDriver}"
         else                           -> "⏳ ${strings.processing}"
     }
     val statusColor = when (bookingStatus) {
@@ -93,6 +93,12 @@ fun OrderDetailScreen(
                 title = { Text("Order Details") },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Text("←", fontSize = 24.sp) }
+                },
+                actions = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -206,7 +212,7 @@ fun OrderDetailScreen(
                                 Box(
                                     modifier = Modifier.size(50.dp).clip(CircleShape).background(Color.LightGray),
                                     contentAlignment = Alignment.Center
-                                ) { Text("👤", fontSize = 28.sp) }
+                                ) { Text("", fontSize = 28.sp) }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(text = driverName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
@@ -251,7 +257,7 @@ fun OrderDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.background(SuccessGreen.copy(alpha = 0.1f), RoundedCornerShape(8.dp)).padding(8.dp)
                             ) {
-                                Text("💵", fontSize = 16.sp)
+                                Text("", fontSize = 16.sp)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(text = "Paid via $paymentMethodText", fontSize = 13.sp, color = SuccessGreen)
                             }
@@ -276,7 +282,7 @@ fun OrderDetailScreen(
                                 Row {
                                     repeat(5) { index ->
                                         IconButton(onClick = { rating = index + 1 }) {
-                                            Text(text = if (index < rating) "⭐" else "☆", fontSize = 28.sp)
+                                            Text(text = if (index < rating) "⭐" else "", fontSize = 28.sp)
                                         }
                                     }
                                 }
@@ -302,7 +308,7 @@ fun OrderDetailScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text("📤", fontSize = 18.sp)
+                            Text("", fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Invoice")
                         }
@@ -312,7 +318,7 @@ fun OrderDetailScreen(
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryOrange)
                         ) {
-                            Text("🔄", fontSize = 18.sp)
+                            Text("", fontSize = 18.sp)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Rebook")
                         }

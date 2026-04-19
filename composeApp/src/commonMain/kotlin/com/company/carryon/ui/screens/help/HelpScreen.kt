@@ -66,6 +66,12 @@ fun HelpScreen(
                         Text("← ${strings.back}", color = Color.Black)
                     }
                 },
+                actions = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
@@ -87,11 +93,11 @@ fun HelpScreen(
                         expandedFaq = null
                     },
                     placeholder = { Text("Search help topics…", color = Color.Gray) },
-                    leadingIcon = { Text("🔍", fontSize = 18.sp) },
+                    leadingIcon = { Text("", fontSize = 18.sp) },
                     trailingIcon = {
                         if (searchQuery.isNotEmpty()) {
                             TextButton(onClick = { searchQuery = "" }) {
-                                Text("✕", color = Color.Gray)
+                                Text("", color = Color.Gray)
                             }
                         }
                     },
@@ -124,21 +130,21 @@ fun HelpScreen(
                     ) {
                         Column {
                             ContactOption(
-                                icon = "📞",
+                                icon = "",
                                 title = strings.callUs,
                                 subtitle = strings.available247,
                                 onClick = { /* phone dialer — platform specific */ }
                             )
                             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                             ContactOption(
-                                icon = "💬",
+                                icon = "",
                                 title = strings.chatSupport,
                                 subtitle = strings.typicallyReplies,
                                 onClick = onNavigateToSupport
                             )
                             HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
                             ContactOption(
-                                icon = "📧",
+                                icon = "",
                                 title = strings.emailUs,
                                 subtitle = "support@carryon.com",
                                 onClick = { /* email intent — platform specific */ }
@@ -161,13 +167,13 @@ fun HelpScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         QuickHelpCard(
-                            icon = "📦",
+                            icon = "",
                             title = strings.trackOrder,
                             modifier = Modifier.weight(1f),
                             onClick = onNavigateToTracking
                         )
                         QuickHelpCard(
-                            icon = "💳",
+                            icon = "",
                             title = strings.paymentIssue,
                             modifier = Modifier.weight(1f),
                             onClick = onNavigateToSupport
@@ -179,13 +185,13 @@ fun HelpScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         QuickHelpCard(
-                            icon = "🚫",
+                            icon = "",
                             title = strings.cancelOrder,
                             modifier = Modifier.weight(1f),
                             onClick = onNavigateToOrders
                         )
                         QuickHelpCard(
-                            icon = "💰",
+                            icon = "",
                             title = strings.refundStatus,
                             modifier = Modifier.weight(1f),
                             onClick = onNavigateToSupport
@@ -208,7 +214,7 @@ fun HelpScreen(
                                 .padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("🎫", fontSize = 28.sp)
+                            Text("", fontSize = 28.sp)
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -261,7 +267,7 @@ fun HelpScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🔍", fontSize = 40.sp)
+                            Text("", fontSize = 40.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 "No results for \"$searchQuery\"",

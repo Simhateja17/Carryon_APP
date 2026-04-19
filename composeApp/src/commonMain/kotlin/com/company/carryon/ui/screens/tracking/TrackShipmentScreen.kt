@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.carryon_logo
 import carryon.composeapp.generated.resources.icon_documents
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.track_sent
 import carryon.composeapp.generated.resources.track_transit
 import carryon.composeapp.generated.resources.track_journey
@@ -40,6 +39,8 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 private data class ShipmentTimelineItem(
     val iconRes: DrawableResource,
@@ -190,12 +191,7 @@ fun TrackShipmentScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -538,7 +534,7 @@ fun TrackShipmentScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("📦", fontSize = 48.sp)
+                        Text("", fontSize = 48.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Enter a tracking number to search",

@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.wallet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,8 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -33,19 +36,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.icon_home
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.wallet_add_money_icon
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
+
+private enum class MethodType { CARDS, UPI, NET_BANKING }
 
 @Composable
 fun AddPaymentMethodScreen(
     onBack: () -> Unit
 ) {
+    var selectedMethod by remember { mutableStateOf(MethodType.CARDS) }
     var cardNumber by remember { mutableStateOf("") }
     var cardName by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
+    var upiId by remember { mutableStateOf("") }
+    var upiName by remember { mutableStateOf("") }
+    var bankName by remember { mutableStateOf("") }
+    var accountNumber by remember { mutableStateOf("") }
+    var ifscCode by remember { mutableStateOf("") }
     var saveCard by remember { mutableStateOf(true) }
 
     Column(
@@ -53,22 +74,22 @@ fun AddPaymentMethodScreen(
             .fillMaxSize()
             .background(Color(0xFFF5F6F8))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("←", color = PrimaryBlue, fontSize = 20.sp, modifier = Modifier.clickable { onBack() })
             Spacer(modifier = Modifier.width(10.dp))
-            Text("Financial Hub", color = PrimaryBlue, fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+            Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .background(Color(0xFFDDEAFE), CircleShape),
-                contentAlignment = Alignment.Center
-            ) { Text("👤", fontSize = 14.sp) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -84,43 +105,45 @@ fun AddPaymentMethodScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text("Add New Payment\nMethod", color = Color(0xFF0F172A), fontSize = 52.sp, lineHeight = 54.sp, fontWeight = FontWeight.SemiBold)
+        Text("Add New\nPayment Method", color = Color(0xFF0F172A), fontSize = 38.sp, lineHeight = 40.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             "Choose your preferred way to fund your logistics operations. All transactions are encrypted.",
             color = Color(0xFF1F2937),
-            fontSize = 15.sp,
-            lineHeight = 22.sp
+            fontSize = 14.sp,
+            lineHeight = 20.sp
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        PaymentTypeButton(icon = "▭", title = "Cards", selected = true)
+        PaymentTypeButton(
+            icon = "▭",
+            title = "Cards",
+            selected = selectedMethod == MethodType.CARDS,
+            onClick = { selectedMethod = MethodType.CARDS }
+        )
         Spacer(modifier = Modifier.height(10.dp))
-        PaymentTypeButton(icon = "🏛", title = "UPI ID", selected = false)
+        PaymentTypeButton(
+            icon = "◎",
+            title = "UPI ID",
+            selected = selectedMethod == MethodType.UPI,
+            onClick = { selectedMethod = MethodType.UPI }
+        )
         Spacer(modifier = Modifier.height(10.dp))
-        PaymentTypeButton(icon = "🏢", title = "Net Banking", selected = false)
+        PaymentTypeButton(
+            icon = "▦",
+            title = "Net Banking",
+            selected = selectedMethod == MethodType.NET_BANKING,
+            onClick = { selectedMethod = MethodType.NET_BANKING }
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text("⌂", color = Color(0xFF6B7280), fontSize = 20.sp)
-            Spacer(modifier = Modifier.width(18.dp))
-            Text("🛡", color = Color(0xFF6B7280), fontSize = 20.sp)
-            Spacer(modifier = Modifier.width(18.dp))
-            Text("🏛", color = Color(0xFF6B7280), fontSize = 20.sp)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
-                .padding(16.dp)
+                    .fillMaxWidth()
+                    .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
+                    .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
@@ -128,32 +151,65 @@ fun AddPaymentMethodScreen(
                         .size(30.dp)
                         .background(Color(0xFFEFF4FB), CircleShape),
                     contentAlignment = Alignment.Center
-                ) { Text("🛡", color = PrimaryBlue, fontSize = 14.sp) }
+                ) { Text("", color = PrimaryBlue, fontSize = 14.sp) }
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
-                    Text("Card Details", color = Color(0xFF111827), fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                    Text("Securely encrypted by CarryOn Pay", color = Color(0xFF334155), fontSize = 12.sp)
+                    Text(
+                        when (selectedMethod) {
+                            MethodType.CARDS -> "Card Details"
+                            MethodType.UPI -> "UPI Details"
+                            MethodType.NET_BANKING -> "Banking Details"
+                        },
+                        color = Color(0xFF111827),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                    Text("Securely encrypted by CarryOn Pay", color = Color(0xFF334155), fontSize = 11.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            Label("CARD NUMBER")
-            AppField(value = cardNumber, onValueChange = { cardNumber = it }, placeholder = "0000 0000 0000 0000", trailing = "💳")
+            when (selectedMethod) {
+                MethodType.CARDS -> {
+                    Label("CARD NUMBER")
+                    AppField(value = cardNumber, onValueChange = { cardNumber = it }, placeholder = "0000 0000 0000 0000", trailing = "")
 
-            Spacer(modifier = Modifier.height(10.dp))
-            Label("CARDHOLDER NAME")
-            AppField(value = cardName, onValueChange = { cardName = it }, placeholder = "e.g. LOGISTICS PRO")
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Label("CARDHOLDER NAME")
+                    AppField(value = cardName, onValueChange = { cardName = it }, placeholder = "e.g. LOGISTICS PRO")
 
-            Spacer(modifier = Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Label("EXPIRY DATE")
-                    AppField(value = expiry, onValueChange = { expiry = it }, placeholder = "MM / YY")
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Label("EXPIRY DATE")
+                            AppField(value = expiry, onValueChange = { expiry = it }, placeholder = "MM / YY")
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Label("CVV")
+                            AppField(value = cvv, onValueChange = { cvv = it }, placeholder = "***", trailing = "?")
+                        }
+                    }
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Label("CVV")
-                    AppField(value = cvv, onValueChange = { cvv = it }, placeholder = "***", trailing = "?")
+                MethodType.UPI -> {
+                    Label("UPI ID")
+                    AppField(value = upiId, onValueChange = { upiId = it }, placeholder = "name@bank")
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Label("ACCOUNT HOLDER NAME")
+                    AppField(value = upiName, onValueChange = { upiName = it }, placeholder = "e.g. LOGISTICS PRO")
+                }
+                MethodType.NET_BANKING -> {
+                    Label("BANK NAME")
+                    AppField(value = bankName, onValueChange = { bankName = it }, placeholder = "e.g. Maybank")
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Label("ACCOUNT NUMBER")
+                    AppField(value = accountNumber, onValueChange = { accountNumber = it }, placeholder = "Enter account number")
+
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Label("IFSC / SWIFT CODE")
+                    AppField(value = ifscCode, onValueChange = { ifscCode = it }, placeholder = "Enter code")
                 }
             }
 
@@ -166,9 +222,9 @@ fun AddPaymentMethodScreen(
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("📧", color = PrimaryBlue)
+                Text("", color = PrimaryBlue)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Save card for future\npayments", color = Color(0xFF111827), fontSize = 14.sp, lineHeight = 16.sp)
+                Text("Save method for future\npayments", color = Color(0xFF111827), fontSize = 13.sp, lineHeight = 16.sp)
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
                     checked = saveCard,
@@ -191,46 +247,36 @@ fun AddPaymentMethodScreen(
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("🔒  Securely Save Payment Method", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text("  Securely Save Payment Method", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            BottomMiniTab("◷", "Payments", false)
-            BottomMiniTab("▭", "Methods", true)
-            BottomMiniTab("▤", "Invoices", false)
-            BottomMiniTab("⚙", "Settings", false)
-        }
+        HomeStyleBottomBar(selectedTab = 2)
 
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
 @Composable
-private fun PaymentTypeButton(icon: String, title: String, selected: Boolean) {
+private fun PaymentTypeButton(icon: String, title: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(84.dp)
-            .background(if (selected) Color(0xFF4E8FE4) else Color(0xFFDCE6F1), RoundedCornerShape(14.dp))
+            .height(72.dp)
+            .clickable { onClick() }
+            .background(if (selected) Color(0xFF4E8FE4) else Color(0x33A6D2F3), RoundedCornerShape(14.dp))
             .border(
                 width = if (selected) 0.dp else 1.dp,
-                color = if (selected) Color.Transparent else Color(0xFFC9D4E2),
+                color = if (selected) Color.Transparent else Color(0x33A6D2F3),
                 shape = RoundedCornerShape(14.dp)
             ),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(icon, color = if (selected) Color.White else Color(0xFF111827), fontSize = 22.sp)
+            Text(icon, color = if (selected) Color.White else Color(0xFF111827), fontSize = 14.sp)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(title, color = if (selected) Color.White else Color(0xFF111827), fontSize = 24.sp)
+            Text(title, color = if (selected) Color.White else Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -262,6 +308,74 @@ private fun AppField(
             unfocusedBorderColor = Color(0xFFD5DEEA)
         ),
         modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun HomeStyleBottomBar(selectedTab: Int) {
+    Surface(
+        color = Color.White,
+        tonalElevation = 8.dp,
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        val items = listOf(
+            Res.drawable.icon_home to "HOME",
+            Res.drawable.icon_timer to "ORDERS",
+            Res.drawable.wallet_add_money_icon to "WALLET",
+            Res.drawable.icon_people to "PROFILE"
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            items.forEachIndexed { index, item ->
+                val isSelected = selectedTab == index
+                val (iconRes, label) = item
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (isSelected) {
+                        Surface(
+                            shape = CircleShape,
+                            color = PrimaryBlue,
+                            shadowElevation = 6.dp,
+                            modifier = Modifier.size(64.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                BottomBarIcon(iconRes = iconRes, label = label, tint = Color.White, size = 18.dp)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(label, color = Color.White, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    } else {
+                        BottomBarIcon(iconRes = iconRes, label = label, tint = PrimaryBlue, size = 21.dp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(label, color = PrimaryBlue, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomBarIcon(iconRes: DrawableResource, label: String, tint: Color, size: androidx.compose.ui.unit.Dp) {
+    Image(
+        painter = painterResource(iconRes),
+        contentDescription = label,
+        modifier = Modifier.size(size),
+        colorFilter = ColorFilter.tint(tint),
+        contentScale = ContentScale.Fit
     )
 }
 

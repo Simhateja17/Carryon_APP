@@ -24,6 +24,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,8 +67,6 @@ import carryon.composeapp.generated.resources.icon_help
 import carryon.composeapp.generated.resources.icon_spark
 import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.location_pin
-import carryon.composeapp.generated.resources.to_pin
 import carryon.composeapp.generated.resources.vector_truck
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
@@ -77,6 +79,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.material3.Icon
 
 data class OrderItem(
     val id: String,
@@ -811,8 +814,8 @@ private fun OrdersHeader(
             color = Color(0xFF1D254B)
         )
         Spacer(modifier = Modifier.weight(1f))
-        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 22.sp)
-        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.Medium, fontSize = 22.sp)
+        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
     }
     HorizontalDivider(color = Color(0xFFE9ECF2))
 }
@@ -840,7 +843,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                         .size(52.dp)
                         .background(Color(0xFFAED0F3), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
-                ) { Text("🚚", fontSize = 22.sp) }
+                ) { Text("", fontSize = 22.sp) }
 
                 Spacer(modifier = Modifier.width(10.dp))
 
@@ -936,7 +939,7 @@ private fun ScheduledOrderCard(
                             .background(Color(0xFFDCE6F1), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("📅", fontSize = 20.sp)
+                        Text("", fontSize = 20.sp)
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
@@ -1083,7 +1086,7 @@ private fun CompletedOrderCard(
                         Box(
                             modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape),
                             contentAlignment = Alignment.Center
-                        ) { Text("✓", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Medium) }
+                        ) { Text("", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Medium) }
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(card.statusText, color = Color(0xFF2F80ED), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
                     }
@@ -1189,7 +1192,7 @@ private fun CancelledOrderCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("📅", fontSize = 12.sp)
+                        Text("", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
                     }
@@ -1231,11 +1234,11 @@ private fun CancelledOrderCard(
                                 .background(Color(0xFFEFF6FF), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(Res.drawable.location_pin),
+                            Icon(
+                                imageVector = Icons.Outlined.Place,
                                 contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
+                                tint = Color(0xFF2F80ED),
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -1257,11 +1260,11 @@ private fun CancelledOrderCard(
                                 .background(card.dropIconBg, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Image(
-                                painter = painterResource(Res.drawable.to_pin),
+                            Icon(
+                                imageVector = Icons.Outlined.Place,
                                 contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                colorFilter = ColorFilter.tint(card.dropIconTint)
+                                tint = card.dropIconTint,
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -1456,12 +1459,7 @@ private fun UtilitySectionCards() {
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Image(
-                    painter = painterResource(Res.drawable.icon_spark),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
-                )
+                Icon(imageVector = Icons.Outlined.StarOutline, contentDescription = null, tint = Color(0xFF2F80ED), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Loyalty Perks", color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium)
                 Text("Points: 1,450", color = Color.Black, fontSize = 10.sp)

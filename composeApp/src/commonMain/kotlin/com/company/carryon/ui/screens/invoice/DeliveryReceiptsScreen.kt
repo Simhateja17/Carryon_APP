@@ -2,6 +2,7 @@ package com.company.carryon.ui.screens.invoice
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,10 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.PrimaryBlue
-
-private const val DeliveryModePooling = "Pooling"
-private const val DeliveryModePriority = "Priority"
-private const val DeliveryModeRegular = "Regular"
+import com.company.carryon.ui.theme.PrimaryBlueDark
 
 @Composable
 fun DeliveryReceiptsScreen(
@@ -42,15 +40,14 @@ fun DeliveryReceiptsScreen(
 ) {
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
-        topBar = { FinancialHubTopBar() },
-        bottomBar = { ReceiptsBottomBar() }
+        topBar = { PaymentsTopBar(onBack = onBack) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 14.dp)
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
             Text(
                 text = "FINANCE HISTORY",
@@ -65,7 +62,7 @@ fun DeliveryReceiptsScreen(
                 color = Color.Black,
                 fontSize = 36.sp,
                 lineHeight = 40.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -104,7 +101,7 @@ fun DeliveryReceiptsScreen(
 }
 
 @Composable
-private fun FinancialHubTopBar() {
+private fun PaymentsTopBar(onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Row(
             modifier = Modifier
@@ -113,21 +110,23 @@ private fun FinancialHubTopBar() {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Financial Hub",
-                color = PrimaryBlue,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .border(1.5.dp, Color(0xFF7B9CFF), CircleShape)
-                    .background(Color.White, CircleShape),
-                contentAlignment = Alignment.Center
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "←",
+                    color = PrimaryBlue,
+                    fontSize = 22.sp,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+            }
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("👤", fontSize = 13.sp)
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
             }
         }
         HorizontalDivider(color = Color(0xFFE9ECF2))
@@ -152,7 +151,7 @@ private fun SpendingCard() {
             color = Color(0xFFF1F2FF),
             fontSize = 40.sp,
             lineHeight = 44.sp,
-            fontWeight = FontWeight.ExtraBold
+            fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(
@@ -176,7 +175,7 @@ private fun SearchCard() {
             .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
             .padding(20.dp)
     ) {
-        Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(14.dp))
 
         Column(
@@ -185,8 +184,6 @@ private fun SearchCard() {
                 .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
                 .padding(14.dp)
         ) {
-            Text("Quick Search", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(10.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -197,32 +194,6 @@ private fun SearchCard() {
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\n$DeliveryModePriority", "RM 245.00")
-        Spacer(modifier = Modifier.height(10.dp))
-        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\n$DeliveryModeRegular", "RM 1,120.50", selected = true)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DetailedReceiptCard()
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\n$DeliveryModePooling", "RM 56.20")
-
-        Spacer(modifier = Modifier.height(14.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("⌕", color = PrimaryBlue, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
-        }
     }
 }
 
@@ -266,22 +237,12 @@ private fun ReceiptRow(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(Color.White, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("▣", color = PrimaryBlue, fontSize = 16.sp)
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Order $orderId",
                     color = Color.Black,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = subtitle,
@@ -303,7 +264,7 @@ private fun ReceiptRow(
                 }
             }
             Spacer(modifier = Modifier.width(10.dp))
-            Text("›", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text("›", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
@@ -328,15 +289,6 @@ private fun DetailedReceiptCard() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.Top) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(Color(0xFFEFF6FF), RoundedCornerShape(16.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("📦", fontSize = 20.sp)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             "DETAILED VIEW",
@@ -351,7 +303,7 @@ private fun DetailedReceiptCard() {
                             color = Color.Black,
                             fontSize = 36.sp,
                             lineHeight = 40.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -385,8 +337,8 @@ private fun DetailedReceiptCard() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-                Text("RM 920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+                Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                Text("RM 920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -402,42 +354,6 @@ private fun LineAmountRow(title: String, amount: String) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Text(text = amount, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun ReceiptsBottomBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        BottomItem("◫", "Payments", selected = false)
-        BottomItem("▭", "Methods", selected = false)
-        BottomItem("▣", "Invoices", selected = true)
-        BottomItem("⚙", "Settings", selected = false)
-    }
-}
-
-@Composable
-private fun BottomItem(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFEFF6FF) else Color.Transparent, RoundedCornerShape(16.dp))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color.Black, fontSize = 15.sp)
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            label,
-            color = if (selected) PrimaryBlue else Color.Black,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium
-        )
+        Text(text = amount, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }

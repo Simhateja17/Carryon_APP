@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
@@ -38,6 +39,7 @@ import carryon.composeapp.generated.resources.change_password_active_icon
 import carryon.composeapp.generated.resources.change_password_encryption_shape
 import carryon.composeapp.generated.resources.change_password_update_icon
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -54,32 +56,34 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 16.dp, vertical = 18.dp),
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = "←",
                         color = PrimaryBlue,
                         fontSize = 24.sp,
                         modifier = Modifier.clickable { onBack() }
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Change Password",
-                        color = Color(0xFF282B51),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        color = Color(0xFF1D254B),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                Text(
-                    text = "CARRYON",
-                    color = Color(0xFF2563EB),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Column(
@@ -228,8 +232,8 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SecurityTab("⌂", "Home", selected = false)
-                SecurityTab("🚚", "Deliveries", selected = false)
-                SecurityTab("🔒", "Security", selected = true)
+                SecurityTab("", "Deliveries", selected = false)
+                SecurityTab("", "Security", selected = true)
                 SecurityTab("◉", "Profile", selected = false)
             }
         }
@@ -264,7 +268,7 @@ private fun RequirementRow(text: String) {
                 .border(1.dp, Color(0xFFE2E8F0), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("✓", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.width(12.dp))
         Text(text = text, color = Color.Black, fontSize = 14.sp)

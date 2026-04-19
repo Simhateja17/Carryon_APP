@@ -9,6 +9,19 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -17,26 +30,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
-import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.profile_help_support_icon
-import carryon.composeapp.generated.resources.profile_logout_icon
-import carryon.composeapp.generated.resources.profile_payments_wallet_icon
-import carryon.composeapp.generated.resources.profile_personal_info_icon
-import carryon.composeapp.generated.resources.profile_privacy_security_icon
-import carryon.composeapp.generated.resources.profile_rating_icon
-import carryon.composeapp.generated.resources.profile_saved_addresses_icon
-import carryon.composeapp.generated.resources.profile_settings_icon
-import carryon.composeapp.generated.resources.profile_shipments_icon
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.DrawableResource
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 
@@ -108,20 +111,8 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Profile", color = Color(0xFF1F2937), fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFDDEAFE)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(Res.drawable.bell_icon),
-                        contentDescription = "Notification",
-                        modifier = Modifier.size(18.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -133,8 +124,7 @@ fun ProfileScreen(
                         contentDescription = "Avatar",
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(34.dp)),
-                        contentScale = ContentScale.Crop
+                            .clip(RoundedCornerShape(34.dp))
                     )
                     Box(
                         modifier = Modifier
@@ -143,7 +133,12 @@ fun ProfileScreen(
                             .background(PrimaryBlue, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("✎", color = Color.White, fontSize = 14.sp)
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Edit profile",
+                            tint = Color.White,
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
                 }
             }
@@ -184,7 +179,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(142.dp),
-                    iconRes = Res.drawable.profile_shipments_icon,
+                    icon = Icons.Outlined.LocalShipping,
                     value = if (statsError != null) "—" else totalShipments.toString(),
                     label = "TOTAL SHIPMENTS"
                 )
@@ -192,7 +187,7 @@ fun ProfileScreen(
                     modifier = Modifier
                         .weight(1f)
                         .height(142.dp),
-                    iconRes = Res.drawable.profile_rating_icon,
+                    icon = Icons.Outlined.StarOutline,
                     value = if (statsError != null) "—" else "${userRating.toInt()}.0",
                     label = "USER RATING"
                 )
@@ -200,17 +195,17 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            ProfileOptionCard(iconRes = Res.drawable.profile_personal_info_icon, title = "Personal Info", onClick = onNavigateToEditProfile)
+            ProfileOptionCard(icon = Icons.Outlined.PersonOutline, title = "Personal Info", onClick = onNavigateToEditProfile)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_saved_addresses_icon, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
+            ProfileOptionCard(icon = Icons.Outlined.LocationOn, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_payments_wallet_icon, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
+            ProfileOptionCard(icon = Icons.Outlined.AccountBalanceWallet, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_settings_icon, title = "Settings", onClick = onNavigateToSettings)
+            ProfileOptionCard(icon = Icons.Outlined.Settings, title = "Settings", onClick = onNavigateToSettings)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_help_support_icon, title = "Help & Support", onClick = onNavigateToHelp)
+            ProfileOptionCard(icon = Icons.AutoMirrored.Outlined.HelpOutline, title = "Help & Support", onClick = onNavigateToHelp)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(iconRes = Res.drawable.profile_privacy_security_icon, title = "Privacy & Security", onClick = onNavigateToPromo)
+            ProfileOptionCard(icon = Icons.Outlined.Security, title = "Privacy & Security", onClick = onNavigateToPromo)
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -223,11 +218,11 @@ fun ProfileScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(Res.drawable.profile_logout_icon),
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
                         contentDescription = "Logout",
-                        modifier = Modifier.size(24.dp),
-                        contentScale = ContentScale.Fit
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
@@ -251,7 +246,7 @@ fun ProfileScreen(
 @Composable
 private fun StatCard(
     modifier: Modifier = Modifier,
-    iconRes: DrawableResource,
+    icon: ImageVector,
     value: String,
     label: String
 ) {
@@ -273,11 +268,11 @@ private fun StatCard(
                 .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(iconRes),
+            Icon(
+                imageVector = icon,
                 contentDescription = null,
+                tint = PrimaryBlue,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
             )
         }
         Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp)
@@ -294,7 +289,7 @@ private fun StatCard(
 
 @Composable
 private fun ProfileOptionCard(
-    iconRes: DrawableResource,
+    icon: ImageVector,
     title: String,
     subtitleBadge: String? = null,
     onClick: () -> Unit
@@ -314,11 +309,11 @@ private fun ProfileOptionCard(
                 .background(Color.White, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(iconRes),
+            Icon(
+                imageVector = icon,
                 contentDescription = null,
+                tint = PrimaryBlue,
                 modifier = Modifier.size(24.dp),
-                contentScale = ContentScale.Fit
             )
         }
 

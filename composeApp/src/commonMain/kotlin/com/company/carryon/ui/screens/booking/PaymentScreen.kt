@@ -8,22 +8,23 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.CreditCard
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.ReceiptLong
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.payment_icon
-import carryon.composeapp.generated.resources.payment_icon_1
-import carryon.composeapp.generated.resources.payment_icon_2
-import carryon.composeapp.generated.resources.payment_icon_3
 import carryon.composeapp.generated.resources.rectangle_22
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
@@ -41,23 +42,23 @@ fun PaymentScreen(
     val strings = LocalStrings.current
 
     val paymentMethods = listOf(
-        Triple("VISA", strings.visaCard, Res.drawable.payment_icon_1),
-        Triple("MASTERCARD", strings.mastercard, Res.drawable.payment_icon_2),
-        Triple("CASH", strings.cashOnDelivery, Res.drawable.payment_icon_3),
-        Triple("WALLET", strings.wallet, Res.drawable.payment_icon)
+        Triple("VISA", strings.visaCard, Icons.Outlined.CreditCard),
+        Triple("MASTERCARD", strings.mastercard, Icons.Outlined.ReceiptLong),
+        Triple("CASH", strings.cashOnDelivery, Icons.Outlined.Payments),
+        Triple("WALLET", strings.wallet, Icons.Outlined.AccountBalanceWallet)
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                title = { Text("Payment", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium) },
+                navigationIcon = { IconButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = TextPrimary) } },
+                actions = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                navigationIcon = { IconButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = TextPrimary) } },
-                actions = { IconButton(onClick = {}) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
@@ -120,7 +121,7 @@ fun PaymentScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                paymentMethods.forEach { (id, label, iconRes) ->
+                paymentMethods.forEach { (id, label, icon) ->
                     Card(
                         modifier = Modifier
                             .weight(1f)
@@ -134,11 +135,11 @@ fun PaymentScreen(
                         elevation = CardDefaults.cardElevation(0.dp)
                     ) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Image(
-                                painter = painterResource(iconRes),
+                            Icon(
+                                imageVector = icon,
                                 contentDescription = label,
-                                modifier = Modifier.size(36.dp),
-                                contentScale = ContentScale.Fit
+                                modifier = Modifier.size(30.dp),
+                                tint = PrimaryBlue
                             )
                         }
                     }

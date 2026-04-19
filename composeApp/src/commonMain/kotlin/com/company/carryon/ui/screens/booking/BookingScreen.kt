@@ -96,17 +96,17 @@ fun BookingScreen(
             val apiVehicles = response.data ?: emptyList()
             // Map API vehicles to VehicleOption with icons
             val iconMap = mapOf(
-                "bike" to "🏍️",
-                "auto" to "🛺",
-                "mini truck" to "🚚",
-                "minitruck" to "🚚",
-                "truck" to "🚛",
-                "car" to "🚗"
+                "bike" to "",
+                "auto" to "",
+                "mini truck" to "",
+                "minitruck" to "",
+                "truck" to "",
+                "car" to ""
             )
             vehicles = apiVehicles.map { v ->
                 VehicleOption(
                     id = v.id,
-                    icon = iconMap[v.name.lowercase()] ?: "📦",
+                    icon = iconMap[v.name.lowercase()] ?: "",
                     name = v.name,
                     description = v.description.ifBlank { v.capacity },
                     price = "—",
@@ -191,8 +191,8 @@ fun BookingScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
                 navigationIcon = {
@@ -345,12 +345,12 @@ fun BookingScreen(
                         Text("Payment type", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(10.dp))
                         val paymentMethods = listOf(
-                            Pair("💵", "Cash"),
+                            Pair("", "Cash"),
                             Pair("🇲🇾", "DuitNow"),
-                            Pair("🟢", "Touch 'n Go"),
-                            Pair("🚗", "GrabPay"),
-                            Pair("🏦", "FPX"),
-                            Pair("💳", "Card")
+                            Pair("", "Touch 'n Go"),
+                            Pair("", "GrabPay"),
+                            Pair("", "FPX"),
+                            Pair("", "Card")
                         )
                         val rows = paymentMethods.chunked(3)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

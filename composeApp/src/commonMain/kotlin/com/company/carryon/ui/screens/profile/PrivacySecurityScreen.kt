@@ -3,7 +3,6 @@ package com.company.carryon.ui.screens.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +18,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,21 +36,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.privacy_change_password_icon
-import carryon.composeapp.generated.resources.privacy_delete_account_icon
-import carryon.composeapp.generated.resources.privacy_download_my_data_icon
-import carryon.composeapp.generated.resources.privacy_location_access_icon
-import carryon.composeapp.generated.resources.privacy_logged_in_devices_icon
-import carryon.composeapp.generated.resources.privacy_notifications_icon
 import com.company.carryon.ui.theme.PrimaryBlue
-import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.painterResource
+import com.company.carryon.ui.theme.PrimaryBlueDark
 
 @Composable
 fun PrivacySecurityScreen(
@@ -66,23 +66,34 @@ fun PrivacySecurityScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 24.dp, vertical = 18.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 24.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Privacy & Security",
-                    color = Color(0xFF282B51),
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 24.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Privacy & Security",
+                        color = Color(0xFF1D254B),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Column(
@@ -94,12 +105,12 @@ fun PrivacySecurityScreen(
             ) {
                 SectionTitle("ACCOUNT SECURITY")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(iconRes = Res.drawable.privacy_change_password_icon, title = "Change Password", onClick = onChangePassword)
+                ActionCard(icon = Icons.Outlined.Lock, title = "Change Password", onClick = onChangePassword)
 
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("LOGIN & ACCESS")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(iconRes = Res.drawable.privacy_logged_in_devices_icon, title = "Logged in devices", onClick = onLoggedInDevices)
+                ActionCard(icon = Icons.Outlined.Devices, title = "Logged in devices", onClick = onLoggedInDevices)
 
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("PERMISSIONS")
@@ -111,7 +122,7 @@ fun PrivacySecurityScreen(
                         .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
                 ) {
                     ToggleRow(
-                        iconRes = Res.drawable.privacy_location_access_icon,
+                        icon = Icons.Outlined.LocationOn,
                         title = "Location Access",
                         checked = locationEnabled,
                         onToggle = { locationEnabled = !locationEnabled }
@@ -123,7 +134,7 @@ fun PrivacySecurityScreen(
                             .background(Color(0xFFE7E6FF))
                     )
                     ToggleRow(
-                        iconRes = Res.drawable.privacy_notifications_icon,
+                        icon = Icons.Outlined.Notifications,
                         title = "Notifications",
                         checked = notificationsEnabled,
                         onToggle = { notificationsEnabled = !notificationsEnabled }
@@ -133,7 +144,7 @@ fun PrivacySecurityScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionTitle("DATA & PRIVACY")
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(iconRes = Res.drawable.privacy_download_my_data_icon, title = "Download my data")
+                ActionCard(icon = Icons.Outlined.Download, title = "Download my data")
 
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
@@ -155,11 +166,11 @@ fun PrivacySecurityScreen(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(Res.drawable.privacy_delete_account_icon),
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
                         contentDescription = "Delete Account",
                         modifier = Modifier.size(20.dp),
-                        contentScale = ContentScale.Fit
+                        tint = PrimaryBlue
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Delete Account", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
@@ -186,10 +197,10 @@ fun PrivacySecurityScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomMiniTab(icon = "🚚", label = "Ship", selected = false)
-                BottomMiniTab(icon = "🧭", label = "Track", selected = false)
-                BottomMiniTab(icon = "🧾", label = "History", selected = false)
-                BottomMiniTab(icon = "⚙", label = "Settings", selected = true)
+                BottomMiniTab(icon = "", label = "Ship", selected = false)
+                BottomMiniTab(icon = "", label = "Track", selected = false)
+                BottomMiniTab(icon = "", label = "History", selected = false)
+                BottomMiniTab(icon = "", label = "Settings", selected = true)
             }
         }
     }
@@ -208,7 +219,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun ActionCard(iconRes: DrawableResource, title: String, onClick: () -> Unit = {}) {
+private fun ActionCard(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,11 +230,11 @@ private fun ActionCard(iconRes: DrawableResource, title: String, onClick: () -> 
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(iconRes),
+            Icon(
+                imageVector = icon,
                 contentDescription = title,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
+                tint = PrimaryBlue
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(title, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Medium)
@@ -234,7 +245,7 @@ private fun ActionCard(iconRes: DrawableResource, title: String, onClick: () -> 
 
 @Composable
 private fun ToggleRow(
-    iconRes: DrawableResource,
+    icon: ImageVector,
     title: String,
     checked: Boolean,
     onToggle: () -> Unit
@@ -248,11 +259,11 @@ private fun ToggleRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(iconRes),
+            Icon(
+                imageVector = icon,
                 contentDescription = title,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
+                tint = PrimaryBlue
             )
             Spacer(modifier = Modifier.width(12.dp))
             Text(title, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Medium)

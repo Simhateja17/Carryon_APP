@@ -109,30 +109,30 @@ fun SearchingDriverScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "←",
-                    fontSize = 22.sp,
-                    color = Color(0xFF1D2B53),
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .clickable { onCancel() }
-                )
-                Spacer(modifier = Modifier.width(14.dp))
-                Text(
-                    text = "Finding Your Driver",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF1D2B53),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "⋮",
-                    fontSize = 22.sp,
-                    color = PrimaryBlue,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        fontSize = 22.sp,
+                        color = Color(0xFF1D2B53),
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier
+                            .clickable { onCancel() }
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Text(
+                        text = "Finding Your Driver",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1D2B53)
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(44.dp))

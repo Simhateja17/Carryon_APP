@@ -341,7 +341,7 @@ router.post('/:id/accept', async (req, res, next) => {
       include: bookingInclude,
     });
     if (!updated) return next(new AppError('Job not found', 404));
-    console.log('[driver-jobs] ✔ Accepted — driver:', driverLabel(req.driver), 'bookingId:', req.params.id, 'customer:', booking.user?.name || 'unknown', 'status → DRIVER_ASSIGNED');
+    console.log('[driver-jobs]  Accepted — driver:', driverLabel(req.driver), 'bookingId:', req.params.id, 'customer:', booking.user?.name || 'unknown', 'status → DRIVER_ASSIGNED');
 
     await prisma.driverNotification.create({
       data: {

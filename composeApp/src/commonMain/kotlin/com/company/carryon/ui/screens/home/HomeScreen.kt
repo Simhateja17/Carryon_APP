@@ -21,10 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -42,7 +46,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -50,14 +53,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.car_two_seater
 import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.home_current_location_icon
 import carryon.composeapp.generated.resources.home_delivery_progress_icon
-import carryon.composeapp.generated.resources.home_estimated_logistics_icon
 import carryon.composeapp.generated.resources.home_recent_delivery_icon
 import carryon.composeapp.generated.resources.home_work_icon
 import carryon.composeapp.generated.resources.icon_home
@@ -360,9 +361,10 @@ fun HomeScreen(
                 Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                 Spacer(modifier = Modifier.width(8.dp))
                 IconButton(onClick = { }) {
-                    Image(
-                        painter = painterResource(Res.drawable.bell_icon),
+                    Icon(
+                        imageVector = Icons.Outlined.NotificationsNone,
                         contentDescription = "Notifications",
+                        tint = PrimaryBlue,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -390,7 +392,7 @@ fun HomeScreen(
                         modifier = Modifier.size(28.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text("🚚", fontSize = 13.sp)
+                            Text("", fontSize = 13.sp)
                         }
                     }
                     Spacer(modifier = Modifier.width(10.dp))
@@ -654,21 +656,13 @@ fun HomeScreen(
         ) {
             Box(
                 modifier = Modifier
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF6BA2FF), PrimaryBlue)
-                        )
-                    )
+                    .background(color = Color(0xFF2F80ED))
                     .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.23f), modifier = Modifier.size(30.dp)) {
+                    Surface(shape = CircleShape, color = Color.White, modifier = Modifier.size(30.dp)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Image(
-                                painter = painterResource(Res.drawable.home_estimated_logistics_icon),
-                                contentDescription = "Estimated logistics",
-                                modifier = Modifier.size(14.dp)
-                            )
+                            Icon(imageVector = Icons.Outlined.Schedule, contentDescription = "Estimated logistics", tint = PrimaryBlue, modifier = Modifier.size(14.dp))
                         }
                     }
                     Spacer(modifier = Modifier.width(10.dp))

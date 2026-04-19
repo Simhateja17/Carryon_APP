@@ -81,7 +81,10 @@ fun SupportChatScreen(onBack: () -> Unit) {
                             }
                         }
                     }
-                    Text(text = "⋮", color = Color(0xFF667085), fontSize = 22.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
                 }
                 Box(
                     modifier = Modifier
@@ -110,7 +113,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                             .background(Color(0x33A6D2F3), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "📷", color = PrimaryBlue, fontSize = 20.sp)
+                        Text(text = "", color = PrimaryBlue, fontSize = 20.sp)
                     }
 
                     Box(
@@ -132,7 +135,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.weight(1f)
                             )
-                            Text(text = "☺", color = PrimaryBlue, fontSize = 18.sp)
+                            Text(text = "", color = PrimaryBlue, fontSize = 18.sp)
                         }
                     }
 
@@ -142,7 +145,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                             .background(PrimaryBlue, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "➤", color = Color.White, fontSize = 20.sp)
+                        Text(text = "", color = Color.White, fontSize = 20.sp)
                     }
                 }
             }
@@ -201,7 +204,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                         .background(Color(0x33A6D2F3), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "🎧", fontSize = 14.sp, color = PrimaryBlue)
+                    Text(text = "", fontSize = 14.sp, color = PrimaryBlue)
                 }
 
                 Column {
@@ -234,7 +237,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                         .background(Color(0x33A6D2F3), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "🎧", fontSize = 14.sp, color = PrimaryBlue)
+                    Text(text = "", fontSize = 14.sp, color = PrimaryBlue)
                 }
 
                 Row(

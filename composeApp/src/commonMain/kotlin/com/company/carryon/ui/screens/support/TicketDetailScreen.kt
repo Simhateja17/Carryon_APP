@@ -64,15 +64,20 @@ fun TicketDetailScreen(
                     TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
                 },
                 actions = {
-                    if (ticket?.status != "CLOSED") {
-                        TextButton(onClick = {
-                            scope.launch {
-                                SupportApi.closeTicket(ticketId).onSuccess {
-                                    ticket = ticket?.copy(status = "CLOSED")
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        if (ticket?.status != "CLOSED") {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            TextButton(onClick = {
+                                scope.launch {
+                                    SupportApi.closeTicket(ticketId).onSuccess {
+                                        ticket = ticket?.copy(status = "CLOSED")
+                                    }
                                 }
+                            }) {
+                                Text(strings.closeTicket, color = ErrorRed, fontSize = 13.sp)
                             }
-                        }) {
-                            Text(strings.closeTicket, color = ErrorRed, fontSize = 13.sp)
                         }
                     }
                 },

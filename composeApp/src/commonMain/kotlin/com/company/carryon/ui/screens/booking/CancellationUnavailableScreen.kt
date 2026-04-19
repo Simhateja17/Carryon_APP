@@ -47,21 +47,27 @@ fun CancellationUnavailableScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 14.dp),
-                horizontalArrangement = Arrangement.Start,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 20.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Text(
-                    text = "  Cancellation Unavailable",
-                    color = Color(0xFF282B51),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 20.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Text(
+                        text = "  Cancellation Unavailable",
+                        color = Color(0xFF282B51),
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -114,7 +120,7 @@ fun CancellationUnavailableScreen(
                             .background(Color(0xFFD2E5F9), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("🚚", fontSize = 18.sp)
+                        Text("", fontSize = 18.sp)
                     }
                     androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(10.dp))
                     Column {

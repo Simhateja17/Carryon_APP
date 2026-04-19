@@ -16,8 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.call_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
@@ -32,6 +30,9 @@ import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -190,18 +191,13 @@ fun TrackingLiveScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Carry", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
                 actions = {
                     IconButton(onClick = {}) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -380,7 +376,7 @@ fun TrackingLiveScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                             enabled = currentBooking.driver != null
                         ) {
-                            Image(painter = painterResource(Res.drawable.call_icon), contentDescription = null, modifier = Modifier.size(20.dp), contentScale = ContentScale.Fit)
+                            Icon(imageVector = Icons.Outlined.Call, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 strings.callDeliveryAgent,

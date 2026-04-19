@@ -134,7 +134,10 @@ fun ScheduledOrderDetailsScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        Text("⋮", color = PrimaryBlue, fontSize = 20.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                            Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        }
                     }
 
                     Column(
@@ -197,7 +200,7 @@ fun ScheduledOrderDetailsScreen(
                                 .background(Color(0x66A6D2F3), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("➤", color = Color(0xFF2F80ED), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("", color = Color(0xFF2F80ED), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 

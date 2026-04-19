@@ -25,7 +25,6 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.icon_timer
-import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.ui.components.MapViewComposable
@@ -41,6 +40,9 @@ import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Place
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,11 +195,11 @@ fun SelectAddressScreen(
             TopAppBar(
                 title = {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                actions = { IconButton(onClick = {}) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
+                actions = { IconButton(onClick = {}) { Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp)) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
@@ -283,7 +285,7 @@ fun SelectAddressScreen(
                             performSearch(it)
                         },
                         placeholder = { Text(strings.from, color = PrimaryBlue) },
-                        leadingIcon = { Image(painter = painterResource(Res.drawable.location_pin), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
+                        leadingIcon = { Icon(imageVector = Icons.Outlined.Place, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(22.dp)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
@@ -305,7 +307,7 @@ fun SelectAddressScreen(
                                     }
                                 },
                                 leadingIcon = {
-                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp), contentScale = ContentScale.Fit)
+                                    Icon(imageVector = Icons.Outlined.Place, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(18.dp))
                                 },
                                 onClick = {
                                     val selectedTitle = place.title
@@ -368,7 +370,7 @@ fun SelectAddressScreen(
                                     }
                                 },
                                 leadingIcon = {
-                                    Image(painter = painterResource(Res.drawable.to_pin), contentDescription = null, modifier = Modifier.size(18.dp), contentScale = ContentScale.Fit)
+                                    Icon(imageVector = Icons.Outlined.Place, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(18.dp))
                                 },
                                 onClick = {
                                     val selectedTitle = place.title

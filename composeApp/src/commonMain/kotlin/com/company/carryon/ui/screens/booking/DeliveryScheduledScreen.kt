@@ -48,19 +48,29 @@ fun DeliveryScheduledScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 18.dp, vertical = 12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 20.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Text(
-                    text = "  Delivery Scheduled",
-                    color = Color(0xFF354164),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 20.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Text(
+                        text = "  Delivery Scheduled",
+                        color = Color(0xFF354164),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -81,14 +91,14 @@ fun DeliveryScheduledScreen(
                         .border(2.dp, Color(0xFFA7C2F6), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("📅", fontSize = 28.sp)
+                    Text("", fontSize = 28.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Your delivery is scheduled 🎉",
+                text = "Your delivery is scheduled ",
                 color = TextPrimary,
                 fontSize = 38.sp,
                 lineHeight = 42.sp,
@@ -156,7 +166,7 @@ fun DeliveryScheduledScreen(
                             Spacer(modifier = Modifier.height(2.dp))
                             Text("Today, 5:00 PM", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                         }
-                        Text("🗓", fontSize = 18.sp)
+                        Text("", fontSize = 18.sp)
                     }
                 }
             }

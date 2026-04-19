@@ -81,20 +81,25 @@ fun EditProfileScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
                             .padding(horizontal = 16.dp, vertical = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            "←",
-                            color = PrimaryBlue,
-                            fontSize = 24.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Personal Info", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "←",
+                                color = PrimaryBlue,
+                                fontSize = 24.sp,
+                                modifier = Modifier.clickable { onBack() }
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Personal Info", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        }
                     }
-                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE0E0E0)))
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -117,7 +122,7 @@ fun EditProfileScreen(
                                     .border(2.dp, Color.White, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("✎", color = Color.White, fontSize = 12.sp)
+                                Text("", color = Color.White, fontSize = 12.sp)
                             }
                         }
                     }
@@ -277,7 +282,7 @@ private fun LockedField(value: String) {
         onValueChange = {},
         enabled = false,
         singleLine = true,
-        trailingIcon = { Text("🔒", color = PrimaryBlue) },
+        trailingIcon = { Text("", color = PrimaryBlue) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(

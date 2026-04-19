@@ -98,21 +98,21 @@ fun DetailsScreen(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = {
+                title = { Text(text = "Delivery Details", color = Color(0xFF2563EB), fontSize = 18.sp, fontWeight = FontWeight.Medium) },
+                navigationIcon = {
+                    Text(
+                        text = "←",
+                        color = Color(0xFF2563EB),
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .clickable { onBack() }
+                    )
+                },
+                actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "←",
-                            color = Color(0xFF2563EB),
-                            fontSize = 16.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Delivery Details",
-                            color = Color(0xFF2563EB),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -271,7 +271,7 @@ fun DetailsScreen(
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressInputCard(
-                    icon = "⚖",
+                    icon = "",
                     label = "Weight (kg)",
                     valueText = parcelWeight
                 )
@@ -322,7 +322,7 @@ fun DetailsScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 ExpressLabeledInputCard(
-                    icon = "✆",
+                    icon = "",
                     placeholder = "Phone Number",
                     value = receiverPhone,
                     onValueChange = { receiverPhone = it },
@@ -353,7 +353,7 @@ fun DetailsScreen(
                         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                             Surface(shape = RoundedCornerShape(16.dp), color = Color(0xFFA6D2F3), modifier = Modifier.size(48.dp)) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Text("⚲", color = Color.White, fontSize = 24.sp)
+                                    Text("", color = Color.White, fontSize = 24.sp)
                                 }
                             }
                             Spacer(modifier = Modifier.width(16.dp))
@@ -468,7 +468,7 @@ fun DetailsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 SameDayReceiverRow(icon = "◉", placeholder = "Receiver's Name", value = receiverName, onValueChange = { receiverName = it })
                 Spacer(modifier = Modifier.height(12.dp))
-                SameDayReceiverRow(icon = "✆", placeholder = "Phone Number", value = receiverPhone, onValueChange = { receiverPhone = it }, keyboardType = KeyboardType.Phone)
+                SameDayReceiverRow(icon = "", placeholder = "Phone Number", value = receiverPhone, onValueChange = { receiverPhone = it }, keyboardType = KeyboardType.Phone)
                 Spacer(modifier = Modifier.height(12.dp))
                 ContactPickerButton { contact ->
                     receiverName = contact.name
@@ -560,7 +560,7 @@ fun DetailsScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SectionCard(title = "INSTRUCTIONS", icon = "✎") {
+                SectionCard(title = "INSTRUCTIONS", icon = "") {
                     OutlinedTextField(
                         value = instructions,
                         onValueChange = { instructions = it },
@@ -651,7 +651,15 @@ fun DetailsScreen(
                         }
                         androidx.compose.material3.Switch(
                             checked = offloading,
-                            onCheckedChange = { offloading = it }
+                            onCheckedChange = { offloading = it },
+                            colors = androidx.compose.material3.SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = Color(0xFF2F80ED),
+                                checkedBorderColor = Color(0xFF2F80ED),
+                                uncheckedThumbColor = Color.White,
+                                uncheckedTrackColor = Color(0xFFE5E7EB),
+                                uncheckedBorderColor = Color(0xFFD1D5DB)
+                            )
                         )
                     }
                 }
@@ -681,7 +689,7 @@ fun DetailsScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                                 ) {
-                                    Text("⚲", color = Color.White, fontSize = 10.sp)
+                                    Text("", color = Color.White, fontSize = 10.sp)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = vehicleType.ifBlank { "VEHICLE" }.uppercase(),
