@@ -48,12 +48,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.data.network.currentTimeMillis
 import com.company.carryon.ui.components.ContactInfo
 import com.company.carryon.ui.components.ContactPickerButton
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.util.formatDecimal
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 private val SectionTint20 = Color(0x33A6D2F3)
 private const val DeliveryModePooling = "Pooling"
@@ -70,10 +75,11 @@ fun DetailsScreen(
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
+    val now = Instant.fromEpochMilliseconds(currentTimeMillis()).toLocalDateTime(TimeZone.currentSystemDefault())
     var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
     var offloading by rememberSaveable { mutableStateOf(false) }
-    var selectedDate by rememberSaveable { mutableStateOf("Oct 24, 2023") }
-    var timeSlot by rememberSaveable { mutableStateOf("10 AM - 12 PM") }
+    var selectedDate by rememberSaveable { mutableStateOf(formatTodayDate(now)) }
+    var timeSlot by rememberSaveable { mutableStateOf(formatCurrentTimeSlot(now.hour)) }
     var sameDaySlot by rememberSaveable { mutableStateOf("Afternoon") }
     var parcelWeight by rememberSaveable { mutableStateOf("0.0") }
     var parcelType by rememberSaveable { mutableStateOf("Documents") }
@@ -737,6 +743,39 @@ fun DetailsScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+private fun formatTodayDate(now: LocalDateTime): String {
+    val monthName = when (now.monthNumber) {
+        1 -> "Jan"
+        2 -> "Feb"
+        3 -> "Mar"
+        4 -> "Apr"
+        5 -> "May"
+        6 -> "Jun"
+        7 -> "Jul"
+        8 -> "Aug"
+        9 -> "Sep"
+        10 -> "Oct"
+        11 -> "Nov"
+        else -> "Dec"
+    }
+    return "$monthName ${now.dayOfMonth}, ${now.year}"
+}
+
+private fun formatCurrentTimeSlot(hour24: Int): String {
+    val startHour = hour24 % 24
+    val endHour = (startHour + 2) % 24
+    return "${formatHourLabel(startHour)} - ${formatHourLabel(endHour)}"
+}
+
+private fun formatHourLabel(hour24: Int): String {
+    val hour12 = when (hour24 % 12) {
+        0 -> 12
+        else -> hour24 % 12
+    }
+    val period = if (hour24 < 12) "AM" else "PM"
+    return "$hour12 $period"
 }
 
 @Composable
