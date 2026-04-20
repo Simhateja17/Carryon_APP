@@ -96,8 +96,31 @@ export interface DriverListItem {
 export interface DriverDocument {
   id: string;
   driverId: string;
-  type: "DRIVERS_LICENSE" | "VEHICLE_REGISTRATION" | "INSURANCE" | "PROFILE_PHOTO" | "ID_PROOF";
+  type:
+    | "DRIVERS_LICENSE"
+    | "DRIVERS_LICENSE_BACK"
+    | "GDL"
+    | "VEHICLE_REGISTRATION"
+    | "ROAD_TAX"
+    | "PUSPAKOM"
+    | "APAD_PERMIT"
+    | "VEHICLE_PHOTO_FRONT"
+    | "VEHICLE_PHOTO_BACK"
+    | "VEHICLE_PHOTO_LEFT"
+    | "VEHICLE_PHOTO_RIGHT"
+    | "VEHICLE_PHOTO_INTERIOR"
+    | "BANK_STATEMENT"
+    | "POLICE_CLEARANCE"
+    | "INSURANCE"
+    | "PROFILE_PHOTO"
+    | "ID_PROOF"
+    | "MYKAD_FRONT"
+    | "MYKAD_BACK"
+    | "SELFIE"
+    | "PASSPORT"
+    | "WORK_PERMIT_PLKS";
   imageUrl: string;
+  expiryDate?: string | null;
   status: "PENDING" | "APPROVED" | "REJECTED";
   rejectionReason: string | null;
   uploadedAt: string;
