@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +43,7 @@ fun TrackingLiveScreen(
     onCallAgent: () -> Unit = {}
 ) {
     val strings = LocalStrings.current
+    val uriHandler = LocalUriHandler.current
     
     // Booking state
     var booking by remember { mutableStateOf<Booking?>(null) }
@@ -58,6 +60,7 @@ fun TrackingLiveScreen(
     var snappedPath by remember { mutableStateOf<List<LatLng>>(emptyList()) }
     var etaMinutes by remember { mutableStateOf(0) }
     var driverId by remember { mutableStateOf("") }
+    var driverPhone by remember { mutableStateOf("") }
 
     // Track raw GPS history for snap-to-roads
     val gpsHistory = remember { mutableListOf<LatLng>() }
@@ -86,6 +89,7 @@ fun TrackingLiveScreen(
                     
                     // Get driver ID for position tracking
                     driverId = loadedBooking.driver?.id ?: ""
+                    driverPhone = loadedBooking.driver?.phone.orEmpty()
                     
                     // Set initial ETA from booking
                     etaMinutes = when {
@@ -166,9 +170,16 @@ fun TrackingLiveScreen(
                     if (eta.etaMinutes > 0) {
                         etaMinutes = eta.etaMinutes
                     }
+                    if (!eta.driverPhone.isNullOrBlank()) {
+                        driverPhone = eta.driverPhone
+                    }
                 }
             }
         }
+    }
+
+    val callableDriverPhone = remember(booking?.driver?.phone, driverPhone) {
+        sanitizePhoneNumber(driverPhone.ifBlank { booking?.driver?.phone.orEmpty() })
     }
 
     val markers = remember(driverLat, driverLng, deliveryLat, deliveryLng) {
@@ -243,20 +254,20 @@ fun TrackingLiveScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             "<",
-                            fontSize = 22.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary,
                             modifier = Modifier.clickable { onBack() }
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             strings.trackYourShipment,
-                            fontSize = 22.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
@@ -308,7 +319,7 @@ fun TrackingLiveScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(Color.White)
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         // Out for delivery card
                         Row(
@@ -316,13 +327,13 @@ fun TrackingLiveScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(PrimaryBlue)
-                                .padding(16.dp),
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // Mins box
                             Box(
                                 modifier = Modifier
-                                    .size(72.dp)
+                                    .size(64.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(Color.White.copy(alpha = 0.25f)),
                                 contentAlignment = Alignment.Center
@@ -330,51 +341,57 @@ fun TrackingLiveScreen(
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
                                         if (etaMinutes > 0) "$etaMinutes" else "--",
-                                        fontSize = 28.sp,
+                                        fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
                                     )
                                     Text(
                                         strings.mins,
-                                        fontSize = 13.sp,
+                                        fontSize = 12.sp,
                                         color = Color.White
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(12.dp))
 
                             Column {
                                 Text(
                                     strings.outForDelivery,
-                                    fontSize = 18.sp,
+                                    fontSize = 17.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF90CAF9)
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     if (currentBooking.driver != null) 
                                         "${currentBooking.driver?.name ?: ""} ${strings.deliveryPartnerDriving}"
                                     else 
                                         strings.deliveryPartnerDriving,
-                                    fontSize = 13.sp,
+                                    fontSize = 12.sp,
                                     color = Color.White,
-                                    lineHeight = 19.sp
+                                    lineHeight = 17.sp
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
 
                         // Call Delivery Agent button
                         Button(
-                            onClick = onCallAgent,
+                            onClick = {
+                                if (callableDriverPhone.isNotBlank()) {
+                                    uriHandler.openUri("tel:$callableDriverPhone")
+                                } else {
+                                    onCallAgent()
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(56.dp),
+                                .height(52.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                            enabled = currentBooking.driver != null
+                            enabled = callableDriverPhone.isNotBlank()
                         ) {
                             Icon(imageVector = Icons.Outlined.Call, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))
@@ -397,3 +414,6 @@ private fun estimateMinutesFromDistance(distanceKm: Double): Int {
     // Fallback ETA for cases where provider omits route duration.
     return ceil((distanceKm / 30.0) * 60.0).toInt().coerceAtLeast(1)
 }
+
+private fun sanitizePhoneNumber(phone: String): String =
+    phone.filter { it.isDigit() || it == '+' }

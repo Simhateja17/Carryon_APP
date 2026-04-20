@@ -675,8 +675,8 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, deliveryMode, offloading, scheduledTime ->
-                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "", deliveryMode, offloading, scheduledTime)
+                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, deliveryMode, offloading ->
+                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "", deliveryMode, offloading, null)
                     },
                     onBack = {
                         currentScreen = if (screen.fromHome) {
