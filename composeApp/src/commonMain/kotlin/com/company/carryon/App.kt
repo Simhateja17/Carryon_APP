@@ -324,12 +324,10 @@ fun App() {
             }
             is AppScreen.Home -> {
                 HomeScreen(
-                    onNavigateToBooking = { pickup, delivery, packageType ->
-                        currentScreen = AppScreen.Details(
-                            vehicleType = packageType,
+                    onNavigateToBooking = { pickup, delivery ->
+                        currentScreen = AppScreen.SelectAddress(
                             pickup = pickup,
-                            delivery = delivery,
-                            fromHome = true
+                            delivery = delivery
                         )
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },

@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -96,7 +98,7 @@ private val HomeCardBackground = Color(0x33A6D2F3)
 
 @Composable
 fun HomeScreen(
-    onNavigateToBooking: (String, String, String) -> Unit,
+    onNavigateToBooking: (String, String) -> Unit,
     onNavigateToOrders: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToTracking: (String) -> Unit,
@@ -108,7 +110,6 @@ fun HomeScreen(
 
     var pickupLocation by remember { mutableStateOf("") }
     var deliveryLocation by remember { mutableStateOf("") }
-    var selectedVehicle by remember { mutableStateOf(0) }
     var isGettingLocation by remember { mutableStateOf(false) }
     var userLat by remember { mutableStateOf<Double?>(null) }
     var userLng by remember { mutableStateOf<Double?>(null) }
@@ -119,9 +120,6 @@ fun HomeScreen(
     var estimatedRouteMinutes by remember { mutableStateOf<Int?>(null) }
     var showLanguageModal by remember { mutableStateOf(false) }
 
-    var vehicleOptions by remember { mutableStateOf<List<VehicleOption>>(emptyList()) }
-    var isLoadingVehicles by remember { mutableStateOf(true) }
-    var vehicleError by remember { mutableStateOf<String?>(null) }
     var userName by remember { mutableStateOf<String?>(null) }
     var activeBooking by remember { mutableStateOf<Booking?>(null) }
     var recentDeliveredBookings by remember { mutableStateOf<List<Booking>>(emptyList()) }
@@ -139,78 +137,13 @@ fun HomeScreen(
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
     var showDeliveryRequiredError by remember { mutableStateOf(false) }
 
-    fun loadVehicles() {
-        scope.launch {
-            isLoadingVehicles = true
-            vehicleError = null
-            val iconMap = mapOf(
-                "2 wheeler" to Res.drawable.bike,
-                "bike" to Res.drawable.bike,
-                "car" to Res.drawable.car_4_seater,
-                "auto" to Res.drawable.car_4_seater,
-                "4x4 pickup" to Res.drawable.truck,
-                "van 7ft" to Res.drawable.mini_van,
-                "van 9ft" to Res.drawable.mini_van,
-                "small lorry 10ft" to Res.drawable.truck,
-                "medium lorry 14ft" to Res.drawable.truck,
-                "large lorry 17ft" to Res.drawable.truck,
-                "mini truck" to Res.drawable.mini_van,
-                "minitruck" to Res.drawable.mini_van,
-                "truck" to Res.drawable.truck
-            )
-            val defaultVehicles = listOf(
-                VehicleOption(Res.drawable.bike,       "2 Wheeler",         "RM 0.90/km"),
-                VehicleOption(Res.drawable.car_4_seater, "Car",             "RM 1.17/km"),
-                VehicleOption(Res.drawable.truck, "4x4 Pickup",             "RM 3.40/km"),
-                VehicleOption(Res.drawable.mini_van,   "Van 7ft",           "RM 5.40/km"),
-                VehicleOption(Res.drawable.mini_van,   "Van 9ft",           "RM 6.40/km"),
-                VehicleOption(Res.drawable.truck,      "Small Lorry 10ft",  "RM 8.23/km"),
-                VehicleOption(Res.drawable.truck,      "Medium Lorry 14ft", "RM 11.60/km"),
-                VehicleOption(Res.drawable.truck,      "Large Lorry 17ft",  "RM 15.60/km")
-            )
-            BookingApi.getVehicles()
-                .onSuccess { response ->
-                    val apiVehicles = response.data.orEmpty()
-                    vehicleOptions = apiVehicles.map { vehicle ->
-                        val key = vehicle.type.lowercase()
-                        val icon = iconMap[key] ?: Res.drawable.car_4_seater
-                        val displayName = when (key) {
-                            "2 wheeler", "bike" -> "2 Wheeler"
-                            "car", "auto" -> "Car"
-                            "4x4 pickup" -> "4x4 Pickup"
-                            "van 7ft" -> "Van 7ft"
-                            "van 9ft" -> "Van 9ft"
-                            "small lorry 10ft" -> "Small Lorry 10ft"
-                            "medium lorry 14ft" -> "Medium Lorry 14ft"
-                            "large lorry 17ft" -> "Large Lorry 17ft"
-                            "mini truck", "minitruck" -> "Van 7ft"
-                            "truck" -> "Small Lorry 10ft"
-                            else -> vehicle.type
-                        }
-                        VehicleOption(icon, displayName, "RM ${vehicle.pricePerKm.formatDecimal(2)}/km")
-                    }
-                    if (vehicleOptions.isEmpty()) {
-                        vehicleOptions = defaultVehicles
-                        vehicleError = "Using default vehicle list"
-                    }
-                    if (selectedVehicle !in vehicleOptions.indices) selectedVehicle = 0
-                }
-                .onFailure {
-                    vehicleOptions = defaultVehicles
-                    vehicleError = "Using default vehicle list"
-                }
-            isLoadingVehicles = false
-        }
-    }
-
     fun proceedToBooking() {
         if (deliveryLocation.isBlank() || !deliveryLocationRecognized) {
             showDeliveryRequiredError = true
             return
         }
-        val selectedVehicleName = vehicleOptions.getOrNull(selectedVehicle)?.name ?: "Car (4-Seat)"
         val safePickup = pickupLocation.ifBlank { "Pickup Location" }
-        onNavigateToBooking(safePickup, deliveryLocation.trim(), selectedVehicleName)
+        onNavigateToBooking(safePickup, deliveryLocation.trim())
     }
 
     LaunchedEffect(Unit) {
@@ -243,7 +176,6 @@ fun HomeScreen(
                 .toList()
         }
 
-        loadVehicles()
     }
 
     val requestLocation = rememberLocationRequester(
@@ -628,86 +560,15 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Vehicle Type", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            TextButton(onClick = { onNavigateToCalculate() }, contentPadding = PaddingValues(0.dp)) {
-                Text("View capacity", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (isLoadingVehicles) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = PrimaryBlue)
-            }
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                vehicleOptions.forEachIndexed { index, vehicle ->
-                    VehicleCard(
-                        vehicle = vehicle,
-                        selected = selectedVehicle == index,
-                        onClick = { selectedVehicle = index }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        Surface(
+        Button(
+            onClick = { proceedToBooking() },
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { proceedToBooking() },
-            shape = RoundedCornerShape(16.dp),
-            color = Color.Transparent
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF6BA2FF), PrimaryBlue)
-                        )
-                    )
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.23f), modifier = Modifier.size(30.dp)) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Image(
-                                painter = painterResource(Res.drawable.home_estimated_logistics_icon),
-                                contentDescription = "Estimated logistics",
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("ESTIMATED LOGISTICS", color = Color.White.copy(alpha = 0.72f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            if (vehicleOptions.isNotEmpty()) {
-                                val price = vehicleOptions.getOrNull(selectedVehicle)?.price ?: "—"
-                                estimatedRouteMinutes?.let { "$it mins · $price" } ?: price
-                            }
-                            else "Unavailable right now",
-                            color = Color.White,
-                            fontSize = 23.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    Text("→", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
+            Text("Next", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(18.dp))

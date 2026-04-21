@@ -2,11 +2,13 @@ package com.company.carryon.ui.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,7 +27,12 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.bike
+import carryon.composeapp.generated.resources.car_4_seater
+import carryon.composeapp.generated.resources.mini_van
+import carryon.composeapp.generated.resources.truck
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.DrawableResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.ui.components.MapViewComposable
 import com.company.carryon.ui.components.MapMarker
@@ -36,13 +43,23 @@ import com.company.carryon.data.model.MapConfig
 import com.company.carryon.data.model.PlaceResult
 import com.company.carryon.data.model.RouteResult
 import com.company.carryon.data.network.LocationApi
+import com.company.carryon.data.network.BookingApi
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material.icons.outlined.Place
+
+private data class VehicleChoice(
+    val iconRes: DrawableResource,
+    val name: String,
+    val price: String,
+    val description: String,
+    val specs: String
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,10 +87,91 @@ fun SelectAddressScreen(
     var toPlace by remember { mutableStateOf<PlaceResult?>(null) }
     var routeResult by remember { mutableStateOf<RouteResult?>(null) }
     var isLoadingRoute by remember { mutableStateOf(false) }
+    var vehicleOptions by remember { mutableStateOf<List<VehicleChoice>>(emptyList()) }
+    var selectedVehicleIndex by remember { mutableStateOf(0) }
+    var isLoadingVehicles by remember { mutableStateOf(true) }
 
     val scope = rememberCoroutineScope()
     var searchJob by remember { mutableStateOf<Job?>(null) }
     val strings = LocalStrings.current
+
+    fun loadVehicles() {
+        scope.launch {
+            isLoadingVehicles = true
+            val iconMap = mapOf(
+                "2 wheeler" to Res.drawable.bike,
+                "bike" to Res.drawable.bike,
+                "car" to Res.drawable.car_4_seater,
+                "auto" to Res.drawable.car_4_seater,
+                "4x4 pickup" to Res.drawable.truck,
+                "van 7ft" to Res.drawable.mini_van,
+                "van 9ft" to Res.drawable.mini_van,
+                "small lorry 10ft" to Res.drawable.truck,
+                "medium lorry 14ft" to Res.drawable.truck,
+                "large lorry 17ft" to Res.drawable.truck,
+                "mini truck" to Res.drawable.mini_van,
+                "minitruck" to Res.drawable.mini_van,
+                "truck" to Res.drawable.truck
+            )
+            val defaultVehicles = listOf(
+                VehicleChoice(Res.drawable.bike, "2 Wheeler", "RM 0.90/km", "Ideal for groceries, food, documents, small parcels", "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"),
+                VehicleChoice(Res.drawable.car_4_seater, "Car", "RM 1.17/km", "Ideal for groceries, food, flowers, parcels, fragile goods", "0.5 x 0.5 x 0.5 Meter · Up to 40 kg"),
+                VehicleChoice(Res.drawable.truck, "4x4 Pickup", "RM 3.40/km", "Small boxes, small furniture, bicycle", "1.2 x 0.9 x 0.9 Meter · Up to 250 kg"),
+                VehicleChoice(Res.drawable.mini_van, "Van 7ft", "RM 5.40/km", "Vanette / GranMax sized loads", "1.7 x 1 x 1.2 Meter · Up to 500 kg"),
+                VehicleChoice(Res.drawable.mini_van, "Van 9ft", "RM 6.40/km", "Hiace sized loads", "2.7 x 1.3 x 1.2 Meter · Up to 800 kg"),
+                VehicleChoice(Res.drawable.truck, "Small Lorry 10ft", "RM 8.23/km", "Medium household or office move", "3.0 x 1.5 x 1.7 Meter · Up to 1000 kg"),
+                VehicleChoice(Res.drawable.truck, "Medium Lorry 14ft", "RM 11.60/km", "Larger household or retail loads", "4.2 x 1.8 x 2.0 Meter · Up to 2000 kg"),
+                VehicleChoice(Res.drawable.truck, "Large Lorry 17ft", "RM 15.60/km", "Bulk and heavy transport", "5.2 x 2.0 x 2.2 Meter · Up to 3000 kg")
+            )
+            BookingApi.getVehicles()
+                .onSuccess { response ->
+                    vehicleOptions = response.data.orEmpty().map { vehicle ->
+                        val key = vehicle.type.lowercase()
+                        val displayName = when (key) {
+                            "2 wheeler", "bike" -> "2 Wheeler"
+                            "car", "auto" -> "Car"
+                            "4x4 pickup" -> "4x4 Pickup"
+                            "van 7ft" -> "Van 7ft"
+                            "van 9ft" -> "Van 9ft"
+                            "small lorry 10ft" -> "Small Lorry 10ft"
+                            "medium lorry 14ft" -> "Medium Lorry 14ft"
+                            "large lorry 17ft" -> "Large Lorry 17ft"
+                            "mini truck", "minitruck" -> "Van 7ft"
+                            "truck" -> "Small Lorry 10ft"
+                            else -> vehicle.type
+                        }
+                        VehicleChoice(
+                            iconRes = iconMap[key] ?: Res.drawable.car_4_seater,
+                            name = displayName,
+                            price = "RM ${vehicle.pricePerKm.formatDecimal(2)}/km",
+                            description = vehicle.description.ifBlank { "Suitable for everyday parcel delivery" },
+                            specs = when (displayName) {
+                                "2 Wheeler" -> "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"
+                                "Car" -> "0.5 x 0.5 x 0.5 Meter · Up to 40 kg"
+                                "4x4 Pickup" -> "1.2 x 0.9 x 0.9 Meter · Up to 250 kg"
+                                "Van 7ft" -> "1.7 x 1 x 1.2 Meter · Up to 500 kg"
+                                "Van 9ft" -> "2.7 x 1.3 x 1.2 Meter · Up to 800 kg"
+                                "Small Lorry 10ft" -> "3.0 x 1.5 x 1.7 Meter · Up to 1000 kg"
+                                "Medium Lorry 14ft" -> "4.2 x 1.8 x 2.0 Meter · Up to 2000 kg"
+                                "Large Lorry 17ft" -> "5.2 x 2.0 x 2.2 Meter · Up to 3000 kg"
+                                else -> "Size varies · Capacity based on model"
+                            }
+                        )
+                    }
+                    if (vehicleOptions.isEmpty()) vehicleOptions = defaultVehicles
+                }
+                .onFailure {
+                    vehicleOptions = defaultVehicles
+                }
+            if (vehicleType.isNotBlank()) {
+                selectedVehicleIndex = vehicleOptions.indexOfFirst { it.name.equals(vehicleType, ignoreCase = true) }
+                    .takeIf { it >= 0 } ?: 0
+            } else if (selectedVehicleIndex !in vehicleOptions.indices) {
+                selectedVehicleIndex = 0
+            }
+            isLoadingVehicles = false
+        }
+    }
 
     // Use device location to center map and pre-fill "from"
     val requestLocation = rememberLocationRequester(
@@ -101,6 +199,7 @@ fun SelectAddressScreen(
 
     // Load map config, then request location (triggers permission + GPS)
     LaunchedEffect(Unit) {
+        loadVehicles()
         LocationApi.getMapConfig().onSuccess { config ->
             mapConfig = config
         }
@@ -207,7 +306,11 @@ fun SelectAddressScreen(
             Surface(shadowElevation = 8.dp, color = Color.White) {
                 Column {
                     Button(
-                        onClick = { onNext(vehicleType, from, to) },
+                        onClick = {
+                            val selectedVehicle = vehicleOptions.getOrNull(selectedVehicleIndex)?.name
+                                ?: vehicleType.ifBlank { "Car" }
+                            onNext(selectedVehicle, from, to)
+                        },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp).height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -217,47 +320,6 @@ fun SelectAddressScreen(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White)) {
-            // Interactive Map with route
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-                MapViewComposable(
-                    modifier = Modifier.fillMaxSize(),
-                    styleUrl = mapConfig.styleUrl,
-                    centerLat = centerLat,
-                    centerLng = centerLng,
-                    zoom = mapZoom,
-                    markers = markers,
-                    routeGeometry = routeResult?.geometry,
-                    onMapClick = { lat, lng ->
-                        // Reverse geocode the tapped location
-                        scope.launch {
-                            LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
-                                if (place != null) {
-                                    if (isSearchingFrom) {
-                                        from = place.label
-                                        fromPlace = place
-                                        centerLat = place.latitude
-                                        centerLng = place.longitude
-                                    } else {
-                                        to = place.label
-                                        toPlace = place
-                                        centerLat = place.latitude
-                                        centerLng = place.longitude
-                                    }
-                                    mapZoom = 15.0
-                                }
-                            }
-                        }
-                    }
-                )
-                if (isLoadingRoute) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center).size(32.dp),
-                        color = PrimaryBlue,
-                        strokeWidth = 3.dp
-                    )
-                }
-            }
-
             // Bottom sheet
             Column(
                 modifier = Modifier.fillMaxWidth().offset(y = (-16).dp)
@@ -401,9 +463,86 @@ fun SelectAddressScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
+                Text("Vehicle Type", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Spacer(modifier = Modifier.height(10.dp))
+                if (isLoadingVehicles) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue)
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        vehicleOptions.forEachIndexed { index, option ->
+                            VehicleTypeCard(
+                                vehicle = option,
+                                selected = index == selectedVehicleIndex,
+                                onClick = { selectedVehicleIndex = index }
+                            )
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 } // end inner Column
             } // end outer Column
+        }
+    }
+}
+
+@Composable
+private fun VehicleTypeCard(
+    vehicle: VehicleChoice,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(14.dp),
+        color = if (selected) Color(0xFFEAF2FF) else Color(0xFFF7F9FC),
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) PrimaryBlue else Color(0xFFE3E8F0)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 14.dp, vertical = 14.dp)
+                .heightIn(min = 148.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(width = 106.dp, height = 88.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) Color(0xFF355D9E) else Color(0xFFEAF1FB)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(vehicle.iconRes),
+                    contentDescription = vehicle.name,
+                    modifier = Modifier.size(80.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(vehicle.name, color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(vehicle.description, color = TextSecondary, fontSize = 14.sp, lineHeight = 19.sp)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(vehicle.specs, color = TextSecondary, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("From ${vehicle.price.removePrefix("RM ")}", color = PrimaryBlue, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }

@@ -282,16 +282,6 @@ fun DetailsScreen(
                         ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Surface(
-                                        shape = RoundedCornerShape(16.dp),
-                                        color = Color(0xFFA6D2F3),
-                                        modifier = Modifier.size(48.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Text("⚡", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.width(16.dp))
                                     Column {
                                         Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
                                         Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
