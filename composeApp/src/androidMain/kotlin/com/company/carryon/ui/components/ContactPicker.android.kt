@@ -67,8 +67,6 @@ actual fun ContactPickerButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
-        Text("📇", fontSize = 18.sp)
-        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Pick from Contacts",
             color = Color.White,

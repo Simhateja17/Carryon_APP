@@ -9,14 +9,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_timer
-import carryon.composeapp.generated.resources.payment_icon
 import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.wallet_add_money_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.CarryOnTheme
 import com.company.carryon.ui.theme.PrimaryBlue
@@ -236,8 +237,7 @@ fun App() {
         currentScreen !is AppScreen.ReportIssue &&
         currentScreen !is AppScreen.AddMoney &&
         currentScreen !is AppScreen.SendMoney &&
-        currentScreen !is AppScreen.AddPaymentMethod &&
-        currentScreen !is AppScreen.DeliveryReceipts
+        currentScreen !is AppScreen.AddPaymentMethod
 
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
@@ -560,6 +560,7 @@ fun App() {
             }
             is AppScreen.DeliveryScheduled -> {
                 DeliveryScheduledScreen(
+                    bookingId = screen.bookingId,
                     onBack = { currentScreen = AppScreen.Orders },
                     onViewOrder = {
                         currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId)
@@ -578,6 +579,7 @@ fun App() {
             }
             is AppScreen.ModifySchedule -> {
                 ModifyScheduleScreen(
+                    bookingId = screen.bookingId,
                     onBack = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
                     onUpdateSchedule = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
                     onCancelDelivery = { currentScreen = AppScreen.CancelDelivery(screen.bookingId) }
@@ -856,7 +858,7 @@ private fun AppBottomBar(
         val items = listOf(
             Res.drawable.icon_home to "HOME",
             Res.drawable.icon_timer to "ORDERS",
-            Res.drawable.payment_icon to "WALLET",
+            Res.drawable.wallet_add_money_icon to "WALLET",
             Res.drawable.icon_people to "PROFILE"
         )
         val actions = listOf(onHomeClick, onOrdersClick, onPaymentsClick, onAccountClick)
@@ -894,6 +896,7 @@ private fun AppBottomBar(
                                     painter = painterResource(iconRes),
                                     contentDescription = label,
                                     modifier = Modifier.size(18.dp),
+                                    colorFilter = ColorFilter.tint(Color.White),
                                     contentScale = ContentScale.Fit
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -905,12 +908,13 @@ private fun AppBottomBar(
                             painter = painterResource(iconRes),
                             contentDescription = label,
                             modifier = Modifier.size(21.dp),
+                            colorFilter = ColorFilter.tint(PrimaryBlue),
                             contentScale = ContentScale.Fit
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             label,
-                            color = Color(0xFF97A3B6),
+                            color = PrimaryBlue,
                             style = MaterialTheme.typography.labelSmall
                         )
                     }

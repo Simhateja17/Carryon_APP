@@ -19,9 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
-import carryon.composeapp.generated.resources.icon_spark
-import carryon.composeapp.generated.resources.icon_timer
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
@@ -29,6 +26,10 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.util.formatOrderDisplayId
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.StarOutline
 
 data class OrderHistory(
     val orderId: String,
@@ -59,10 +60,10 @@ private fun Booking.toOrderHistory() = OrderHistory(
 )
 
 private fun vehicleEmoji(vehicleType: String) = when (vehicleType.lowercase()) {
-    "auto" -> "🛺"
-    "mini truck" -> "🚚"
-    "truck" -> "🚛"
-    else -> "🏍️"
+    "auto" -> ""
+    "mini truck" -> ""
+    "truck" -> ""
+    else -> ""
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,12 +116,7 @@ fun HistoryScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -244,7 +240,7 @@ fun HistoryScreen(
                         Column(
                             modifier = Modifier.padding(20.dp)
                         ) {
-                            Image(painter = painterResource(Res.drawable.icon_spark), contentDescription = null, modifier = Modifier.size(28.dp), contentScale = ContentScale.Fit)
+                            Icon(imageVector = Icons.Outlined.StarOutline, contentDescription = null, tint = Color.White, modifier = Modifier.size(28.dp))
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -262,12 +258,11 @@ fun HistoryScreen(
                             )
                         }
 
-                        Image(
-                            painter = painterResource(Res.drawable.icon_spark),
+                        Icon(
+                            imageVector = Icons.Outlined.StarOutline,
                             contentDescription = null,
-                            modifier = Modifier.size(80.dp).align(Alignment.CenterEnd).padding(end = 16.dp),
-                            alpha = 0.2f,
-                            contentScale = ContentScale.Fit
+                            tint = Color.White.copy(alpha = 0.2f),
+                            modifier = Modifier.size(80.dp).align(Alignment.CenterEnd).padding(end = 16.dp)
                         )
                     }
                 }
@@ -287,7 +282,7 @@ fun HistoryScreen(
                         Column(
                             modifier = Modifier.padding(20.dp)
                         ) {
-                            Image(painter = painterResource(Res.drawable.icon_timer), contentDescription = null, modifier = Modifier.size(28.dp), contentScale = ContentScale.Fit)
+                            Icon(imageVector = Icons.Outlined.Schedule, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(28.dp))
 
                             Spacer(modifier = Modifier.height(8.dp))
 
@@ -305,12 +300,11 @@ fun HistoryScreen(
                             )
                         }
 
-                        Image(
-                            painter = painterResource(Res.drawable.icon_timer),
+                        Icon(
+                            imageVector = Icons.Outlined.Schedule,
                             contentDescription = null,
-                            modifier = Modifier.size(80.dp).align(Alignment.CenterEnd).padding(end = 16.dp),
-                            alpha = 0.15f,
-                            contentScale = ContentScale.Fit
+                            tint = PrimaryBlue.copy(alpha = 0.15f),
+                            modifier = Modifier.size(80.dp).align(Alignment.CenterEnd).padding(end = 16.dp)
                         )
                     }
                 }
@@ -432,7 +426,7 @@ private fun HistoryItem(
 
                 Column {
                     Row {
-                        Text("📍 ", fontSize = 12.sp, color = PrimaryBlue)
+                        Text(" ", fontSize = 12.sp, color = PrimaryBlue)
                         Text(
                             text = strings.dropOff,
                             fontSize = 12.sp,

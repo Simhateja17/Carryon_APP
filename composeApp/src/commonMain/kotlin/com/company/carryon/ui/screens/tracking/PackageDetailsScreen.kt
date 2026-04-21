@@ -23,7 +23,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.track_sent
 import carryon.composeapp.generated.resources.track_transit
 import carryon.composeapp.generated.resources.track_journey
@@ -36,6 +35,8 @@ import com.company.carryon.util.formatDecimal
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 private data class TrackingStep(
     val iconRes: DrawableResource,
@@ -192,12 +193,7 @@ fun PackageDetailsScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -301,7 +297,7 @@ fun PackageDetailsScreen(
                                         .background(Color.White, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("📦", fontSize = 18.sp)
+                                    Text("", fontSize = 18.sp)
                                 }
                                 
                                 Spacer(modifier = Modifier.width(12.dp))

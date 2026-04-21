@@ -2,6 +2,7 @@ package com.company.carryon.ui.screens.wallet
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,8 +18,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,10 +32,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.icon_home
+import carryon.composeapp.generated.resources.icon_people
+import carryon.composeapp.generated.resources.icon_timer
+import carryon.composeapp.generated.resources.wallet_add_money_icon
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
+import org.jetbrains.compose.resources.DrawableResource
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun AddMoneyScreen(
@@ -50,27 +63,18 @@ fun AddMoneyScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
-            Spacer(modifier = Modifier.width(10.dp))
-            Text("Financial Hub", color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            Text("Payment", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .background(Color(0xFFDDEAFE), CircleShape),
-                contentAlignment = Alignment.Center
-            ) { Text("👨‍💼", fontSize = 14.sp) }
+            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE1E6ED)))
-
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .background(Color(0xFFE6F0FF), RoundedCornerShape(999.dp))
+                .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text("WALLET REFILL", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -82,7 +86,7 @@ fun AddMoneyScreen(
             "Add Money",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             color = Color(0xFF0F172A),
-            fontSize = 52.sp,
+            fontSize = 34.sp,
             fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -90,7 +94,8 @@ fun AddMoneyScreen(
             "Securely fund your CarryOn wallet for instant payments",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             color = Color(0xFF111827),
-            fontSize = 16.sp
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -98,15 +103,15 @@ fun AddMoneyScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(28.dp))
+                .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
                 .padding(18.dp)
         ) {
             Text(
                 "ENTER AMOUNT",
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 color = Color(0xFF111827),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -115,10 +120,9 @@ fun AddMoneyScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("RM ", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
-                Text("RM", color = Color(0xFF8BB1E7), fontSize = 52.sp, fontWeight = FontWeight.Bold)
+                Text("RM", color = Color(0xFF8BB1E7), fontSize = 36.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(amount.toString(), color = PrimaryBlue, fontSize = 66.sp, fontWeight = FontWeight.Bold)
+                Text(amount.toString(), color = PrimaryBlue, fontSize = 46.sp, fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -153,12 +157,12 @@ fun AddMoneyScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(26.dp))
+                .background(Color(0x33A6D2F3), RoundedCornerShape(26.dp))
                 .padding(16.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Payment Method", color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                Text("CHANGE", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text("Payment Method", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                Text("CHANGE", color = PrimaryBlue, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -176,12 +180,17 @@ fun AddMoneyScreen(
                         .background(Color(0xFFDDEAFE), RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("💳", color = PrimaryBlue)
+                    Icon(
+                        imageVector = Icons.Outlined.AccountBalance,
+                        contentDescription = "Bank",
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("HDFC Bank Debit Card", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Ending in •••• 4290", color = Color(0xFF5B6380), fontSize = 14.sp)
+                    Text("Maybank Debit Card", color = Color(0xFF111827), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Ending in •••• 4290", color = Color(0xFF5B6380), fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
                 Text("›", color = Color(0xFF5B6380), fontSize = 26.sp)
             }
@@ -190,10 +199,10 @@ fun AddMoneyScreen(
         Spacer(modifier = Modifier.height(22.dp))
 
         Text(
-            "🛡  PCI DSS COMPLIANT • 256-BIT ENCRYPTION",
+            "  PCI DSS COMPLIANT • 256-BIT ENCRYPTION",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             color = Color(0xFF111827),
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Medium
         )
 
@@ -205,7 +214,7 @@ fun AddMoneyScreen(
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("Proceed to Pay  →", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text("Proceed to Pay  →", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -217,10 +226,10 @@ fun AddMoneyScreen(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            MiniTab("◷", "Payments", true)
-            MiniTab("▭", "Methods", false)
-            MiniTab("▤", "Invoices", false)
-            MiniTab("⚙", "Settings", false)
+            MiniTab(Res.drawable.icon_home, "HOME", false)
+            MiniTab(Res.drawable.icon_timer, "ORDERS", false)
+            MiniTab(Res.drawable.wallet_add_money_icon, "WALLET", true)
+            MiniTab(Res.drawable.icon_people, "PROFILE", false)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -258,15 +267,25 @@ private fun QuickAmountButton(
 }
 
 @Composable
-private fun MiniTab(icon: String, label: String, selected: Boolean) {
+private fun MiniTab(iconRes: DrawableResource, label: String, selected: Boolean) {
     Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFDCE9FF) else Color.Transparent, RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color(0xFF94A3B8), fontSize = 16.sp)
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(if (selected) PrimaryBlue else Color.Transparent, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = label,
+                colorFilter = ColorFilter.tint(if (selected) Color.White else PrimaryBlue),
+                modifier = Modifier.size(18.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(2.dp))
-        Text(label, color = if (selected) PrimaryBlue else Color(0xFF94A3B8), fontSize = 12.sp)
+        Text(label, color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }

@@ -21,10 +21,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,19 +43,49 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.map_route
+import com.company.carryon.data.model.Booking
+import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.util.formatDecimal
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ModifyScheduleScreen(
+    bookingId: String,
     onBack: () -> Unit,
     onUpdateSchedule: () -> Unit,
     onCancelDelivery: () -> Unit
 ) {
+    var booking by remember { mutableStateOf<Booking?>(null) }
+    var isLoading by remember { mutableStateOf(bookingId.isNotBlank()) }
+
+    LaunchedEffect(bookingId) {
+        if (bookingId.isBlank()) {
+            isLoading = false
+            return@LaunchedEffect
+        }
+        BookingApi.getBooking(bookingId)
+            .onSuccess { response -> booking = response.data }
+            .onFailure { booking = null }
+        isLoading = false
+    }
+
     Scaffold(
         containerColor = Color(0xFFF5F6F8)
     ) { paddingValues ->
-        Column(
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryBlue)
+            }
+        } else Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -63,11 +99,11 @@ fun ModifyScheduleScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                StatusCard()
+                StatusCard(booking)
                 RoutePreviewCard()
-                AddressCard()
-                PackageCard()
-                PaymentCard()
+                AddressCard(booking)
+                PackageCard(booking)
+                PaymentCard(booking)
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -123,12 +159,15 @@ private fun HeaderRow(onBack: () -> Unit) {
                 fontWeight = FontWeight.Bold
             )
         }
-        Text("⋮", color = PrimaryBlue, fontSize = 20.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+        }
     }
 }
 
 @Composable
-private fun StatusCard() {
+private fun StatusCard(booking: Booking?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -153,9 +192,19 @@ private fun StatusCard() {
         }
 
         Spacer(modifier = Modifier.height(14.dp))
-        Text("Scheduled for Today", color = Color.Black, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            booking?.scheduledTime?.let(::formatScheduledHeading) ?: "Scheduled delivery",
+            color = Color.Black,
+            fontSize = 34.sp,
+            fontWeight = FontWeight.SemiBold
+        )
         Spacer(modifier = Modifier.height(6.dp))
-        Text("◷ 5:00 PM", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+        Text(
+            "◷ ${booking?.scheduledTime?.let(::formatScheduledTimeOnly) ?: "Time pending"}",
+            color = Color.Black,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Medium
+        )
     }
 }
 
@@ -190,13 +239,13 @@ private fun RoutePreviewCard() {
                 .background(Color(0x66A6D2F3), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text("➤", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text("", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-private fun AddressCard() {
+private fun AddressCard(booking: Booking?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -230,16 +279,22 @@ private fun AddressCard() {
                 Column {
                     Text("PICKUP ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text("Jalan Tun Razak, Kuala Lumpur", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
-                    // TODO: Get pickup address from booking data
-                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        booking?.pickupAddress?.label?.ifBlank { booking.pickupAddress.address }.orEmpty().ifBlank { "Pickup address unavailable" },
+                        color = Color.Black,
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
                 Column {
                     Text("DROP-OFF ADDRESS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.height(3.dp))
-                    Text("KL Sentral, Kuala Lumpur", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
-                    // TODO: Get drop-off address from booking data
-                    Text("—", color = Color.Black, fontSize = 23.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        booking?.deliveryAddress?.label?.ifBlank { booking.deliveryAddress.address }.orEmpty().ifBlank { "Drop-off address unavailable" },
+                        color = Color.Black,
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
             }
         }
@@ -247,7 +302,7 @@ private fun AddressCard() {
 }
 
 @Composable
-private fun PackageCard() {
+private fun PackageCard(booking: Booking?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -256,11 +311,11 @@ private fun PackageCard() {
     ) {
         SectionHeader(icon = "▣", title = "Package Details")
         Spacer(modifier = Modifier.height(16.dp))
-        KeyValueRow("Type", "Package")
+        KeyValueRow("Type", booking?.vehicleType?.ifBlank { "Package" } ?: "Package")
         DividerSpacing()
-        KeyValueRow("Weight", "2.0 kg")
+        KeyValueRow("Sender", booking?.senderName?.ifBlank { "Not provided" } ?: "Not provided")
         Spacer(modifier = Modifier.height(14.dp))
-        Text("INSTRUCTIONS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text("RECEIVER", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(6.dp))
         Box(
             modifier = Modifier
@@ -270,7 +325,10 @@ private fun PackageCard() {
                 .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
             Text(
-                "\"Leave at front desk\"",
+                listOfNotNull(
+                    booking?.receiverName?.takeIf { it.isNotBlank() },
+                    booking?.receiverPhone?.takeIf { it.isNotBlank() }
+                ).joinToString(" • ").ifBlank { "Not provided" },
                 color = Color(0xFF64748B),
                 fontSize = 14.sp,
                 fontStyle = FontStyle.Italic
@@ -280,7 +338,7 @@ private fun PackageCard() {
 }
 
 @Composable
-private fun PaymentCard() {
+private fun PaymentCard(booking: Booking?) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -289,7 +347,11 @@ private fun PaymentCard() {
     ) {
         SectionHeader(icon = "RM", title = "Payment")
         Spacer(modifier = Modifier.height(16.dp))
-        KeyValueRow("Method", "Wallet", trailingDot = true)
+        KeyValueRow(
+            "Method",
+            booking?.paymentMethod?.name?.lowercase()?.replaceFirstChar { it.titlecase() } ?: "Unavailable",
+            trailingDot = true
+        )
         Spacer(modifier = Modifier.height(14.dp))
         HorizontalDivider(color = Color(0x330050D4), thickness = 1.dp)
         Spacer(modifier = Modifier.height(14.dp))
@@ -300,13 +362,36 @@ private fun PaymentCard() {
         ) {
             Text("Total Paid", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(
-                "RM 150",
+                "RM ${((booking?.finalPrice ?: 0.0).takeIf { it > 0 } ?: booking?.estimatedPrice ?: 0.0).formatDecimal(2)}",
                 color = PrimaryBlue,
                 fontSize = 42.sp,
                 fontWeight = FontWeight.Medium
             )
         }
     }
+}
+
+private fun formatScheduledHeading(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val month = dateTime.month.name.lowercase().replaceFirstChar { it.titlecase() }
+        "Scheduled for $month ${dateTime.dayOfMonth}"
+    }.getOrDefault("Scheduled delivery")
+}
+
+private fun formatScheduledTimeOnly(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val minute = dateTime.minute.toString().padStart(2, '0')
+        val hour24 = dateTime.hour
+        val hour12 = when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+        val meridiem = if (hour24 >= 12) "PM" else "AM"
+        "$hour12:$minute $meridiem"
+    }.getOrDefault("Time pending")
 }
 
 @Composable

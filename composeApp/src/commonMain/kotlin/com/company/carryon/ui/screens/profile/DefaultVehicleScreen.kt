@@ -19,8 +19,15 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccountBalanceWallet
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,24 +46,12 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.mini_van
-import carryon.composeapp.generated.resources.open_truck
-import carryon.composeapp.generated.resources.truck
-import carryon.composeapp.generated.resources.van_vehicle
 import com.company.carryon.ui.theme.PrimaryBlue
-import com.company.carryon.ui.theme.ScreenHorizontalPadding
+import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-private enum class VehicleType(val apiValue: String) {
-    BIKE("BIKE"),
-    CAR("CAR"),
-    PICKUP("PICKUP"),
-    VAN_7FT("VAN_7FT"),
-    VAN_9FT("VAN_9FT"),
-    LORRY_10FT("LORRY_10FT"),
-    LORRY_14FT("LORRY_14FT"),
-    LORRY_17FT("LORRY_17FT"),
-}
+private enum class VehicleType { BIKE, CAR, VAN }
 
 @Composable
 fun DefaultVehicleScreen(
@@ -64,23 +60,51 @@ fun DefaultVehicleScreen(
 ) {
     var selectedVehicle by remember { mutableStateOf(VehicleType.BIKE) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF3F4F6))
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = ScreenHorizontalPadding)
-    ) {
+    Scaffold(
+        containerColor = Color(0xFFF3F4F6),
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF2F3F6))
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BottomNavItem(Icons.Outlined.Home, "Home", false)
+                BottomNavItem(Icons.Outlined.Schedule, "Deliveries", false)
+                BottomNavItem(Icons.Outlined.AccountBalanceWallet, "Wallet", false)
+                BottomNavItem(Icons.Outlined.PersonOutline, "Profile", true)
+            }
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+        ) {
             Spacer(modifier = Modifier.height(12.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 28.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(14.dp))
-                Text("Settings", color = Color(0xFF282B51), fontSize = 36.sp / 2, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 24.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Text("Default Vehicle", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(30.dp))
@@ -100,8 +124,8 @@ fun DefaultVehicleScreen(
             Spacer(modifier = Modifier.height(26.dp))
 
             VehicleCard(
-                title = "Motorcycle",
-                description = "Small packages up to 10 kg.\n0.3 × 0.3 × 0.3 m. Ideal for\ndocuments, food, and urgent\ncity deliveries.",
+                title = "Bike",
+                description = "Small packages up to\n5 kg. Ideal for\ndocuments, food, and\nurgent city deliveries.",
                 imageRes = Res.drawable.bike,
                 selected = selectedVehicle == VehicleType.BIKE,
                 onClick = { selectedVehicle = VehicleType.BIKE }
@@ -109,63 +133,31 @@ fun DefaultVehicleScreen(
             Spacer(modifier = Modifier.height(16.dp))
             VehicleCard(
                 title = "Car",
-                description = "Up to 40 kg. 0.5 × 0.5 × 0.5 m.\nGrocery hauls, flowers,\nfragile parcels.",
+                description = "Medium loads 5-20\nkg. Best for grocery\nhauls and multiple\nmedium-sized boxes.",
                 imageRes = Res.drawable.car_4_seater,
                 selected = selectedVehicle == VehicleType.CAR,
                 onClick = { selectedVehicle = VehicleType.CAR }
             )
             Spacer(modifier = Modifier.height(16.dp))
             VehicleCard(
-                title = "Pickup (4x4)",
-                description = "Up to 250 kg.\n1.2 × 0.9 × 0.9 m.\nSmall boxes, furniture,\nbicycles.",
-                imageRes = Res.drawable.open_truck,
-                selected = selectedVehicle == VehicleType.PICKUP,
-                onClick = { selectedVehicle = VehicleType.PICKUP }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VehicleCard(
-                title = "Van 7-ft",
-                description = "Up to 500 kg.\n1.7 × 1 × 1.2 m.\nSmall fridge, bike,\nwashing machine.",
-                imageRes = Res.drawable.van_vehicle,
-                selected = selectedVehicle == VehicleType.VAN_7FT,
-                onClick = { selectedVehicle = VehicleType.VAN_7FT }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VehicleCard(
-                title = "Large Van 9-ft",
-                description = "Up to 800 kg.\n2.7 × 1.3 × 1.2 m.\nSmall fridge, washer,\n1-seater sofa.",
+                title = "Van",
+                description = "Bulk shipments.\nPerfect for furniture,\nlarge appliances, or\nbusiness inventory.",
                 imageRes = Res.drawable.mini_van,
-                selected = selectedVehicle == VehicleType.VAN_9FT,
-                onClick = { selectedVehicle = VehicleType.VAN_9FT }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VehicleCard(
-                title = "Small Lorry 10-ft",
-                description = "Up to 1000 kg.\n2.9 × 1.5 × 1.5 m.\nSmall bed, 2-seater sofa,\nfridge.",
-                imageRes = Res.drawable.truck,
-                selected = selectedVehicle == VehicleType.LORRY_10FT,
-                onClick = { selectedVehicle = VehicleType.LORRY_10FT }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VehicleCard(
-                title = "Medium Lorry 14-ft",
-                description = "Up to 2500 kg.\n4.2 × 2 × 2 m.\nQueen bed, wardrobe,\nvases.",
-                imageRes = Res.drawable.truck,
-                selected = selectedVehicle == VehicleType.LORRY_14FT,
-                onClick = { selectedVehicle = VehicleType.LORRY_14FT }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            VehicleCard(
-                title = "Large Lorry 17-ft",
-                description = "Up to 4000 kg.\n5.1 × 2 × 2.1 m.\nKing bed, washer,\n3-seater sofa.",
-                imageRes = Res.drawable.truck,
-                selected = selectedVehicle == VehicleType.LORRY_17FT,
-                onClick = { selectedVehicle = VehicleType.LORRY_17FT }
+                selected = selectedVehicle == VehicleType.VAN,
+                onClick = { selectedVehicle = VehicleType.VAN }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(
-                onClick = { onSave(selectedVehicle.apiValue) },
+                onClick = {
+                    onSave(
+                        when (selectedVehicle) {
+                            VehicleType.BIKE -> "Bike"
+                            VehicleType.CAR -> "Car"
+                            VehicleType.VAN -> "Van"
+                        }
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(68.dp),
@@ -175,6 +167,7 @@ fun DefaultVehicleScreen(
                 Text("Save Preferences", color = Color(0xFFF1F2FF), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.height(18.dp))
+        }
     }
 }
 
@@ -247,8 +240,41 @@ private fun VehicleCard(
             contentAlignment = Alignment.Center
         ) {
             if (selected) {
-                Text("✓", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text("", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
+    }
+}
+
+@Composable
+private fun BottomNavItem(
+    icon: ImageVector,
+    label: String,
+    selected: Boolean
+) {
+    Column(
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(if (selected) PrimaryBlue else Color.Transparent, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) Color.White else PrimaryBlue,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = PrimaryBlue,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

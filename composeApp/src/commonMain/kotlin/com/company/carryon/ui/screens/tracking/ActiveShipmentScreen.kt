@@ -16,7 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
@@ -31,6 +30,8 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatOrderDisplayId
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 private fun formatISODate(isoDate: String): String {
     return try {
@@ -164,12 +165,7 @@ fun ActiveShipmentScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

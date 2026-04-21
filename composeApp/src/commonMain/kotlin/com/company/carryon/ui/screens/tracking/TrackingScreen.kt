@@ -253,7 +253,7 @@ fun TrackingScreen(
                                     .background(PrimaryBlueSurface, RoundedCornerShape(12.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("📄", fontSize = 28.sp)
+                                Text("", fontSize = 28.sp)
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -282,8 +282,8 @@ fun TrackingScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            DetailItem("🚗", strings.parcels, vehicleType)
-                            DetailItem("⏱️", strings.estExpress, etaMinutes)
+                            DetailItem("", strings.parcels, vehicleType)
+                            DetailItem("⏱", strings.estExpress, etaMinutes)
                         }
                     }
                 }
@@ -361,7 +361,7 @@ fun TrackingScreen(
                                 .background(PrimaryBlueSurface, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("👤", fontSize = 24.sp)
+                            Text("", fontSize = 24.sp)
                         }
 
                         Spacer(modifier = Modifier.width(12.dp))
@@ -390,7 +390,7 @@ fun TrackingScreen(
                                 .clickable { },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("📞", fontSize = 18.sp)
+                            Text("", fontSize = 18.sp)
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -403,7 +403,7 @@ fun TrackingScreen(
                                 .clickable { },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("💬", fontSize = 18.sp)
+                            Text("", fontSize = 18.sp)
                         }
                     }
                 }
@@ -630,7 +630,7 @@ private fun RatingDialog(
                         .background(PrimaryBlueSurface, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("👤", fontSize = 28.sp)
+                    Text("", fontSize = 28.sp)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -651,7 +651,7 @@ private fun RatingDialog(
                 Row {
                     (1..5).forEach { star ->
                         Text(
-                            text = if (star <= rating) "⭐" else "☆",
+                            text = if (star <= rating) "⭐" else "",
                             fontSize = 32.sp,
                             modifier = Modifier
                                 .clickable { rating = star }

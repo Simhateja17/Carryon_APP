@@ -79,21 +79,28 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 22.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Settings",
-                    color = Color(0xFF282B51),
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 22.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Settings",
+                        color = Color(0xFF1D254B),
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -155,14 +162,14 @@ fun SettingsScreen(
                 SettingsToggleRow(
                     iconRes = Res.drawable.settings_dark_mode_icon,
                     title = "Dark Mode",
-                    titleColor = PrimaryBlue,
+                    titleColor = Color(0xFF000000),
                     checked = darkModeEnabled,
                     onCheckedChange = { darkModeEnabled = it }
                 )
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_language_icon,
                     title = "Language",
-                    titleColor = PrimaryBlue,
+                    titleColor = Color(0xFF000000),
                     trailingText = getLanguageDisplayName(currentLanguage),
                     onClick = { onNavigateToLanguage() }
                 )

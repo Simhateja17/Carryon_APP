@@ -57,6 +57,12 @@ fun PromoScreen(
                 navigationIcon = {
                     TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
                 },
+                actions = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },

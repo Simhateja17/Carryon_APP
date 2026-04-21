@@ -1,6 +1,7 @@
 package com.company.carryon.ui.screens.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -8,27 +9,52 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.data.model.Address
+import com.company.carryon.data.model.AddressType
+import com.company.carryon.data.network.AddressApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
+import kotlinx.coroutines.launch
+
+private val AddAddressFieldBackground = Color(0x33A6D2F3)
 
 @Composable
 fun AddAddressScreen(
     onBack: () -> Unit,
     onSave: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     var selectedType by remember { mutableStateOf("Home") }
+    var fullAddress by remember { mutableStateOf("") }
+    var landmark by remember { mutableStateOf("") }
+    var city by remember { mutableStateOf("") }
+    var postalCode by remember { mutableStateOf("") }
+    var recentAddresses by remember { mutableStateOf<List<Address>>(emptyList()) }
+    var isSaving by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        AddressApi.getAddresses()
+            .onSuccess { recentAddresses = it.take(3) }
+            .onFailure { recentAddresses = emptyList() }
+    }
+
+    fun selectedAddressType(): AddressType = when (selectedType) {
+        "Home" -> AddressType.HOME
+        "Office" -> AddressType.OFFICE
+        else -> AddressType.OTHER
+    }
 
     Column(
         modifier = Modifier
@@ -39,37 +65,32 @@ fun AddAddressScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
                     .padding(horizontal = 16.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 25.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Add Address", color = Color(0xFF111111), fontSize = 36.sp, fontWeight = FontWeight.Medium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 25.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Add Address", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color(0xFF2A7FA8), Color(0xFF4FA2C8), Color(0x33FFFFFF))
-                        )
-                    )
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-34).dp)
-                    .background(Color(0xFFEFF2F5), RoundedCornerShape(22.dp))
+                    .padding(top = 14.dp)
+                    .background(Color(0xFFEFF2F5), RoundedCornerShape(16.dp))
                     .padding(horizontal = 14.dp, vertical = 14.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -84,7 +105,7 @@ fun AddAddressScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFF2F80ED), RoundedCornerShape(22.dp)),
+                            .background(Color(0xFF2F80ED), RoundedCornerShape(16.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("⌖", color = Color.White, fontSize = 22.sp)
@@ -96,7 +117,7 @@ fun AddAddressScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
-                    .offset(y = (-18).dp)
+                    .padding(top = 12.dp)
             ) {
                 Label("ADDRESS LABEL")
                 Spacer(modifier = Modifier.height(12.dp))
@@ -108,32 +129,42 @@ fun AddAddressScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Label("FULL ADDRESS")
-                FilledField("No. 21, Jalan Teknologi 3/6, Kota Damansara")
-                FilledField("")
+                FilledInputField(
+                    value = fullAddress,
+                    onValueChange = { fullAddress = it },
+                    placeholder = "Enter full address"
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("FLOOR / UNIT / LANDMARK")
-                FilledField("")
+                FilledInputField(
+                    value = landmark,
+                    onValueChange = { landmark = it },
+                    placeholder = "Optional landmark"
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("CITY")
-                FilledField("Petaling Jaya")
+                FilledInputField(
+                    value = city,
+                    onValueChange = { city = it },
+                    placeholder = "Enter city"
+                )
 
                 Spacer(modifier = Modifier.height(14.dp))
                 Label("POSTAL CODE")
-                FilledField("47810")
-                FilledField("")
-
-                Spacer(modifier = Modifier.height(14.dp))
-                Label("POSTAL CODE")
-                FilledField("")
+                FilledInputField(
+                    value = postalCode,
+                    onValueChange = { postalCode = it },
+                    placeholder = "Enter postal code"
+                )
 
                 Spacer(modifier = Modifier.height(18.dp))
 
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFDCE6F1), RoundedCornerShape(20.dp))
+                        .background(Color(0xFFDCE6F1), RoundedCornerShape(16.dp))
                         .padding(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,30 +185,84 @@ fun AddAddressScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFF4F6F8), RoundedCornerShape(14.dp))
-                            .padding(horizontal = 12.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("➤", color = Color(0xFF111111), fontSize = 22.sp)
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("890 Innovation Blvd, South Side", color = Color(0xFF111111), fontSize = 14.sp)
+                    if (recentAddresses.isEmpty()) {
+                        Text(
+                            "No recent destinations yet",
+                            color = Color(0xFF111111),
+                            fontSize = 14.sp
+                        )
+                    } else {
+                        recentAddresses.forEach { address ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(Color(0xFFF4F6F8), RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        fullAddress = address.address
+                                        landmark = address.landmark
+                                        city = address.address.substringAfterLast(',', "").trim().ifBlank { city }
+                                        postalCode = postalCode.ifBlank { "" }
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("", color = Color(0xFF111111), fontSize = 22.sp)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(address.address.ifBlank { "Unnamed address" }, color = Color(0xFF111111), fontSize = 14.sp)
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
+                }
+
+                errorMessage?.let { message ->
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(message, color = Color(0xFFB3261E), fontSize = 13.sp)
                 }
 
                 Spacer(modifier = Modifier.height(22.dp))
 
                 Button(
-                    onClick = onSave,
+                    onClick = {
+                        if (fullAddress.isBlank()) {
+                            errorMessage = "Address is required."
+                            return@Button
+                        }
+                        isSaving = true
+                        errorMessage = null
+                        scope.launch {
+                            AddressApi.createAddress(
+                                Address(
+                                    label = selectedType,
+                                    address = listOf(fullAddress, postalCode.takeIf { it.isNotBlank() })
+                                        .filterNotNull()
+                                        .joinToString(", "),
+                                    landmark = landmark,
+                                    contactName = "",
+                                    contactPhone = "",
+                                    latitude = 0.0,
+                                    longitude = 0.0,
+                                    type = selectedAddressType()
+                                )
+                            ).onSuccess {
+                                onSave()
+                            }.onFailure {
+                                errorMessage = it.message ?: "Failed to save address."
+                            }
+                            isSaving = false
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(58.dp),
                     shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
                 ) {
-                    Text("💾  Save Address", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                    if (isSaving) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
+                    } else {
+                        Text("  Save Address", color = Color.White, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(18.dp))
@@ -223,14 +308,24 @@ private fun AddressTypeChip(
 }
 
 @Composable
-private fun FilledField(text: String) {
-    Box(
+private fun FilledInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(placeholder) },
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = AddAddressFieldBackground,
+            unfocusedContainerColor = AddAddressFieldBackground,
+            focusedBorderColor = Color(0xFFD5E1EF),
+            unfocusedBorderColor = Color(0xFFD5E1EF)
+        ),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 8.dp)
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(20.dp))
-            .padding(horizontal = 14.dp, vertical = 16.dp)
-    ) {
-        Text(text, color = Color(0xFF111111), fontSize = 18.sp)
-    }
+    )
 }

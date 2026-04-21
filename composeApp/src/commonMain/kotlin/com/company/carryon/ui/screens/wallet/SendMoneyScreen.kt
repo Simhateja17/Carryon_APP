@@ -24,11 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -36,7 +32,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.data.model.WalletTransaction
+import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.util.formatDecimal
 
 @Composable
 fun SendMoneyScreen(
@@ -46,6 +45,21 @@ fun SendMoneyScreen(
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Logistics Payment") }
+    var walletBalance by remember { mutableStateOf(0.0) }
+    var recentRecipients by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        WalletApi.getWallet().onSuccess { response ->
+            walletBalance = response.data?.balance ?: 0.0
+        }
+        WalletApi.getTransactions(limit = 5).onSuccess { response ->
+            recentRecipients = response.data?.transactions
+                ?.mapNotNull(::extractRecipientLabel)
+                ?.distinct()
+                ?.take(4)
+                .orEmpty()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -56,21 +70,28 @@ fun SendMoneyScreen(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "←",
-                color = PrimaryBlue,
-                fontSize = 20.sp,
-                modifier = Modifier.clickable { onBack() }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Financial Hub",
-                color = PrimaryBlue,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "←",
+                    color = PrimaryBlue,
+                    fontSize = 20.sp,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Financial Hub",
+                    color = PrimaryBlue,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -83,14 +104,14 @@ fun SendMoneyScreen(
 
         CardBlock {
             Text("Wallet Balance", color = Color(0xFF111827), fontSize = 22.sp)
-            Text("RM 12,450.00", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp)
+            Text("RM ${walletBalance.formatDecimal(2)}", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
                     .background(Color(0xFFE7F0FD), RoundedCornerShape(999.dp))
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                Text("🛡 Verified Account", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(" Verified Account", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -107,9 +128,11 @@ fun SendMoneyScreen(
                 Text("View All", color = PrimaryBlue, fontSize = 13.sp)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            // TODO: Fetch recent recipients from API
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 RecipientChip("+", "New")
+                recentRecipients.forEach { label ->
+                    RecipientChip(label.take(1).uppercase(), label)
+                }
             }
         }
 
@@ -169,7 +192,7 @@ fun SendMoneyScreen(
                 .padding(16.dp)
         ) {
             Column {
-                Text("🛡", color = Color.White, fontSize = 22.sp)
+                Text("", color = Color.White, fontSize = 22.sp)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text("Secure Transfer", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -225,7 +248,7 @@ fun SendMoneyScreen(
             BottomMiniTab("◷", "Payments", true)
             BottomMiniTab("▭", "Methods", false)
             BottomMiniTab("▤", "Invoices", false)
-            BottomMiniTab("⚙", "Settings", false)
+            BottomMiniTab("", "Settings", false)
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -318,4 +341,11 @@ private fun BottomMiniTab(icon: String, label: String, selected: Boolean) {
         Spacer(modifier = Modifier.height(2.dp))
         Text(label, color = if (selected) PrimaryBlue else Color(0xFF94A3B8), fontSize = 12.sp)
     }
+}
+
+private fun extractRecipientLabel(transaction: WalletTransaction): String? {
+    return transaction.description
+        .substringAfter("to ", "")
+        .takeIf { it.isNotBlank() && it != transaction.description }
+        ?: transaction.referenceId?.takeIf { it.isNotBlank() }
 }

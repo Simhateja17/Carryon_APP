@@ -16,6 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.HeadsetMic
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.PersonOutline
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,16 +34,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.customer_support_representative
-import carryon.composeapp.generated.resources.icon_help
-import carryon.composeapp.generated.resources.icon_map
-import carryon.composeapp.generated.resources.icon_profile
-import carryon.composeapp.generated.resources.icon_timer
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import kotlinx.coroutines.delay
@@ -77,19 +80,25 @@ fun SupportCallScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "←",
-                        color = PrimaryBlue,
-                        fontSize = 28.sp,
-                        modifier = Modifier.clickable { onBack() }
-                    )
-                    Text(
-                        text = "Support",
-                        color = Color(0xFF1D4ED8),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text("⋮", color = PrimaryBlue, fontSize = 24.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "←",
+                            color = PrimaryBlue,
+                            fontSize = 28.sp,
+                            modifier = Modifier.clickable { onBack() }
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Support",
+                            color = Color(0xFF1D4ED8),
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
                 }
                 Box(
                     modifier = Modifier
@@ -108,10 +117,10 @@ fun SupportCallScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavItem(iconRes = Res.drawable.icon_timer, label = "Deliveries", selected = false)
-                BottomNavItem(iconRes = Res.drawable.icon_map, label = "Map", selected = false)
-                BottomNavItem(iconRes = Res.drawable.icon_help, label = "Support", selected = true)
-                BottomNavItem(iconRes = Res.drawable.icon_profile, label = "Profile", selected = false)
+                BottomNavItem(icon = Icons.Outlined.Schedule, label = "Deliveries", selected = false)
+                BottomNavItem(icon = Icons.Outlined.Map, label = "Map", selected = false)
+                BottomNavItem(icon = Icons.Outlined.HeadsetMic, label = "Support", selected = true)
+                BottomNavItem(icon = Icons.Outlined.PersonOutline, label = "Profile", selected = false)
             }
         }
     ) { paddingValues ->
@@ -180,9 +189,9 @@ fun SupportCallScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ActionButton(icon = "🔇", label = "Mute", selected = false)
+                    ActionButton(icon = "", label = "Mute", selected = false)
                     ActionButton(icon = "⠿", label = "Keypad", selected = false)
-                    ActionButton(icon = "🔊", label = "Speaker", selected = true)
+                    ActionButton(icon = "", label = "Speaker", selected = true)
                 }
 
                 Spacer(modifier = Modifier.height(54.dp))
@@ -194,7 +203,7 @@ fun SupportCallScreen(
                         .clickable { onEndCall() },
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("📞", fontSize = 30.sp)
+                    Text("", fontSize = 30.sp)
                 }
             }
 
@@ -230,26 +239,31 @@ private fun ActionButton(
 
 @Composable
 private fun BottomNavItem(
-    iconRes: org.jetbrains.compose.resources.DrawableResource,
+    icon: ImageVector,
     label: String,
     selected: Boolean
 ) {
     Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (selected) Color(0xFFDCE9FF) else Color.Transparent)
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = label,
-            modifier = Modifier.size(20.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(if (selected) PrimaryBlue else Color.Transparent, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected) Color.White else PrimaryBlue,
+                modifier = Modifier.size(20.dp)
+            )
+        }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
-            color = if (selected) Color(0xFF1D4ED8) else Color(0xFF64748B),
+            color = PrimaryBlue,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )

@@ -19,9 +19,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,37 +36,80 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.data.model.Booking
+import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun DeliveryScheduledScreen(
+    bookingId: String,
     onBack: () -> Unit,
     onViewOrder: () -> Unit,
     onModifySchedule: () -> Unit,
     onCancelDelivery: () -> Unit
 ) {
+    var booking by remember { mutableStateOf<Booking?>(null) }
+    var isLoading by remember { mutableStateOf(bookingId.isNotBlank()) }
+
+    LaunchedEffect(bookingId) {
+        if (bookingId.isBlank()) {
+            isLoading = false
+            return@LaunchedEffect
+        }
+        BookingApi.getBooking(bookingId)
+            .onSuccess { response -> booking = response.data }
+            .onFailure { booking = null }
+        isLoading = false
+    }
+
+    val pickupAddress = booking?.pickupAddress?.label?.ifBlank { booking?.pickupAddress?.address.orEmpty() }.orEmpty()
+    val dropAddress = booking?.deliveryAddress?.label?.ifBlank { booking?.deliveryAddress?.address.orEmpty() }.orEmpty()
+    val scheduleLabel = booking?.scheduledTime?.let(::formatScheduledDateTime) ?: "Schedule pending"
+
     Scaffold(containerColor = Color(0xFFF7F8FA)) { paddingValues ->
-        Column(
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = PrimaryBlue)
+            }
+        } else Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 18.dp, vertical = 12.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 20.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Text(
-                    text = "  Delivery Scheduled",
-                    color = Color(0xFF354164),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 20.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Text(
+                        text = "  Delivery Scheduled",
+                        color = Color(0xFF354164),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -81,14 +130,14 @@ fun DeliveryScheduledScreen(
                         .border(2.dp, Color(0xFFA7C2F6), RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("📅", fontSize = 28.sp)
+                    Text("", fontSize = 28.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Your delivery is scheduled 🎉",
+                text = "Your delivery is scheduled ",
                 color = TextPrimary,
                 fontSize = 38.sp,
                 lineHeight = 42.sp,
@@ -130,16 +179,22 @@ fun DeliveryScheduledScreen(
                     Spacer(modifier = Modifier.height(14.dp))
                     Text("PICKUP", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("Jalan Tun Razak, Kuala Lumpur", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    // TODO: Get pickup address from booking data
-                    Text("—", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        pickupAddress.ifBlank { "Pickup address unavailable" },
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
                     Spacer(modifier = Modifier.height(12.dp))
                     Text("DROP-OFF", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("KL Sentral, Kuala Lumpur", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    // TODO: Get drop-off address from booking data
-                    Text("—", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        dropAddress.ifBlank { "Drop-off address unavailable" },
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(
@@ -154,9 +209,9 @@ fun DeliveryScheduledScreen(
                         Column {
                             Text("DATE & TIME", color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(2.dp))
-                            Text("Today, 5:00 PM", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                            Text(scheduleLabel, color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                         }
-                        Text("🗓", fontSize = 18.sp)
+                        Text("", fontSize = 18.sp)
                     }
                 }
             }
@@ -229,4 +284,20 @@ fun DeliveryScheduledScreen(
             }
         }
     }
+}
+
+private fun formatScheduledDateTime(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val month = dateTime.month.name.lowercase().replaceFirstChar(Char::titlecase)
+        val minute = dateTime.minute.toString().padStart(2, '0')
+        val hour24 = dateTime.hour
+        val hour12 = when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+        val meridiem = if (hour24 >= 12) "PM" else "AM"
+        "$month ${dateTime.dayOfMonth}, $hour12:$minute $meridiem"
+    }.getOrDefault(value)
 }

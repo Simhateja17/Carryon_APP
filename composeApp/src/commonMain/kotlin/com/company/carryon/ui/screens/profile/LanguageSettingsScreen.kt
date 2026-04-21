@@ -56,21 +56,28 @@ fun LanguageSettingsScreen(
                     .fillMaxWidth()
                     .height(64.dp)
                     .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 22.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Settings",
-                    color = Color.Black,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "←",
+                        color = PrimaryBlue,
+                        fontSize = 22.sp,
+                        modifier = Modifier.clickable { onBack() }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Settings",
+                        color = Color.Black,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                }
             }
 
             Column(modifier = Modifier.padding(horizontal = 24.dp)) {
@@ -185,7 +192,7 @@ private fun LanguageItemCard(
             contentAlignment = Alignment.Center
         ) {
             if (selected) {
-                Text("✓", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

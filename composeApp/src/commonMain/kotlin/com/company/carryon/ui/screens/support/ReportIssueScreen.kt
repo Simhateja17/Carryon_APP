@@ -69,6 +69,12 @@ fun ReportIssueScreen(
                         Text("←", color = PrimaryBlue, fontSize = 22.sp)
                     }
                 },
+                actions = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
@@ -201,7 +207,7 @@ fun ReportIssueScreen(
                 AttachmentBox(
                     modifier = Modifier.weight(1f),
                     content = {
-                        Text("📷", color = PrimaryBlue, fontSize = 22.sp)
+                        Text("", color = PrimaryBlue, fontSize = 22.sp)
                         Spacer(modifier = Modifier.height(8.dp))
                         Text("ADD", color = PrimaryBlue, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                     }
@@ -216,7 +222,7 @@ fun ReportIssueScreen(
                 AttachmentBox(
                     modifier = Modifier.weight(1f),
                     content = {
-                        Text("🖼", color = PrimaryBlue, fontSize = 24.sp)
+                        Text("", color = PrimaryBlue, fontSize = 24.sp)
                     }
                 )
             }

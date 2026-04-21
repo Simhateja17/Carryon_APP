@@ -91,7 +91,7 @@ fun ClearCacheScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "🗑 Clear All Cache",
+                        text = " Clear All Cache",
                         color = PrimaryBlue,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
@@ -110,13 +110,13 @@ private fun StorageOverviewCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(28.dp))
+            .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
             .padding(24.dp)
     ) {
         Text(
             text = "CURRENT FOOTPRINT",
             color = Color.Black,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             letterSpacing = 1.6.sp
         )
 
@@ -124,14 +124,14 @@ private fun StorageOverviewCard() {
             Text(
                 text = "245",
                 color = PrimaryBlue,
-                fontSize = 62.sp,
+                fontSize = 48.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "MB",
                 color = Color(0x992F80ED),
-                fontSize = 44.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -191,10 +191,10 @@ private fun FootprintItem(title: String, value: String) {
                     .background(PrimaryBlue, CircleShape)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text(title, color = Color.Black, fontSize = 22.sp)
+            Text(title, color = Color.Black, fontSize = 16.sp)
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = PrimaryBlue, fontSize = 36.sp, fontWeight = FontWeight.Medium)
+        Text(value, color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.Medium)
     }
 }
 
@@ -203,21 +203,22 @@ private fun OptimizedCleaningCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(28.dp))
+            .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
             .padding(24.dp)
     ) {
         Text(
             text = "Optimized Cleaning",
             color = Color.Black,
-            fontSize = 46.sp,
-            fontWeight = FontWeight.Medium
+            fontSize = 24.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Clearing your cache will free up space.\nThis will not delete your saved addresses\nor order history.",
             color = Color.Black,
-            fontSize = 18.sp,
-            lineHeight = 32.sp
+            fontSize = 16.sp,
+            lineHeight = 24.sp
         )
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -244,10 +245,10 @@ private fun DataUtilitiesCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(24.dp))
+            .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
             .padding(vertical = 4.dp)
     ) {
-        UtilityRow("🗺", "Manage Offline Maps")
+        UtilityRow("", "Manage Offline Maps")
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -255,7 +256,7 @@ private fun DataUtilitiesCard() {
                 .height(1.dp)
                 .background(Color(0x20A7AAD7))
         )
-        UtilityRow("🕘", "Clear Search History")
+        UtilityRow("", "Clear Search History")
     }
 }
 
@@ -301,7 +302,7 @@ private fun StorageBottomStrip() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         BottomItem("◫", "DASHBOARD", false)
-        BottomItem("🚚", "DELIVERIES", false)
+        BottomItem("", "DELIVERIES", false)
         BottomItem("◉", "STORAGE", true)
         BottomItem("◌", "PROFILE", false)
     }

@@ -2,6 +2,7 @@ package com.company.carryon.ui.screens.invoice
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -30,27 +36,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.data.model.Invoice
+import com.company.carryon.data.model.InvoiceDetail
+import com.company.carryon.data.network.InvoiceApi
 import com.company.carryon.ui.theme.PrimaryBlue
-
-private const val DeliveryModePooling = "Pooling"
-private const val DeliveryModePriority = "Priority"
-private const val DeliveryModeRegular = "Regular"
+import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.util.formatDecimal
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun DeliveryReceiptsScreen(
     onBack: () -> Unit
 ) {
+    var invoices by remember { mutableStateOf<List<Invoice>>(emptyList()) }
+    var selectedBookingId by remember { mutableStateOf<String?>(null) }
+    var selectedDetail by remember { mutableStateOf<InvoiceDetail?>(null) }
+
+    LaunchedEffect(Unit) {
+        InvoiceApi.getInvoices()
+            .onSuccess { response ->
+                invoices = response.data.orEmpty()
+                selectedBookingId = invoices.firstOrNull()?.bookingId
+            }
+            .onFailure { invoices = emptyList() }
+    }
+
+    LaunchedEffect(selectedBookingId) {
+        val bookingId = selectedBookingId ?: return@LaunchedEffect
+        InvoiceApi.getInvoiceDetail(bookingId)
+            .onSuccess { response -> selectedDetail = response.data }
+            .onFailure { selectedDetail = null }
+    }
+
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
-        topBar = { FinancialHubTopBar() },
-        bottomBar = { ReceiptsBottomBar() }
+        topBar = { PaymentsTopBar(onBack = onBack) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 14.dp)
+                .padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
             Text(
                 text = "FINANCE HISTORY",
@@ -65,46 +94,49 @@ fun DeliveryReceiptsScreen(
                 color = Color.Black,
                 fontSize = 36.sp,
                 lineHeight = 40.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
 
             Spacer(modifier = Modifier.height(18.dp))
-            SpendingCard()
+            SpendingCard(totalAmount = invoices.sumOf { it.total })
             Spacer(modifier = Modifier.height(16.dp))
             SearchCard()
             Spacer(modifier = Modifier.height(16.dp))
 
-            ReceiptRow(
-                orderId = "#CR-99210",
-                subtitle = "Delivered Oct 24, 2023 •\nExpress",
-                amount = "RM 245.00",
-                selected = false
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            ReceiptRow(
-                orderId = "#CR-99188",
-                subtitle = "Delivered Oct 22, 2023 •\nStandard",
-                amount = "RM 1,120.50",
-                selected = true
-            )
+            invoices.forEach { invoice ->
+                ReceiptRow(
+                    orderId = invoice.invoiceNumber.ifBlank { invoice.bookingId },
+                    subtitle = invoice.issuedAt.takeIf { it.isNotBlank() }?.let(::formatReceiptDate) ?: "Invoice date unavailable",
+                    amount = "RM ${invoice.total.formatDecimal(2)}",
+                    selected = invoice.bookingId == selectedBookingId,
+                    onClick = { selectedBookingId = invoice.bookingId }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            DetailedReceiptCard()
-            Spacer(modifier = Modifier.height(12.dp))
+            selectedDetail?.let {
+                DetailedReceiptCard(it)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
-            ReceiptRow(
-                orderId = "#CR-98772",
-                subtitle = "Delivered Oct 15, 2023 •\nEconomy",
-                amount = "RM 56.20",
-                selected = false
-            )
+            if (invoices.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+                        .padding(16.dp)
+                ) {
+                    Text("No receipts available yet.", color = Color.Black, fontSize = 14.sp)
+                }
+            }
+
             Spacer(modifier = Modifier.height(10.dp))
         }
     }
 }
 
 @Composable
-private fun FinancialHubTopBar() {
+private fun PaymentsTopBar(onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
         Row(
             modifier = Modifier
@@ -113,21 +145,23 @@ private fun FinancialHubTopBar() {
                 .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Financial Hub",
-                color = PrimaryBlue,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .border(1.5.dp, Color(0xFF7B9CFF), CircleShape)
-                    .background(Color.White, CircleShape),
-                contentAlignment = Alignment.Center
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "←",
+                    color = PrimaryBlue,
+                    fontSize = 22.sp,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+            }
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("👤", fontSize = 13.sp)
+                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
             }
         }
         HorizontalDivider(color = Color(0xFFE9ECF2))
@@ -135,7 +169,7 @@ private fun FinancialHubTopBar() {
 }
 
 @Composable
-private fun SpendingCard() {
+private fun SpendingCard(totalAmount: Double) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,11 +182,11 @@ private fun SpendingCard() {
         Text("Total Spending", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "RM 12,450.00",
+            text = "RM ${totalAmount.formatDecimal(2)}",
             color = Color(0xFFF1F2FF),
             fontSize = 40.sp,
             lineHeight = 44.sp,
-            fontWeight = FontWeight.ExtraBold
+            fontWeight = FontWeight.SemiBold
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(
@@ -176,7 +210,7 @@ private fun SearchCard() {
             .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
             .padding(20.dp)
     ) {
-        Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(14.dp))
 
         Column(
@@ -185,8 +219,6 @@ private fun SearchCard() {
                 .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
                 .padding(14.dp)
         ) {
-            Text("Quick Search", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Spacer(modifier = Modifier.height(10.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -197,32 +229,6 @@ private fun SearchCard() {
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-99210", "Delivered Oct 24, 2023 •\n$DeliveryModePriority", "RM 245.00")
-        Spacer(modifier = Modifier.height(10.dp))
-        ReceiptRow("#CR-99188", "Delivered Oct 22, 2023 •\n$DeliveryModeRegular", "RM 1,120.50", selected = true)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DetailedReceiptCard()
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ReceiptRow("#CR-98772", "Delivered Oct 15, 2023 •\n$DeliveryModePooling", "RM 56.20")
-
-        Spacer(modifier = Modifier.height(14.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(horizontal = 12.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("⌕", color = PrimaryBlue, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
-        }
     }
 }
 
@@ -231,11 +237,13 @@ private fun ReceiptRow(
     orderId: String,
     subtitle: String,
     amount: String,
-    selected: Boolean = false
+    selected: Boolean = false,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
             .border(
                 width = if (selected) 0.dp else 0.dp,
@@ -266,22 +274,12 @@ private fun ReceiptRow(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(Color.White, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("▣", color = PrimaryBlue, fontSize = 16.sp)
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Order $orderId",
                     color = Color.Black,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = subtitle,
@@ -303,13 +301,15 @@ private fun ReceiptRow(
                 }
             }
             Spacer(modifier = Modifier.width(10.dp))
-            Text("›", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+            Text("›", color = PrimaryBlue, fontSize = 20.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
 
 @Composable
-private fun DetailedReceiptCard() {
+private fun DetailedReceiptCard(detail: InvoiceDetail) {
+    val invoice = detail.invoice
+    val booking = detail.booking
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,15 +328,6 @@ private fun DetailedReceiptCard() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.Top) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .background(Color(0xFFEFF6FF), RoundedCornerShape(16.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("📦", fontSize = 20.sp)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             "DETAILED VIEW",
@@ -347,11 +338,11 @@ private fun DetailedReceiptCard() {
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            "Order #CR-\n99054",
+                            "Order ${invoice.invoiceNumber.ifBlank { booking.id }}",
                             color = Color.Black,
                             fontSize = 36.sp,
                             lineHeight = 40.sp,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -364,12 +355,12 @@ private fun DetailedReceiptCard() {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("DATE", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("October 18, 2023", color = Color.Black, fontSize = 14.sp)
+                    Text(invoice.issuedAt.takeIf { it.isNotBlank() }?.let(::formatReceiptDate) ?: "Unavailable", color = Color.Black, fontSize = 14.sp)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text("PAYMENT METHOD", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("Visa ending in\n••44", color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
+                    Text(booking.paymentMethod.ifBlank { "Unavailable" }, color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
                 }
             }
 
@@ -377,16 +368,16 @@ private fun DetailedReceiptCard() {
             HorizontalDivider(color = Color(0xFFA7AAD7).copy(alpha = 0.8f))
             Spacer(modifier = Modifier.height(16.dp))
 
-            LineAmountRow("Logistics Service (International)", "RM 850.00")
+            LineAmountRow("Subtotal", "RM ${invoice.subtotal.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(12.dp))
-            LineAmountRow("Insurance Premium", "RM 45.00")
+            LineAmountRow("Tax", "RM ${invoice.tax.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(12.dp))
-            LineAmountRow("Priority Handling Fee", "RM 25.00")
+            LineAmountRow("Discount", "RM ${invoice.discount.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-                Text("RM 920.00", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
+                Text("Total Amount", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.Medium)
+                Text("RM ${invoice.total.formatDecimal(2)}", color = PrimaryBlue, fontSize = 28.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -402,42 +393,14 @@ private fun LineAmountRow(title: String, amount: String) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        Text(text = amount, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+        Text(text = amount, color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
 
-@Composable
-private fun ReceiptsBottomBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .navigationBarsPadding()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-        BottomItem("◫", "Payments", selected = false)
-        BottomItem("▭", "Methods", selected = false)
-        BottomItem("▣", "Invoices", selected = true)
-        BottomItem("⚙", "Settings", selected = false)
-    }
-}
-
-@Composable
-private fun BottomItem(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFEFF6FF) else Color.Transparent, RoundedCornerShape(16.dp))
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(icon, color = if (selected) PrimaryBlue else Color.Black, fontSize = 15.sp)
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(
-            label,
-            color = if (selected) PrimaryBlue else Color.Black,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium
-        )
-    }
+private fun formatReceiptDate(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val month = dateTime.month.name.lowercase().replaceFirstChar { it.titlecase() }
+        "$month ${dateTime.dayOfMonth}, ${dateTime.year}"
+    }.getOrDefault(value)
 }

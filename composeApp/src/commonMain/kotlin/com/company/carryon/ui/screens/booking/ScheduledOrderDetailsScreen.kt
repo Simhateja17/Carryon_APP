@@ -48,6 +48,10 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.util.formatDecimal
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -105,6 +109,8 @@ fun ScheduledOrderDetailsScreen(
                     ?: "Wallet"
                 val totalPaid =
                     currentBooking?.let { if (it.finalPrice > 0) it.finalPrice else it.estimatedPrice } ?: 150.0
+                val scheduleHeading = currentBooking?.scheduledTime?.let(::formatScheduledHeading) ?: "Scheduled delivery"
+                val scheduleTime = currentBooking?.scheduledTime?.let(::formatScheduledTimeOnly) ?: "Time pending"
 
                 Column(
                     modifier = Modifier
@@ -134,7 +140,10 @@ fun ScheduledOrderDetailsScreen(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        Text("⋮", color = PrimaryBlue, fontSize = 20.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                            Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        }
                     }
 
                     Column(
@@ -162,9 +171,9 @@ fun ScheduledOrderDetailsScreen(
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
-                        Text("Scheduled for Today", color = Color.Black, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                        Text(scheduleHeading, color = Color.Black, fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text("◷ 5:00 PM", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+                        Text("◷ $scheduleTime", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Medium)
                     }
 
                     Box(
@@ -197,7 +206,7 @@ fun ScheduledOrderDetailsScreen(
                                 .background(Color(0x66A6D2F3), CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("➤", color = Color(0xFF2F80ED), fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("", color = Color(0xFF2F80ED), fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -259,9 +268,9 @@ fun ScheduledOrderDetailsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         KeyValueRow("Type", currentBooking?.vehicleType?.ifBlank { "Package" } ?: "Package")
                         DividerSpacing()
-                        KeyValueRow("Weight", "2.0 kg")
+                        KeyValueRow("Sender", currentBooking?.senderName?.ifBlank { "Not provided" } ?: "Not provided")
                         Spacer(modifier = Modifier.height(14.dp))
-                        Text("INSTRUCTIONS", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text("RECEIVER", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Medium)
                         Spacer(modifier = Modifier.height(6.dp))
                         Box(
                             modifier = Modifier
@@ -271,7 +280,10 @@ fun ScheduledOrderDetailsScreen(
                                 .padding(horizontal = 10.dp, vertical = 8.dp)
                         ) {
                             Text(
-                                "\"Leave at front desk\"",
+                                listOfNotNull(
+                                    currentBooking?.receiverName?.takeIf { it.isNotBlank() },
+                                    currentBooking?.receiverPhone?.takeIf { it.isNotBlank() }
+                                ).joinToString(" • ").ifBlank { "Not provided" },
                                 color = TextSecondary,
                                 fontSize = 14.sp,
                                 fontStyle = FontStyle.Italic
@@ -305,7 +317,7 @@ fun ScheduledOrderDetailsScreen(
                         ) {
                             Text("Total Paid", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                             Text(
-                                "RM ${totalPaid.toInt()}",
+                                "RM ${totalPaid.formatDecimal(2)}",
                                 color = Color(0xFF2F80ED),
                                 fontSize = 42.sp,
                                 fontWeight = FontWeight.Medium
@@ -350,6 +362,29 @@ fun ScheduledOrderDetailsScreen(
             }
         }
     }
+}
+
+private fun formatScheduledHeading(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val month = dateTime.month.name.lowercase().replaceFirstChar { it.titlecase() }
+        "Scheduled for $month ${dateTime.dayOfMonth}"
+    }.getOrDefault("Scheduled delivery")
+}
+
+private fun formatScheduledTimeOnly(value: String): String {
+    return runCatching {
+        val dateTime = Instant.parse(value).toLocalDateTime(TimeZone.currentSystemDefault())
+        val minute = dateTime.minute.toString().padStart(2, '0')
+        val hour24 = dateTime.hour
+        val hour12 = when {
+            hour24 == 0 -> 12
+            hour24 > 12 -> hour24 - 12
+            else -> hour24
+        }
+        val meridiem = if (hour24 >= 12) "PM" else "AM"
+        "$hour12:$minute $meridiem"
+    }.getOrDefault("Time pending")
 }
 
 @Composable

@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.image_3
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
@@ -31,6 +30,8 @@ import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.data.model.EtaResponse
 import com.company.carryon.ui.components.MapViewComposable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,11 +80,11 @@ fun DeliveryDetailsScreen(
             TopAppBar(
                 title = {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                actions = { IconButton(onClick = { }) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
+                actions = { IconButton(onClick = { }) { Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp)) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },
@@ -217,7 +218,7 @@ fun DeliveryDetailsScreen(
 
                         // Transit and Package Timeline with real data
                         DeliveryTimelineItem(
-                            icon = "📊", 
+                            icon = "", 
                             label = strings.transit, 
                             location = currentBooking.deliveryAddress.address.ifBlank { currentBooking.deliveryAddress.label }, 
                             date = formatDeliveryDate(currentBooking.updatedAt), 
@@ -225,7 +226,7 @@ fun DeliveryDetailsScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         DeliveryTimelineItem(
-                            icon = "📦", 
+                            icon = "", 
                             label = strings.sentPackage, 
                             location = currentBooking.pickupAddress.address.ifBlank { currentBooking.pickupAddress.label }, 
                             date = formatDeliveryDate(currentBooking.createdAt), 

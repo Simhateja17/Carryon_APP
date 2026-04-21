@@ -69,6 +69,7 @@ import com.company.carryon.data.network.saveLanguage
 import com.company.carryon.data.model.AutocompleteResult
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
+import com.company.carryon.data.model.GeocodedPlace
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.LanguageSelectionDialog
 import com.company.carryon.ui.components.rememberLocationRequester
@@ -111,6 +112,11 @@ fun HomeScreen(
     var isGettingLocation by remember { mutableStateOf(false) }
     var userLat by remember { mutableStateOf<Double?>(null) }
     var userLng by remember { mutableStateOf<Double?>(null) }
+    var pickupLat by remember { mutableStateOf<Double?>(null) }
+    var pickupLng by remember { mutableStateOf<Double?>(null) }
+    var deliveryLat by remember { mutableStateOf<Double?>(null) }
+    var deliveryLng by remember { mutableStateOf<Double?>(null) }
+    var estimatedRouteMinutes by remember { mutableStateOf<Int?>(null) }
     var showLanguageModal by remember { mutableStateOf(false) }
 
     var vehicleOptions by remember { mutableStateOf<List<VehicleOption>>(emptyList()) }
@@ -181,8 +187,7 @@ fun HomeScreen(
                             "truck" -> "Small Lorry 10ft"
                             else -> vehicle.type
                         }
-                        val rate = com.company.carryon.data.model.VehiclePricing.ratePerKm(displayName, "Regular")
-                        VehicleOption(icon, displayName, "RM ${rate.formatDecimal(2)}/km")
+                        VehicleOption(icon, displayName, "RM ${vehicle.pricePerKm.formatDecimal(2)}/km")
                     }
                     if (vehicleOptions.isEmpty()) {
                         vehicleOptions = defaultVehicles
@@ -250,6 +255,8 @@ fun HomeScreen(
                 LocationApi.reverseGeocode(lat, lng).onSuccess { place ->
                     if (place != null) {
                         pickupLocation = place.label.ifEmpty { place.address }
+                        pickupLat = lat
+                        pickupLng = lng
                     }
                 }
                 isGettingLocation = false
@@ -259,6 +266,30 @@ fun HomeScreen(
     )
 
     LaunchedEffect(Unit) { requestLocation() }
+
+    suspend fun geocodeSelection(
+        place: AutocompleteResult,
+        onResolved: (GeocodedPlace) -> Unit
+    ) {
+        LocationApi.geocode(placeId = place.placeId)
+            .onSuccess { geocoded ->
+                if (geocoded != null) onResolved(geocoded)
+            }
+    }
+
+    LaunchedEffect(pickupLat, pickupLng, deliveryLat, deliveryLng) {
+        val fromLat = pickupLat
+        val fromLng = pickupLng
+        val toLat = deliveryLat
+        val toLng = deliveryLng
+        if (fromLat == null || fromLng == null || toLat == null || toLng == null) {
+            estimatedRouteMinutes = null
+            return@LaunchedEffect
+        }
+        LocationApi.calculateRoute(fromLat, fromLng, toLat, toLng)
+            .onSuccess { route -> estimatedRouteMinutes = route.duration.takeIf { it > 0 } }
+            .onFailure { estimatedRouteMinutes = null }
+    }
 
     fun searchPickup(query: String) {
         pickupSearchJob?.cancel()
@@ -425,6 +456,8 @@ fun HomeScreen(
                 value = pickupLocation,
                 onValueChange = {
                     pickupLocation = it
+                    pickupLat = null
+                    pickupLng = null
                     searchPickup(it)
                     showDeliverySuggestions = false
                 },
@@ -485,6 +518,13 @@ fun HomeScreen(
                             pickupLocation = place.title
                             showPickupSuggestions = false
                             pickupSuggestions = emptyList()
+                            scope.launch {
+                                geocodeSelection(place) { geocoded ->
+                                    pickupLocation = geocoded.title.ifBlank { place.title }
+                                    pickupLat = geocoded.lat
+                                    pickupLng = geocoded.lng
+                                }
+                            }
                         },
                         colors = MenuDefaults.itemColors(textColor = TextPrimary)
                     )
@@ -501,6 +541,8 @@ fun HomeScreen(
                 onValueChange = {
                     deliveryLocation = it
                     deliveryLocationRecognized = false
+                    deliveryLat = null
+                    deliveryLng = null
                     showDeliveryRequiredError = false
                     searchDelivery(it)
                     showPickupSuggestions = false
@@ -559,6 +601,13 @@ fun HomeScreen(
                             showDeliveryRequiredError = false
                             showDeliverySuggestions = false
                             deliverySuggestions = emptyList()
+                            scope.launch {
+                                geocodeSelection(place) { geocoded ->
+                                    deliveryLocation = geocoded.title.ifBlank { place.title }
+                                    deliveryLat = geocoded.lat
+                                    deliveryLng = geocoded.lng
+                                }
+                            }
                         },
                         colors = MenuDefaults.itemColors(textColor = TextPrimary)
                     )
@@ -646,7 +695,10 @@ fun HomeScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text("ESTIMATED LOGISTICS", color = Color.White.copy(alpha = 0.72f), fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
                         Text(
-                            if (vehicleOptions.isNotEmpty()) "25 mins · ${vehicleOptions.getOrNull(selectedVehicle)?.price ?: "—"}"
+                            if (vehicleOptions.isNotEmpty()) {
+                                val price = vehicleOptions.getOrNull(selectedVehicle)?.price ?: "—"
+                                estimatedRouteMinutes?.let { "$it mins · $price" } ?: price
+                            }
                             else "Unavailable right now",
                             color = Color.White,
                             fontSize = 23.sp,
@@ -691,34 +743,6 @@ fun HomeScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("Saved Addresses", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-            Text("⊕", color = PrimaryBlue, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-        }
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            SavedAddressCard(
-                title = "Home",
-                subtitle = "Bukit Jalil, Kuala Lumpur...",
-                iconRes = Res.drawable.icon_home,
-                modifier = Modifier.weight(1f)
-            )
-            SavedAddressCard(
-                title = "Work",
-                subtitle = "KL Sentral, Kuala Lumpur...",
-                iconRes = Res.drawable.home_work_icon,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        // TODO: Fetch saved addresses from API
-        // Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        //     SavedAddressCard(title = "Home", subtitle = "Sector 45, Gurgaon...", modifier = Modifier.weight(1f))
-        //     SavedAddressCard(title = "Work", subtitle = "Cyber Hub, Phase 2...", modifier = Modifier.weight(1f))
-        // }
 
         Spacer(modifier = Modifier.height(14.dp))
     }

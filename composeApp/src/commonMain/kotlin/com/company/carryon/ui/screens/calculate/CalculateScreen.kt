@@ -24,7 +24,6 @@ import carryon.composeapp.generated.resources.icon_products
 import carryon.composeapp.generated.resources.icon_boxes
 import carryon.composeapp.generated.resources.icon_documents
 import carryon.composeapp.generated.resources.icon_map
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.calc_products
 import carryon.composeapp.generated.resources.calc_boxes
 import carryon.composeapp.generated.resources.calc_documents
@@ -32,6 +31,9 @@ import carryon.composeapp.generated.resources.calc_map
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Place
 
 data class PackageType(
     val icon: String,
@@ -51,9 +53,9 @@ fun CalculateScreen(
     val strings = LocalStrings.current
     val packageTypes = remember {
         listOf(
-            PackageType("🛒", strings.products),
-            PackageType("📦", strings.boxes),
-            PackageType("📄", strings.documents)
+            PackageType("", strings.products),
+            PackageType("", strings.boxes),
+            PackageType("", strings.documents)
         )
     }
     
@@ -95,12 +97,7 @@ fun CalculateScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
