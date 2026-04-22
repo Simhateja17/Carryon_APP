@@ -80,10 +80,15 @@ import com.company.carryon.ui.screens.profile.PrivacySecurityScreen
 import com.company.carryon.ui.screens.profile.SavedAddressesScreen
 import com.company.carryon.ui.screens.help.HelpScreen
 import com.company.carryon.data.network.AuthStateManager
+import com.company.carryon.data.network.PendingPushNavigation
+import com.company.carryon.data.network.PushNavigationSignal
+import com.company.carryon.data.network.PushRegistrar
 import com.company.carryon.data.network.clearToken
+import com.company.carryon.data.network.consumePendingPushNavigation
 import com.company.carryon.data.network.getLanguage
 import com.company.carryon.data.network.SupabaseConfig
 import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 // Simple screen state for iOS compatibility
@@ -191,6 +196,17 @@ sealed class AppScreen {
     data class Invoice(val bookingId: String) : AppScreen()
 }
 
+private fun PendingPushNavigation.toAppScreen(): AppScreen? {
+    val bookingId = bookingId?.takeIf { it.isNotBlank() } ?: return null
+    return when (type.uppercase()) {
+        "DRIVER_ASSIGNED" -> AppScreen.SearchingDriver(bookingId)
+        "DRIVER_ARRIVED" -> AppScreen.DriverApproaching(bookingId)
+        "PICKUP_DONE", "IN_TRANSIT", "DELIVERED", "CANCELLED", "DELIVERY_OTP_REQUESTED" ->
+            AppScreen.TrackOrder(bookingId)
+        else -> AppScreen.TrackOrder(bookingId)
+    }
+}
+
 @Composable
 @Preview
 fun App() {
@@ -198,6 +214,13 @@ fun App() {
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
     val scope = rememberCoroutineScope()
     val isLoggedIn by AuthStateManager.isLoggedIn.collectAsState()
+
+    fun applyPendingPushNavigation() {
+        val pending = consumePendingPushNavigation() ?: return
+        pending.toAppScreen()?.let { target ->
+            currentScreen = target
+        }
+    }
 
     LaunchedEffect(isLoggedIn, currentScreen) {
         val isPublicScreen = currentScreen is AppScreen.Splash ||
@@ -208,6 +231,21 @@ fun App() {
 
         if (!isLoggedIn && !isPublicScreen) {
             currentScreen = AppScreen.Welcome
+        }
+    }
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            PushRegistrar.syncUserPushToken()
+            applyPendingPushNavigation()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        PushNavigationSignal.events.collectLatest {
+            if (isLoggedIn) {
+                applyPendingPushNavigation()
+            }
         }
     }
 

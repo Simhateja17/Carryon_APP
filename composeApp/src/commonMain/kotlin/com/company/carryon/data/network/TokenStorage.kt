@@ -24,4 +24,13 @@ expect fun clearAuthMode()
 expect fun saveLanguage(language: String)
 expect fun getLanguage(): String?
 
+expect fun savePushToken(token: String)
+expect fun getPushToken(): String?
+expect fun clearPushToken()
+
+expect fun getOrCreateDeviceId(): String
+
+expect fun savePendingPushNavigation(type: String, bookingId: String?, targetScreen: String?)
+expect fun consumePendingPushNavigation(): PendingPushNavigation?
+
 expect fun currentTimeMillis(): Long

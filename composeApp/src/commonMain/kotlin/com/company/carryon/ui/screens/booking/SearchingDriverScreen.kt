@@ -20,7 +20,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.vehicle_car
 import carryon.composeapp.generated.resources.vehicle_bike_icon
+import carryon.composeapp.generated.resources.vehicle_truck_icon
+import carryon.composeapp.generated.resources.vehicle_van
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.LatLng
 import com.company.carryon.data.network.BookingApi
@@ -35,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -123,6 +127,7 @@ fun SearchingDriverScreen(
     val currentBooking = booking
     val estimatedPriceText = "RM ${((currentBooking?.estimatedPrice ?: amount).takeIf { it > 0.0 } ?: 150.0).roundToInt()}"
     val vehicleLabel = currentBooking?.vehicleType?.toDisplayVehicleLabel().orEmpty().ifBlank { "Vehicle" }
+    val vehicleIconRes = currentBooking?.vehicleType.toVehicleIconResource()
     val pickupAddressText = currentBooking?.pickupAddress?.address.orEmpty().ifBlank { "Loading pickup..." }
     val dropoffAddressText = currentBooking?.deliveryAddress?.address.orEmpty().ifBlank { "Loading drop-off..." }
     val etaText = currentBooking?.duration?.takeIf { it > 0 }?.let { "$it mins" } ?: "Searching"
@@ -241,7 +246,7 @@ fun SearchingDriverScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Connecting you to the best delivery\npartner for your bike request.",
+                text = "Connecting you to the best delivery\npartner for your request.",
                 fontSize = 16.sp,
                 lineHeight = 24.sp,
                 color = Color(0xFF30354B),
@@ -277,7 +282,7 @@ fun SearchingDriverScreen(
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Image(
-                                    painter = painterResource(Res.drawable.vehicle_bike_icon),
+                                    painter = painterResource(vehicleIconRes),
                                     contentDescription = null,
                                     modifier = Modifier.size(14.dp)
                                 )
@@ -391,5 +396,15 @@ private fun String.toDisplayVehicleLabel(): String {
         else -> replace('_', ' ').lowercase().split(' ').joinToString(" ") { part ->
             part.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }
+    }
+}
+
+private fun String?.toVehicleIconResource(): DrawableResource {
+    return when (this?.trim()?.lowercase()) {
+        "bike", "2 wheeler" -> Res.drawable.vehicle_bike_icon
+        "car", "auto", "car (2-seat)", "car (4-seat)" -> Res.drawable.vehicle_car
+        "van 7ft", "van_7ft", "van 9ft", "van_9ft", "mini van", "mini truck", "minitruck" -> Res.drawable.vehicle_van
+        "pickup", "4x4 pickup", "lorry_10ft", "lorry_14ft", "lorry_17ft", "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "truck", "open truck" -> Res.drawable.vehicle_truck_icon
+        else -> Res.drawable.vehicle_truck_icon
     }
 }

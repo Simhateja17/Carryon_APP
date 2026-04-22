@@ -9,6 +9,11 @@ private const val KEY_REFRESH_TOKEN = "refresh_token"
 private const val KEY_TOKEN_EXPIRY_MS = "token_expiry_ms"
 private const val KEY_AUTH_MODE = "auth_mode"
 private const val KEY_LANGUAGE = "user_language"
+private const val KEY_PUSH_TOKEN = "push_token"
+private const val KEY_PUSH_DEVICE_ID = "push_device_id"
+private const val KEY_PUSH_TYPE = "push_type"
+private const val KEY_PUSH_BOOKING_ID = "push_booking_id"
+private const val KEY_PUSH_TARGET_SCREEN = "push_target_screen"
 
 actual fun saveToken(token: String) {
     NSUserDefaults.standardUserDefaults.setObject(token, forKey = KEY_TOKEN)
@@ -65,6 +70,52 @@ actual fun saveLanguage(language: String) {
 
 actual fun getLanguage(): String? {
     return NSUserDefaults.standardUserDefaults.stringForKey(KEY_LANGUAGE)
+}
+
+actual fun savePushToken(token: String) {
+    NSUserDefaults.standardUserDefaults.setObject(token, forKey = KEY_PUSH_TOKEN)
+}
+
+actual fun getPushToken(): String? {
+    return NSUserDefaults.standardUserDefaults.stringForKey(KEY_PUSH_TOKEN)
+}
+
+actual fun clearPushToken() {
+    NSUserDefaults.standardUserDefaults.removeObjectForKey(KEY_PUSH_TOKEN)
+}
+
+actual fun getOrCreateDeviceId(): String {
+    val existing = NSUserDefaults.standardUserDefaults.stringForKey(KEY_PUSH_DEVICE_ID)
+    if (!existing.isNullOrBlank()) return existing
+
+    val created = platform.Foundation.NSUUID().UUIDString()
+    NSUserDefaults.standardUserDefaults.setObject(created, forKey = KEY_PUSH_DEVICE_ID)
+    return created
+}
+
+actual fun savePendingPushNavigation(type: String, bookingId: String?, targetScreen: String?) {
+    NSUserDefaults.standardUserDefaults.setObject(type, forKey = KEY_PUSH_TYPE)
+    if (bookingId == null) {
+        NSUserDefaults.standardUserDefaults.removeObjectForKey(KEY_PUSH_BOOKING_ID)
+    } else {
+        NSUserDefaults.standardUserDefaults.setObject(bookingId, forKey = KEY_PUSH_BOOKING_ID)
+    }
+    if (targetScreen == null) {
+        NSUserDefaults.standardUserDefaults.removeObjectForKey(KEY_PUSH_TARGET_SCREEN)
+    } else {
+        NSUserDefaults.standardUserDefaults.setObject(targetScreen, forKey = KEY_PUSH_TARGET_SCREEN)
+    }
+}
+
+actual fun consumePendingPushNavigation(): PendingPushNavigation? {
+    val defaults = NSUserDefaults.standardUserDefaults
+    val type = defaults.stringForKey(KEY_PUSH_TYPE) ?: return null
+    val bookingId = defaults.stringForKey(KEY_PUSH_BOOKING_ID)
+    val targetScreen = defaults.stringForKey(KEY_PUSH_TARGET_SCREEN)
+    defaults.removeObjectForKey(KEY_PUSH_TYPE)
+    defaults.removeObjectForKey(KEY_PUSH_BOOKING_ID)
+    defaults.removeObjectForKey(KEY_PUSH_TARGET_SCREEN)
+    return PendingPushNavigation(type = type, bookingId = bookingId, targetScreen = targetScreen)
 }
 
 private fun String.toAuthModeOrNull(): AuthMode? {

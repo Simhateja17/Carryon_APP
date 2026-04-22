@@ -126,15 +126,15 @@ fun DetailsScreen(
 
     val normalizedReceiverName = receiverName.trim()
     val normalizedPhoneDigits = receiverPhone.filter { it.isDigit() }
-    val normalizedInstructions = instructions.trim()
     val parsedWeight = parcelWeight.toDoubleOrNull()
     val requiresWeight = deliveryMode == DeliveryModeRegular
     val hasValidWeight = !requiresWeight || (parsedWeight != null && parsedWeight > 0.0)
     val hasValidParcelType = parcelType.isNotBlank()
-    val hasValidInstructions = normalizedInstructions.isNotBlank()
     val hasValidReceiverName = normalizedReceiverName.isNotBlank()
     val hasValidReceiverPhone = normalizedPhoneDigits.length >= 8
-    val canContinue = hasValidWeight && hasValidParcelType && hasValidInstructions && hasValidReceiverName && hasValidReceiverPhone
+    val canContinue = hasValidWeight && hasValidParcelType && hasValidReceiverName && hasValidReceiverPhone
+    val vehicleLabel = vehicleType.ifBlank { "Standard Delivery" }
+    val vehicleEmoji = vehicleType.toVehicleEmoji()
 
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { user ->
@@ -231,7 +231,6 @@ fun DetailsScreen(
                     if (showValidationError && !canContinue) {
                         val message = when {
                             !hasValidWeight -> "Enter parcel weight greater than 0 kg."
-                            !hasValidInstructions -> "Add delivery instructions to continue."
                             !hasValidReceiverName -> "Enter receiver name."
                             !hasValidReceiverPhone -> "Enter a valid receiver phone number."
                             !hasValidParcelType -> "Select parcel type."
@@ -591,11 +590,11 @@ fun DetailsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(shape = RoundedCornerShape(16.dp), color = Color.White, modifier = Modifier.size(64.dp)) {
-                            Box(contentAlignment = Alignment.Center) { Text("🚴", fontSize = 30.sp) }
+                            Box(contentAlignment = Alignment.Center) { Text(vehicleEmoji, fontSize = 30.sp) }
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Standard Bike", fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                            Text(vehicleLabel, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                             Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
                         }
                         Column(horizontalAlignment = Alignment.End) {
@@ -856,6 +855,16 @@ fun DetailsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
         }
+    }
+}
+
+private fun String.toVehicleEmoji(): String {
+    return when (trim().lowercase()) {
+        "bike", "2 wheeler" -> "🚴"
+        "car", "auto", "car (2-seat)", "car (4-seat)" -> "🚗"
+        "van 7ft", "van 9ft", "van_7ft", "van_9ft", "mini van", "mini truck", "minitruck" -> "🚐"
+        "4x4 pickup", "pickup", "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "lorry_10ft", "lorry_14ft", "lorry_17ft", "truck", "open truck" -> "🚚"
+        else -> "🚚"
     }
 }
 

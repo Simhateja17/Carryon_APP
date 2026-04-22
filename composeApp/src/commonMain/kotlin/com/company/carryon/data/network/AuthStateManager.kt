@@ -63,6 +63,7 @@ object AuthStateManager {
     }
 
     suspend fun logout() {
+        runCatching { PushRegistrar.unregisterUserPushToken() }
         clearStoredAuthState()
         try { SupabaseConfig.client.auth.signOut() } catch (_: Exception) { }
     }
