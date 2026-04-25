@@ -59,7 +59,8 @@ fun EditProfileScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF5F6F8)
+        containerColor = Color(0xFFF5F6F8),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         if (isFetching) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {

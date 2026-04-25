@@ -92,9 +92,6 @@ fun AddPaymentMethodScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE3E8EF)))
         Spacer(modifier = Modifier.height(14.dp))
 
         Box(
@@ -315,7 +312,7 @@ private fun AppField(
 private fun HomeStyleBottomBar(selectedTab: Int) {
     Surface(
         color = Color.White,
-        tonalElevation = 8.dp,
+        shadowElevation = 8.dp,
         shape = RoundedCornerShape(16.dp)
     ) {
         val items = listOf(

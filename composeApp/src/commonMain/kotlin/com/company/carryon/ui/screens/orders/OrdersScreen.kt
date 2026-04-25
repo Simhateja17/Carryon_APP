@@ -268,7 +268,7 @@ fun OrdersScreen(
 
         if (showOngoing) {
             if (ongoingOrder != null) {
-                OngoingOrderCard(order = ongoingOrder, onTrack = { onOrderClick(ongoingOrder.id) })
+                OngoingOrderCard(order = ongoingOrder, onTrack = { onTrackOrder(ongoingOrder.id) })
                 Spacer(modifier = Modifier.height(12.dp))
             } else {
                 EmptyOrdersState("No ongoing deliveries")
@@ -838,15 +838,6 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(Color(0xFFAED0F3), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) { Text("", fontSize = 22.sp) }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
                 Column(modifier = Modifier.weight(1f)) {
                     Text("ID: ${formatOrderDisplayId(order.id, order.orderCode)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
                     Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Medium, fontSize = OrderCardHeadingFontSize, maxLines = 1)
@@ -933,15 +924,6 @@ private fun ScheduledOrderCard(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(Color(0xFFDCE6F1), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("", fontSize = 20.sp)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             text = "PICKUP SCHEDULED",
@@ -1084,9 +1066,8 @@ private fun CompletedOrderCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
-                            modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) { Text("", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Medium) }
+                            modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape)
+                        )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(card.statusText, color = Color(0xFF2F80ED), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
                     }
@@ -1191,11 +1172,7 @@ private fun CancelledOrderCard(
                         fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("", fontSize = 12.sp)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
-                    }
+                    Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),

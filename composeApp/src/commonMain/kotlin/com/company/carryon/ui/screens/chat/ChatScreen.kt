@@ -91,7 +91,7 @@ fun ChatScreen(
                     }
                 },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
+                    TextButton(onClick = onBack) { Text("‹", color = Color.Black, fontSize = 22.sp) }
                 },
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -223,7 +223,7 @@ private fun MessageBubble(
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 280.dp)
+                .widthIn(min = 84.dp, max = 280.dp)
                 .clip(
                     RoundedCornerShape(
                         topStart = 16.dp,
@@ -235,13 +235,13 @@ private fun MessageBubble(
                 .background(if (isOwnMessage) PrimaryBlue else Color.White)
                 .padding(12.dp)
         ) {
-            Column {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = message.message,
                     fontSize = 14.sp,
                     color = if (isOwnMessage) Color.White else TextPrimary
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = message.createdAt.takeLast(8).take(5),
                     fontSize = 10.sp,

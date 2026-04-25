@@ -90,7 +90,8 @@ fun ProfileScreen(
     val displayName = if (isLoading) "Loading..." else userName
 
     Scaffold(
-        containerColor = Color(0xFFF5F6F8)
+        containerColor = Color(0xFFF5F6F8),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         Column(
             modifier = Modifier

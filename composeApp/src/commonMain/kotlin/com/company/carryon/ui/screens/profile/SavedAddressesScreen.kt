@@ -62,7 +62,10 @@ fun SavedAddressesScreen(
         isLoading = false
     }
 
-    Scaffold(containerColor = Color(0xFFF3F4F6)) { paddingValues ->
+    Scaffold(
+        containerColor = Color(0xFFF3F4F6),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()

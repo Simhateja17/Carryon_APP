@@ -47,7 +47,7 @@ fun RequestForRideScreen(
     deliveryMode: String = "Regular",
     offloading: Boolean = false,
     scheduledTime: String? = null,
-    onContinue: (bookingId: String, amount: Double) -> Unit,
+    onContinue: (bookingId: String, amount: Double, paymentMethod: String) -> Unit,
     onBack: () -> Unit
 ) {
     var selectedPayment by remember { mutableStateOf("cash") }
@@ -143,7 +143,7 @@ fun RequestForRideScreen(
     val paymentMethodApi = when (selectedPayment) {
         "cash" -> "CASH"
         "card" -> "CARD"
-        "wallet" -> "DUITNOW"
+        "wallet" -> "WALLET"
         else -> "CASH"
     }
 
@@ -214,7 +214,7 @@ fun RequestForRideScreen(
                                 .onSuccess { response ->
                                     val booking = response.data
                                     if (booking != null) {
-                                        onContinue(booking.id, totalAmount)
+                                        onContinue(booking.id, totalAmount, selectedPayment)
                                     } else {
                                         errorMessage = "Failed to create booking"
                                     }
@@ -250,8 +250,19 @@ fun RequestForRideScreen(
                         Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                actions = { IconButton(onClick = {}) { Text("🔔", fontSize = 20.sp) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                actions = {
+                    IconButton(onClick = {}) {
+                        Image(
+                            painter = painterResource(Res.drawable.bell_icon),
+                            contentDescription = "Notifications",
+                            modifier = Modifier.size(24.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                expandedHeight = 56.dp,
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { paddingValues ->
@@ -266,10 +277,10 @@ fun RequestForRideScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "<",
+                    "‹",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue,
+                    color = Color.Black,
                     modifier = Modifier.clickable { onBack() }.padding(end = 8.dp)
                 )
                 Text(strings.requestForRide, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)

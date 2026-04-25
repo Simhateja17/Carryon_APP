@@ -59,7 +59,7 @@ fun SenderReceiverScreen(
                         Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
                     }
                 },
-                navigationIcon = { IconButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = TextPrimary) } },
+                navigationIcon = { IconButton(onClick = onBack) { Text("‹", fontSize = 22.sp, color = Color.Black) } },
                 actions = { IconButton(onClick = {}) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )

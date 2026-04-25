@@ -63,6 +63,13 @@ fun AddMoneyScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                "‹",
+                color = Color.Black,
+                fontSize = 24.sp,
+                modifier = Modifier.clickable { onBack() }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text("Payment", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.weight(1f))
             Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
@@ -222,7 +229,7 @@ fun AddMoneyScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
+                .background(Color.White, RoundedCornerShape(16.dp))
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

@@ -190,9 +190,9 @@ fun SearchingDriverScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "←",
+                    text = "‹",
                     fontSize = 22.sp,
-                    color = Color(0xFF1D2B53),
+                    color = Color.Black,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .clickable { onCancel() }

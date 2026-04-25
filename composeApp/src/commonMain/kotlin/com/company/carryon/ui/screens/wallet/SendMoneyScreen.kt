@@ -241,7 +241,7 @@ fun SendMoneyScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
+                .background(Color.White, RoundedCornerShape(16.dp))
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

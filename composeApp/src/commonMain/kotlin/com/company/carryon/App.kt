@@ -128,6 +128,7 @@ sealed class AppScreen {
         val deliveryLng: Double = 0.0
     ) : AppScreen()
     data class BookingPayment(
+        val bookingId: String = "",
         val pickupAddress: String = "",
         val deliveryAddress: String = "",
         val vehicleType: String = "",
@@ -300,6 +301,7 @@ fun App() {
 
     CarryOnTheme(language = currentLanguage) {
         Scaffold(
+            containerColor = Color.White,
             bottomBar = {
                 if (showBottomBar) {
                     AppBottomBar(
@@ -372,7 +374,7 @@ fun App() {
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
                     onNavigateToTracking = { currentScreen = AppScreen.ActiveShipment },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
-                    onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
+                    onNavigateToCalculate = { currentScreen = AppScreen.SelectAddress() },
                     onLanguageChanged = { currentLanguage = it }
                 )
             }
@@ -382,9 +384,9 @@ fun App() {
                     onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses(fromSettings = false) },
                     onNavigateToHelp = { currentScreen = AppScreen.Support },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToCalculate = { currentScreen = AppScreen.Calculate },
+                    onNavigateToCalculate = { currentScreen = AppScreen.SelectAddress() },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
-                    onNavigateToTrackShipment = { currentScreen = AppScreen.TrackShipment },
+                    onNavigateToTrackShipment = { currentScreen = AppScreen.ActiveShipment },
                     onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
@@ -398,11 +400,19 @@ fun App() {
                 )
             }
             is AppScreen.Calculate -> {
-                CalculateScreen(
-                    onBack = { currentScreen = AppScreen.Home },
-                    onFreeCheck = { from, to, option, weight ->
-                        currentScreen = AppScreen.Booking(from, to, option)
-                    }
+                SelectAddressScreen(
+                    initialFrom = "",
+                    initialTo = "",
+                    vehicleType = "",
+                    onNext = { vt, pickup, delivery ->
+                        currentScreen = AppScreen.Details(
+                            vehicleType = vt,
+                            pickup = pickup,
+                            delivery = delivery,
+                            fromHome = false
+                        )
+                    },
+                    onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.EditProfile -> {
@@ -432,7 +442,7 @@ fun App() {
                 HelpScreen(
                     onBack = { currentScreen = AppScreen.Profile },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToTracking = { currentScreen = AppScreen.TrackShipment },
+                    onNavigateToTracking = { currentScreen = AppScreen.ActiveShipment },
                     onNavigateToSupport = { currentScreen = AppScreen.Support }
                 )
             }
@@ -457,39 +467,42 @@ fun App() {
                 HistoryScreen(
                     onInstantDelivery = { currentScreen = AppScreen.SelectAddress() },
                     onScheduleDelivery = { currentScreen = AppScreen.SelectAddress() },
-                    onOrderClick = { orderId -> currentScreen = AppScreen.DeliveryDetails(orderId) },
+                    onOrderClick = { currentScreen = AppScreen.ActiveShipment },
                     onViewAll = { currentScreen = AppScreen.Orders }
                 )
             }
             is AppScreen.TrackShipment -> {
-                TrackShipmentScreen(
-                    onSearch = { },
-                    onViewDetails = { bookingId ->
-                        currentScreen = AppScreen.TrackingLive(bookingId)
+                ActiveShipmentScreen(
+                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onChatWithDriver = { bookingId, driverName ->
+                        currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
                 )
             }
             is AppScreen.TrackingLive -> {
-                TrackingLiveScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.TrackShipment }
+                ActiveShipmentScreen(
+                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onChatWithDriver = { bookingId, driverName ->
+                        currentScreen = AppScreen.Chat(bookingId, driverName)
+                    }
                 )
             }
             is AppScreen.TrackOrder -> {
-                TrackingScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.Orders },
-                    onNavigateToHome = { currentScreen = AppScreen.Home }
+                ActiveShipmentScreen(
+                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onChatWithDriver = { bookingId, driverName ->
+                        currentScreen = AppScreen.Chat(bookingId, driverName)
+                    }
                 )
             }
             is AppScreen.Orders -> {
                 OrdersScreen(
                     onBack = { currentScreen = AppScreen.Home },
-                    onOrderClick = { orderId ->
-                        currentScreen = AppScreen.DeliveryDetails(orderId)
+                    onOrderClick = {
+                        currentScreen = AppScreen.ActiveShipment
                     },
-                    onTrackOrder = { orderId ->
-                        currentScreen = AppScreen.TrackOrder(orderId)
+                    onTrackOrder = {
+                        currentScreen = AppScreen.ActiveShipment
                     },
                 )
             }
@@ -501,28 +514,19 @@ fun App() {
                 )
             }
             is AppScreen.Booking -> {
-                BookingScreen(
-                    pickupAddress = screen.pickup,
-                    deliveryAddress = screen.delivery,
-                    packageType = screen.packageType,
-                    pickupLat = screen.pickupLat,
-                    pickupLng = screen.pickupLng,
-                    deliveryLat = screen.deliveryLat,
-                    deliveryLng = screen.deliveryLng,
-                    onConfirmBooking = { vehicleType, price, paymentMethod ->
-                        currentScreen = AppScreen.SenderReceiver(
-                            pickupAddress = screen.pickup,
-                            deliveryAddress = screen.delivery,
-                            vehicleType = vehicleType,
-                            price = price,
-                            paymentMethod = paymentMethod,
-                            pickupLat = screen.pickupLat,
-                            pickupLng = screen.pickupLng,
-                            deliveryLat = screen.deliveryLat,
-                            deliveryLng = screen.deliveryLng
+                SelectAddressScreen(
+                    initialFrom = screen.pickup,
+                    initialTo = screen.delivery,
+                    vehicleType = "",
+                    onNext = { vt, pickup, delivery ->
+                        currentScreen = AppScreen.Details(
+                            vehicleType = vt,
+                            pickup = pickup,
+                            delivery = delivery,
+                            fromHome = false
                         )
                     },
-                    onBack = { currentScreen = AppScreen.Calculate }
+                    onBack = { currentScreen = AppScreen.Home }
                 )
             }
             is AppScreen.SenderReceiver -> {
@@ -551,6 +555,12 @@ fun App() {
             is AppScreen.BookingPayment -> {
                 PaymentScreen(
                     totalAmount = screen.totalAmount.toInt(),
+                    initialMethod = when (screen.paymentMethod.uppercase()) {
+                        "CARD" -> "VISA"
+                        "WALLET", "DUITNOW" -> "WALLET"
+                        "CASH" -> "CASH"
+                        else -> "VISA"
+                    },
                     onBack = { 
                         currentScreen = AppScreen.SenderReceiver(
                             pickupAddress = screen.pickupAddress,
@@ -565,9 +575,8 @@ fun App() {
                         )
                     },
                     onConfirmPayment = { _ ->
-                        // Navigate to payment success - actual booking creation happens there or via a coroutine
                         currentScreen = AppScreen.PaymentSuccess(
-                            bookingId = "", // Will be populated after API call
+                            bookingId = screen.bookingId,
                             amount = screen.totalAmount
                         )
                     }
@@ -645,7 +654,7 @@ fun App() {
             is AppScreen.DriverApproaching -> {
                 DriverApproachingScreen(
                     bookingId = screen.bookingId,
-                    onPickupDone = { currentScreen = AppScreen.TrackingLive(screen.bookingId) },
+                    onPickupDone = { currentScreen = AppScreen.ActiveShipment },
                     onBack = { currentScreen = AppScreen.Orders }
                 )
             }
@@ -655,14 +664,14 @@ fun App() {
                     bookingId = screen.bookingId,
                     onSubmit = {
                         if (screen.bookingId.isNotBlank()) {
-                            currentScreen = AppScreen.DeliveryDetails(screen.bookingId)
+                            currentScreen = AppScreen.ActiveShipment
                         } else {
                             currentScreen = AppScreen.Orders
                         }
                     },
                     onBack = {
                         if (screen.bookingId.isNotBlank()) {
-                            currentScreen = AppScreen.DeliveryDetails(screen.bookingId)
+                            currentScreen = AppScreen.ActiveShipment
                         } else {
                             currentScreen = AppScreen.Orders
                         }
@@ -676,20 +685,18 @@ fun App() {
             }
             is AppScreen.ActiveShipment -> {
                 ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.TrackShipment },
+                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
                     onChatWithDriver = { bookingId, driverName ->
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
                 )
             }
             is AppScreen.DeliveryDetails -> {
-                DeliveryDetailsScreen(
-                    orderId = screen.orderId,
-                    onBack = { currentScreen = AppScreen.ActiveShipment },
-                    onDelivered = { currentScreen = AppScreen.DriverRating("Driver", screen.orderId) },
-                    onUnsuccessful = { currentScreen = AppScreen.ActiveShipment },
-                    onChatWithDriver = { currentScreen = AppScreen.Chat(screen.orderId, "Driver") },
-                    onViewInvoice = { currentScreen = AppScreen.Invoice(screen.orderId) }
+                ActiveShipmentScreen(
+                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onChatWithDriver = { bookingId, driverName ->
+                        currentScreen = AppScreen.Chat(bookingId, driverName)
+                    }
                 )
             }
             is AppScreen.SelectAddress -> {
@@ -714,7 +721,22 @@ fun App() {
                     pickup = screen.pickup,
                     delivery = screen.delivery,
                     onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, deliveryMode, offloading, scheduledTime ->
-                        currentScreen = AppScreen.RequestForRide(vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, "", deliveryMode, offloading, scheduledTime)
+                        val recipientEmail = receiverPhone
+                            .filter { it.isDigit() }
+                            .ifBlank { "recipient" } + "@carryon.app"
+                        currentScreen = AppScreen.RequestForRide(
+                            vt,
+                            pickup,
+                            delivery,
+                            senderName,
+                            senderPhone,
+                            receiverName,
+                            receiverPhone,
+                            recipientEmail,
+                            deliveryMode,
+                            offloading,
+                            scheduledTime
+                        )
                     },
                     onBack = {
                         currentScreen = if (screen.fromHome) {
@@ -742,8 +764,24 @@ fun App() {
                     deliveryMode = screen.deliveryMode,
                     offloading = screen.offloading,
                     scheduledTime = screen.scheduledTime,
-                    onContinue = { bookingId, amount ->
-                        currentScreen = AppScreen.PaymentSuccess(bookingId, amount)
+                    onContinue = { bookingId, amount, paymentMethod ->
+                        if (paymentMethod == "card" || paymentMethod == "wallet") {
+                            currentScreen = AppScreen.BookingPayment(
+                                bookingId = bookingId,
+                                pickupAddress = screen.pickup,
+                                deliveryAddress = screen.delivery,
+                                vehicleType = screen.vehicleType,
+                                totalAmount = amount,
+                                paymentMethod = paymentMethod.uppercase(),
+                                senderName = screen.senderName,
+                                senderPhone = screen.senderPhone,
+                                receiverName = screen.receiverName,
+                                receiverPhone = screen.receiverPhone,
+                                receiverEmail = screen.receiverEmail
+                            )
+                        } else {
+                            currentScreen = AppScreen.SearchingDriver(bookingId, amount)
+                        }
                     },
                     onBack = {
                         currentScreen = AppScreen.Details(
@@ -889,7 +927,7 @@ private fun AppBottomBar(
 ) {
     Surface(
         color = Color.White,
-        tonalElevation = 8.dp
+        shadowElevation = 8.dp
     ) {
         val items = listOf(
             Res.drawable.icon_home to "HOME",

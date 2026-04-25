@@ -1,63 +1,95 @@
 package com.company.carryon.ui.screens.booking
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.CreditCard
-import androidx.compose.material.icons.outlined.Payments
-import androidx.compose.material.icons.outlined.ReceiptLong
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.rectangle_22
-import org.jetbrains.compose.resources.painterResource
-import com.company.carryon.ui.theme.*
-import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.ui.theme.ScreenHorizontalPadding
+import com.company.carryon.ui.theme.TextPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
     totalAmount: Int = 150,
+    initialMethod: String = "VISA",
     onBack: () -> Unit,
     onConfirmPayment: (paymentMethod: String) -> Unit
 ) {
-    var selectedMethod by remember { mutableStateOf("VISA") }
-    var email by remember { mutableStateOf("") }
-    val strings = LocalStrings.current
+    val method = initialMethod.uppercase()
+    val isCard = method == "VISA" || method == "MASTERCARD" || method == "CARD"
 
-    val paymentMethods = listOf(
-        Triple("VISA", strings.visaCard, Icons.Outlined.CreditCard),
-        Triple("MASTERCARD", strings.mastercard, Icons.Outlined.ReceiptLong),
-        Triple("CASH", strings.cashOnDelivery, Icons.Outlined.Payments),
-        Triple("WALLET", strings.wallet, Icons.Outlined.AccountBalanceWallet)
-    )
+    var cardNumber by remember { mutableStateOf("") }
+    var cardName by remember { mutableStateOf("") }
+    var expiry by remember { mutableStateOf("") }
+    var cvv by remember { mutableStateOf("") }
+    var walletId by remember { mutableStateOf("") }
+
+    val canContinue = if (isCard) {
+        cardNumber.filter { it.isDigit() }.length >= 12 &&
+            cardName.trim().isNotBlank() &&
+            expiry.trim().length >= 4 &&
+            cvv.filter { it.isDigit() }.length >= 3
+    } else {
+        walletId.trim().isNotBlank()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Payment", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium) },
-                navigationIcon = { IconButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = TextPrimary) } },
-                actions = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                title = {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = if (isCard) "Card Details" else "Wallet Details",
+                            color = TextPrimary,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Row {
+                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        }
                     }
+                },
+                navigationIcon = {
+                    Text(
+                        "‹",
+                        fontSize = 22.sp,
+                        color = TextPrimary,
+                        modifier = Modifier
+                            .padding(start = 12.dp, top = 4.dp)
+                            .clickable { onBack() }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
@@ -71,98 +103,74 @@ fun PaymentScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = ScreenHorizontalPadding)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(strings.requestForRide, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(strings.selectPaymentMethod, fontSize = 14.sp, color = TextSecondary)
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Visa Card Image
-            Image(
-                painter = painterResource(Res.drawable.rectangle_22),
-                contentDescription = "Payment Card",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // "This is price of the package"
-            Text(strings.priceOfPackage, fontSize = 14.sp, color = TextSecondary)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text("RM $totalAmount", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Email field
-            Text(strings.email, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = TextSecondary)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("Amount", color = Color(0xFF6B7280), fontSize = 14.sp)
             Spacer(modifier = Modifier.height(6.dp))
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray, fontSize = 13.sp) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryBlue,
-                    unfocusedBorderColor = Color(0xFFE0E0E0),
-                    focusedContainerColor = Color(0xFFF8F8F8),
-                    unfocusedContainerColor = Color(0xFFF8F8F8),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                singleLine = true
-            )
+            Text("RM $totalAmount", color = PrimaryBlue, fontSize = 36.sp, fontWeight = FontWeight.Bold)
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
-            // Payment Method Selection
-            Text(strings.paymentMethod, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-            Spacer(modifier = Modifier.height(12.dp))
+            if (isCard) {
+                Text("Card Number", color = Color(0xFF374151), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.height(6.dp))
+                InputField(cardNumber, { cardNumber = it }, "0000 0000 0000 0000")
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                paymentMethods.forEach { (id, label, icon) ->
-                    Card(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(70.dp)
-                            .clickable { selectedMethod = id },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (selectedMethod == id) PrimaryBlueSurface else Color(0xFFF5F5F5)
-                        ),
-                        border = if (selectedMethod == id) androidx.compose.foundation.BorderStroke(2.dp, PrimaryBlue) else null,
-                        elevation = CardDefaults.cardElevation(0.dp)
-                    ) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                modifier = Modifier.size(30.dp),
-                                tint = PrimaryBlue
-                            )
-                        }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Name on Card", color = Color(0xFF374151), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.height(6.dp))
+                InputField(cardName, { cardName = it }, "Enter cardholder name")
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Expiry", color = Color(0xFF374151), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        InputField(expiry, { expiry = it }, "MM/YY")
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("CVV", color = Color(0xFF374151), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        InputField(cvv, { cvv = it }, "***")
                     }
                 }
+            } else {
+                Text("Wallet ID", color = Color(0xFF374151), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.height(6.dp))
+                InputField(walletId, { walletId = it }, "Enter wallet / UPI ID")
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Continue Button (Green)
+            Spacer(modifier = Modifier.height(28.dp))
             Button(
-                onClick = { onConfirmPayment(selectedMethod) },
+                onClick = { onConfirmPayment(method) },
+                enabled = canContinue,
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = SuccessGreen)
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
-                Text(strings.continueText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text("Pay Now", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+@Composable
+private fun InputField(value: String, onValueChange: (String) -> Unit, placeholder: String) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(placeholder, color = Color.LightGray, fontSize = 13.sp) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = PrimaryBlue,
+            unfocusedBorderColor = Color(0xFFE0E0E0),
+            focusedContainerColor = Color(0xFFF8F8F8),
+            unfocusedContainerColor = Color(0xFFF8F8F8),
+            focusedTextColor = Color.Black,
+            unfocusedTextColor = Color.Black
+        ),
+        singleLine = true
+    )
 }

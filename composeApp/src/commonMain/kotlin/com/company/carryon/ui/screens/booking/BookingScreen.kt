@@ -196,7 +196,7 @@ fun BookingScreen(
                     }
                 },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("←", fontSize = 24.sp, color = TextPrimary) }
+                    TextButton(onClick = onBack) { Text("‹", fontSize = 24.sp, color = Color.Black) }
                 },
                 actions = {
                     Box(modifier = Modifier.padding(end = 12.dp).background(SuccessGreen.copy(alpha = 0.15f), RoundedCornerShape(16.dp)).padding(horizontal = 12.dp, vertical = 6.dp)) {
