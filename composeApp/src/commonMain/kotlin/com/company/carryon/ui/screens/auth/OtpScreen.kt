@@ -91,7 +91,7 @@ fun OtpScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "<",
+                    text = "‹",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,

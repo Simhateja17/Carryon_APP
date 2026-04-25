@@ -71,6 +71,7 @@ import carryon.composeapp.generated.resources.vector_truck
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.data.network.BookingApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
@@ -208,7 +209,7 @@ fun OrdersScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        OrdersHeader()
+        OrdersHeader(onBack = onBack)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -390,7 +391,7 @@ private fun CompletedOrdersScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "←",
+                text = "‹",
                 color = Color(0xFF2F80ED),
                 fontSize = 22.sp,
                 modifier = Modifier.clickable { onBack() }
@@ -526,7 +527,7 @@ private fun OngoingDeliveriesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "←",
+                text = "‹",
                 modifier = Modifier
                     .size(30.dp)
                     .clickable { onBack() },
@@ -800,24 +801,13 @@ private fun OngoingDeliveryCard(
 }
 @Composable
 private fun OrdersHeader(
+    onBack: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Orders",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF1D254B)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-    }
-    HorizontalDivider(color = Color(0xFFE9ECF2))
+    CarryOnHeader(
+        title = "Orders",
+        onBack = onBack,
+        contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)
+    )
 }
 
 @Composable

@@ -82,7 +82,7 @@ fun SupportCallScreen(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "←",
+                            text = "‹",
                             color = PrimaryBlue,
                             fontSize = 28.sp,
                             modifier = Modifier.clickable { onBack() }

@@ -27,6 +27,7 @@ import carryon.composeapp.generated.resources.settings_default_vehicle_icon
 import carryon.composeapp.generated.resources.settings_language_icon
 import carryon.composeapp.generated.resources.settings_logout_icon
 import carryon.composeapp.generated.resources.settings_save_last_address_icon
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.*
 import com.company.carryon.ui.components.getLanguageDisplayName
 import com.company.carryon.data.network.UserApi
@@ -75,33 +76,11 @@ fun SettingsScreen(
     ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "←",
-                        color = PrimaryBlue,
-                        fontSize = 22.sp,
-                        modifier = Modifier.clickable { onBack() }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Settings",
-                        color = Color(0xFF1D254B),
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                }
-            }
+            CarryOnHeader(
+                title = "Settings",
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 2.dp)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

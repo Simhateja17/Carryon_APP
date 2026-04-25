@@ -55,7 +55,7 @@ fun PromoScreen(
             TopAppBar(
                 title = { Text(strings.promoAndReferrals, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
+                    TextButton(onClick = onBack) { Text("‹ ${strings.back}", color = Color.Black) }
                 },
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {

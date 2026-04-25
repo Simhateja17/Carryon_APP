@@ -247,7 +247,7 @@ fun PackageDetailsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "<",
+                            text = "‹",
                             fontSize = 20.sp,
                             color = TextSecondary,
                             modifier = Modifier.clickable { onBack() }

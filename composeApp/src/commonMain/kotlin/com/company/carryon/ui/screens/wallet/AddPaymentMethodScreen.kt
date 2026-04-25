@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +47,7 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.wallet_add_money_icon
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
@@ -76,21 +78,12 @@ fun AddPaymentMethodScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("←", color = PrimaryBlue, fontSize = 20.sp, modifier = Modifier.clickable { onBack() })
-            Spacer(modifier = Modifier.width(10.dp))
-            Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.weight(1f))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-            }
-        }
+        CarryOnHeader(
+            title = "Payments",
+            titleColor = Color(0xFF1F2937),
+            onBack = onBack,
+            contentPadding = PaddingValues(vertical = 4.dp)
+        )
 
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -143,13 +136,6 @@ fun AddPaymentMethodScreen(
                     .padding(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .background(Color(0xFFEFF4FB), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) { Text("", color = PrimaryBlue, fontSize = 14.sp) }
-                Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
                         when (selectedMethod) {
@@ -248,10 +234,6 @@ fun AddPaymentMethodScreen(
         }
 
         Spacer(modifier = Modifier.height(10.dp))
-
-        HomeStyleBottomBar(selectedTab = 2)
-
-        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 

@@ -92,7 +92,7 @@ fun OrderDetailScreen(
             TopAppBar(
                 title = { Text("Order Details") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←", fontSize = 24.sp) }
+                    IconButton(onClick = onBack) { Text("‹", fontSize = 24.sp) }
                 },
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {

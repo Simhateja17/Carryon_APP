@@ -38,6 +38,7 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
@@ -102,19 +103,12 @@ fun ProfileScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(10.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("←", color = PrimaryBlue, fontSize = 22.sp, modifier = Modifier.clickable { onBack() })
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Profile", color = Color(0xFF1F2937), fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.weight(1f))
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-            }
+            CarryOnHeader(
+                title = "Profile",
+                titleColor = Color(0xFF1F2937),
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 2.dp)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

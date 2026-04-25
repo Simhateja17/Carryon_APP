@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -48,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Wallet
 import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextSecondary
@@ -102,26 +104,12 @@ fun WalletScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "←",
-                            color = PrimaryBlue,
-                            fontSize = 24.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Payments", color = Color(0xFF1E293B), fontSize = 30.sp, fontWeight = FontWeight.SemiBold)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    }
-                }
+                CarryOnHeader(
+                    title = "Payments",
+                    titleColor = Color(0xFF1E293B),
+                    onBack = onBack,
+                    contentPadding = PaddingValues(0.dp)
+                )
             }
 
             item {

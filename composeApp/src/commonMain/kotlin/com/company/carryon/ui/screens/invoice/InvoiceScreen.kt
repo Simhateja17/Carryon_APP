@@ -55,7 +55,7 @@ fun InvoiceScreen(
             TopAppBar(
                 title = { Text(strings.invoiceTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
+                    TextButton(onClick = onBack) { Text("‹ ${strings.back}", color = Color.Black) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )

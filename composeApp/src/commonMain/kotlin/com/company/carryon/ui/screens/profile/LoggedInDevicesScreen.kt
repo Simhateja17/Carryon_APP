@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 
 @Composable
@@ -43,28 +45,12 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                 .padding(paddingValues)
                 .background(Color(0xFFF5F6F8))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 18.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "←",
-                        color = PrimaryBlue,
-                        fontSize = 24.sp,
-                        modifier = Modifier.clickable { onBack() }
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text("Security", color = Color(0xFF000000), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                }
-            }
+            CarryOnHeader(
+                title = "Security",
+                titleColor = Color(0xFF000000),
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 18.dp)
+            )
 
             Column(
                 modifier = Modifier

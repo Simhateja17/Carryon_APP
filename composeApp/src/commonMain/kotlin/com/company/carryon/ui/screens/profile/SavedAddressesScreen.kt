@@ -36,6 +36,7 @@ import carryon.composeapp.generated.resources.saved_address_delete
 import carryon.composeapp.generated.resources.saved_address_edit
 import carryon.composeapp.generated.resources.saved_address_hub
 import carryon.composeapp.generated.resources.saved_address_primary
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
@@ -77,33 +78,11 @@ fun SavedAddressesScreen(
                     .fillMaxSize()
                     .padding(bottom = 90.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "←",
-                            color = PrimaryBlue,
-                            fontSize = 25.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Saved Addresses",
-                            color = Color(0xFF1D254B),
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    }
-                }
+                CarryOnHeader(
+                    title = "Saved Addresses",
+                    onBack = onBack,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
+                )
 
                 Text(
                     text = "Frequent Locations",

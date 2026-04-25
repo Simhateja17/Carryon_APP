@@ -49,7 +49,7 @@ fun SupportChatScreen(onBack: () -> Unit) {
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "←",
+                            text = "‹",
                             color = PrimaryBlue,
                             fontSize = 26.sp,
                             modifier = Modifier

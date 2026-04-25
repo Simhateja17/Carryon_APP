@@ -61,7 +61,7 @@ fun TicketDetailScreen(
                     }
                 },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
+                    TextButton(onClick = onBack) { Text("‹ ${strings.back}", color = Color.Black) }
                 },
                 actions = {
                     Row(verticalAlignment = Alignment.CenterVertically) {

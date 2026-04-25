@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Invoice
 import com.company.carryon.data.model.InvoiceDetail
 import com.company.carryon.data.network.InvoiceApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatDecimal
@@ -137,35 +139,12 @@ fun DeliveryReceiptsScreen(
 
 @Composable
 private fun PaymentsTopBar(onBack: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "←",
-                    color = PrimaryBlue,
-                    fontSize = 22.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-            }
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-            }
-        }
-        HorizontalDivider(color = Color(0xFFE9ECF2))
-    }
+    CarryOnHeader(
+        title = "Payments",
+        titleColor = Color(0xFF1F2937),
+        onBack = onBack,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp)
+    )
 }
 
 @Composable

@@ -75,7 +75,7 @@ fun SendMoneyScreen(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "←",
+                    text = "‹",
                     color = PrimaryBlue,
                     fontSize = 20.sp,
                     modifier = Modifier.clickable { onBack() }
