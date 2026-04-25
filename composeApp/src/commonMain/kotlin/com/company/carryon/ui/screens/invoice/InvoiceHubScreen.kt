@@ -159,15 +159,26 @@ fun InvoiceHubScreen(
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    FilterChip("Month ▾")
-                    FilterChip("2023 ▾")
-                    Box(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip("Month ▾")
+                        FilterChip("2023 ▾")
+                    }
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                        modifier = Modifier.height(30.dp)
+                        modifier = Modifier
+                            .width(96.dp)
+                            .height(30.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                     ) {
                         Text("Apply", fontSize = 11.sp, color = Color.White)
                     }
@@ -199,7 +210,7 @@ fun InvoiceHubScreen(
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
-                            .background(Color(0xFFD5E5F8), RoundedCornerShape(999.dp))
+                            .background(Color(0xFFFFFFFF), RoundedCornerShape(999.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                     Text(
