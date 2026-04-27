@@ -18,6 +18,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.company.carryon</string>
+				<string>carryon-customer</string>
 			</array>
 			<key>CFBundleURLName</key>
 			<string>com.company.carryon</string>

@@ -23,6 +23,7 @@ firebase-bom = "33.12.0"
 google-services = "4.4.2"
 credentials = "1.5.0-rc01"
 googleid = "1.1.1"
+stripe-android = "23.4.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -63,6 +64,7 @@ credentials-play-services = { module = "androidx.credentials:credentials-play-se
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging-ktx" }
+stripe-android = { module = "com.stripe:stripe-android", version.ref = "stripe-android" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

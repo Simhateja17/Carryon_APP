@@ -113,6 +113,14 @@ enum DriverTransactionStatus {
   FAILED
 }
 
+enum StripeLedgerStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELED
+  REFUNDED
+}
+
 enum PushPlatform {
   ANDROID
   IOS
@@ -174,6 +182,7 @@ model User {
   language     String    @default("")
   isVerified   Boolean   @default(false)
   referralCode String?   @unique
+  stripeCustomerId String? @unique
   createdAt    DateTime  @default(now())
 
   addresses      Address[]
@@ -185,6 +194,7 @@ model User {
   supportTickets SupportTicket[]
   invoices       Invoice[]
   pushDevices    PushDevice[]
+  topUpPayments  WalletTopUpPayment[]
 }
 
 model Otp {
@@ -242,6 +252,10 @@ model Driver {
   verificationStatus DriverVerificationStatus @default(PENDING)
   emergencyContact   String                   @default("")
   fcmToken           String?
+  stripeConnectAccountId String?                  @unique
+  stripeDetailsSubmitted Boolean                  @default(false)
+  stripePayoutsEnabled   Boolean                  @default(false)
+  stripeRequirements     Json?
   createdAt          DateTime                 @default(now())
 
   bookings           Booking[]
@@ -252,6 +266,7 @@ model Driver {
   supportTickets     DriverSupportTicket[]
   bookingRejections  BookingRejection[]
   pushDevices        PushDevice[]
+  payouts            DriverPayout[]
 }
 
 model PushDevice {
@@ -322,12 +337,32 @@ model DriverWalletTransaction {
   walletId    String
   type        DriverTransactionType
   amount      Float
+  grossAmount Float                   @default(0)
+  platformFeeAmount Float             @default(0)
   description String                  @default("")
   jobId       String?
+  stripeTransferId String?            @unique
   status      DriverTransactionStatus @default(COMPLETED)
   createdAt   DateTime                @default(now())
 
   wallet DriverWallet @relation(fields: [walletId], references: [id])
+}
+
+model DriverPayout {
+  id               String                  @id @default(uuid())
+  driverId         String
+  walletId         String
+  transactionId    String?                 @unique
+  amount           Float
+  amountMinor      Int
+  currency         String                  @default("myr")
+  stripeTransferId String?                 @unique
+  status           DriverTransactionStatus @default(PENDING)
+  failureMessage   String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  driver Driver @relation(fields: [driverId], references: [id])
 }
 
 model DriverNotification {
@@ -524,9 +559,27 @@ model WalletTransaction {
   amount      Float
   description String          @default("")
   referenceId String?
+  stripePaymentIntentId String? @unique
   createdAt   DateTime        @default(now())
 
   wallet Wallet @relation(fields: [walletId], references: [id])
+}
+
+model WalletTopUpPayment {
+  id                    String             @id @default(uuid())
+  userId                String
+  walletId              String?
+  amount                Float
+  amountMinor           Int
+  currency              String             @default("myr")
+  status                StripeLedgerStatus @default(PENDING)
+  stripePaymentIntentId String             @unique
+  failureMessage        String?
+  creditedAt            DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 // ── Support Tickets ─────────────────────────────────────

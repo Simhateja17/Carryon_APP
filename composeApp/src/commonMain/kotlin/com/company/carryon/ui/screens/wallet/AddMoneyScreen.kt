@@ -22,12 +22,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +43,12 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_people
 import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.wallet_add_money_icon
+import com.company.carryon.data.network.WalletApi
+import com.company.carryon.data.payment.StripePaymentLauncher
+import com.company.carryon.data.payment.StripePaymentResult
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -51,6 +57,9 @@ fun AddMoneyScreen(
     onBack: () -> Unit
 ) {
     var amount by remember { mutableStateOf(500) }
+    var isProcessing by remember { mutableStateOf(false) }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -206,15 +215,55 @@ fun AddMoneyScreen(
             fontWeight = FontWeight.Medium
         )
 
+        statusMessage?.let {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                it,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                color = Color(0xFF334155),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
         Spacer(modifier = Modifier.height(56.dp))
 
         Button(
-            onClick = { },
+            onClick = {
+                scope.launch {
+                    isProcessing = true
+                    statusMessage = "Starting secure payment..."
+                    val config = WalletApi.getPaymentConfig().getOrNull()?.data
+                    val intent = WalletApi.createTopUpIntent(amount.toDouble()).getOrNull()?.data
+                    if (config?.publishableKey.isNullOrBlank() || intent?.clientSecret.isNullOrBlank()) {
+                        statusMessage = "Payment setup is unavailable. Please try again later."
+                        isProcessing = false
+                        return@launch
+                    }
+
+                    statusMessage = "Complete payment in Stripe."
+                    val result = StripePaymentLauncher.presentWalletTopUp(
+                        clientSecret = intent.clientSecret,
+                        publishableKey = config.publishableKey
+                    )
+                    statusMessage = when (result) {
+                        StripePaymentResult.COMPLETED -> "Payment completed. Wallet balance will update once confirmed."
+                        StripePaymentResult.CANCELED -> "Payment canceled."
+                        StripePaymentResult.FAILED -> "Payment failed. Please try another card."
+                    }
+                    isProcessing = false
+                }
+            },
+            enabled = !isProcessing,
             modifier = Modifier.fillMaxWidth().height(58.dp),
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("Proceed to Pay  →", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            if (isProcessing) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            } else {
+                Text("Proceed to Pay  →", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

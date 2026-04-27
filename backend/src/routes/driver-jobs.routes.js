@@ -1,36 +1,28 @@
 const { Router } = require('express');
-const { createClient } = require('@supabase/supabase-js');
 const prisma = require('../lib/prisma');
 const { authenticateDriver, requireDriver } = require('../middleware/driverAuth');
 const { AppError } = require('../middleware/errorHandler');
-const { haversineKm } = require('../lib/distance');
 const { notifyUserBookingEvent } = require('../lib/pushNotifications');
-
-const DRIVER_SEARCH_RADIUS_KM = 10;
-const OFFER_EXPIRY_MS = 60 * 1000;
+const { driverEarningFromGross } = require('../lib/money');
+const {
+  isSettlementEligible,
+  canDriverCancel,
+} = require('../services/bookingLifecycle');
+const { OFFER_EXPIRY_MS } = require('../services/businessConfig');
+const { getIncomingBookingsForDriver } = require('../services/dispatch');
+const {
+  generateDeliveryOtp,
+  deliveryOtpWindow,
+  deliveryOtpPayload,
+  maskEmail,
+  sendEmailOtp,
+  verifyDeliveryOtp,
+} = require('../services/deliveryOtp');
 
 const router = Router();
 router.use(authenticateDriver, requireDriver);
 
-// Helper: display name for logs (falls back to email if name is blank)
 const driverLabel = (d) => d?.name?.trim() || d?.email || d?.id || 'unknown';
-const maskEmail = (email = '') => {
-  const [local = '', domain = ''] = String(email).split('@');
-  if (!local || !domain) return email;
-  const visible = local.slice(0, 2);
-  return `${visible}${'*'.repeat(Math.max(local.length - 2, 1))}@${domain}`;
-};
-const generateDeliveryOtp = () => Math.floor(1000 + Math.random() * 9000).toString();
-let _supabaseAdmin;
-function getSupabaseAdmin() {
-  if (!_supabaseAdmin) {
-    _supabaseAdmin = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_KEY
-    );
-  }
-  return _supabaseAdmin;
-}
 
 // Map driver app status → backend BookingStatus
 const STATUS_MAP = {
@@ -43,7 +35,6 @@ const STATUS_MAP = {
   DELIVERED: 'DELIVERED',
 };
 
-// Map backend BookingStatus → driver app status
 function toDriverStatus(bookingStatus, extraData) {
   switch (bookingStatus) {
     case 'SEARCHING_DRIVER': return 'PENDING';
@@ -57,23 +48,12 @@ function toDriverStatus(bookingStatus, extraData) {
   }
 }
 
-function isSettlementEligibleBooking(booking) {
-  return (
-    booking.status === 'DELIVERED' &&
-    !!booking.deliveredAt &&
-    !!booking.deliveryOtpVerifiedAt &&
-    booking.paymentStatus === 'COMPLETED'
-  );
-}
-
-// Common include for booking queries
 const bookingInclude = {
   pickupAddress: true,
   deliveryAddress: true,
   user: { select: { id: true, name: true, email: true, phone: true, profileImage: true } },
 };
 
-// Transform a booking into a DeliveryJob shape for the driver app
 function toDeliveryJob(booking) {
   const expiresAt = new Date(booking.createdAt.getTime() + OFFER_EXPIRY_MS);
   const proofConfirmed = !!booking.deliveryProofUrl || !!booking.deliveryOtpVerifiedAt || !!booking.deliveredAt;
@@ -105,7 +85,7 @@ function toDeliveryJob(booking) {
     customerPhone: booking.user?.phone || '',
     packageType: booking.vehicleType,
     packageSize: 'MEDIUM',
-    estimatedEarnings: booking.finalPrice || booking.estimatedPrice,
+    estimatedEarnings: driverEarningFromGross(booking.finalPrice || booking.estimatedPrice).driverAmount,
     distance: booking.distance,
     estimatedDuration: booking.duration,
     createdAt: booking.createdAt.toISOString(),
@@ -128,107 +108,7 @@ function toDeliveryJob(booking) {
   };
 }
 
-function bookingPayout(booking) {
-  return Number(booking.finalPrice || booking.estimatedPrice || 0);
-}
-
-function sortIncomingBookings(bookings) {
-  return [...bookings].sort((a, b) => {
-    const payoutDiff = bookingPayout(b) - bookingPayout(a);
-    if (payoutDiff !== 0) return payoutDiff;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
-}
-
-function activeOfferWhereClause(extraWhere = {}) {
-  return {
-    status: 'SEARCHING_DRIVER',
-    driverId: null,
-    createdAt: { gte: new Date(Date.now() - OFFER_EXPIRY_MS) },
-    ...extraWhere,
-  };
-}
-
-async function getIncomingBookingsForDriver(driver) {
-  // Fetch bookings this driver has already rejected
-  const rejections = await prisma.bookingRejection.findMany({
-    where: { driverId: driver.id },
-    select: { bookingId: true },
-  });
-  const rejectedIds = rejections.map(r => r.bookingId);
-
-  // First priority: explicit admin-targeted requests for this driver.
-  const targetedNotifications = await prisma.driverNotification.findMany({
-    where: {
-      driverId: driver.id,
-      type: 'JOB_REQUEST',
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    select: { actionData: true },
-  });
-
-  const targetedBookingIds = targetedNotifications
-    .map((n) => {
-      try {
-        const payload = n.actionData ? JSON.parse(n.actionData) : null;
-        if (!payload || payload.targeted !== true || !payload.bookingId) return null;
-        return String(payload.bookingId);
-      } catch {
-        return null;
-      }
-    })
-    .filter(Boolean);
-
-  const targetedBookings = targetedBookingIds.length > 0
-    ? await prisma.booking.findMany({
-      where: activeOfferWhereClause({
-        id: {
-          in: targetedBookingIds,
-          ...(rejectedIds.length > 0 && { notIn: rejectedIds }),
-        },
-      }),
-      include: bookingInclude,
-      take: 50,
-    })
-    : [];
-
-  const bookings = await prisma.booking.findMany({
-    where: activeOfferWhereClause(
-      rejectedIds.length > 0 ? { id: { notIn: rejectedIds } } : {}
-    ),
-    include: bookingInclude,
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-  });
-
-  const driverLat = driver.currentLatitude;
-  const driverLng = driver.currentLongitude;
-  const driverVehicleType = driver.vehicle?.type;
-
-  const nearby = bookings.filter((booking) => {
-    const withinRadius =
-      haversineKm(
-        driverLat,
-        driverLng,
-        booking.pickupAddress.latitude,
-        booking.pickupAddress.longitude
-      ) <= DRIVER_SEARCH_RADIUS_KM;
-    const vehicleMatches = !driverVehicleType || booking.vehicleType === driverVehicleType;
-    return withinRadius && vehicleMatches;
-  });
-
-  const dedupedById = new Map();
-  [...targetedBookings, ...nearby].forEach((booking) => {
-    if (!dedupedById.has(booking.id)) {
-      dedupedById.set(booking.id, booking);
-    }
-  });
-
-  return sortIncomingBookings(Array.from(dedupedById.values()));
-}
-
-// GET /api/driver/jobs/active — bookings assigned to driver in active statuses
+// GET /api/driver/jobs/active
 router.get('/active', async (req, res, next) => {
   try {
     console.log('[driver-jobs] GET /active — driver:', driverLabel(req.driver));
@@ -247,7 +127,7 @@ router.get('/active', async (req, res, next) => {
   }
 });
 
-// GET /api/driver/jobs/scheduled — future scheduled bookings
+// GET /api/driver/jobs/scheduled
 router.get('/scheduled', async (req, res, next) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -265,7 +145,7 @@ router.get('/scheduled', async (req, res, next) => {
   }
 });
 
-// GET /api/driver/jobs/completed — only settled, handover-confirmed deliveries
+// GET /api/driver/jobs/completed
 router.get('/completed', async (req, res, next) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -286,11 +166,11 @@ router.get('/completed', async (req, res, next) => {
   }
 });
 
-// GET /api/driver/jobs/incoming — SEARCHING_DRIVER bookings (available to accept)
+// GET /api/driver/jobs/incoming
 router.get('/incoming', async (req, res, next) => {
   try {
     console.log('[driver-jobs] GET /incoming — driver:', driverLabel(req.driver), 'location:', req.driver.currentLatitude, req.driver.currentLongitude, 'vehicleType:', req.driver.vehicle?.type);
-    const incoming = await getIncomingBookingsForDriver(req.driver);
+    const incoming = await getIncomingBookingsForDriver(req.driver, bookingInclude);
     console.log('[driver-jobs] incoming — driver:', driverLabel(req.driver), 'jobs eligible:', incoming.length);
     const job = incoming.length > 0 ? toDeliveryJob(incoming[0]) : null;
     res.json({ success: true, data: job });
@@ -299,18 +179,18 @@ router.get('/incoming', async (req, res, next) => {
   }
 });
 
-// GET /api/driver/jobs/incoming-list — incoming offers sorted by payout desc
+// GET /api/driver/jobs/incoming-list
 router.get('/incoming-list', async (req, res, next) => {
   try {
     console.log('[driver-jobs] GET /incoming-list — driver:', driverLabel(req.driver));
-    const incoming = await getIncomingBookingsForDriver(req.driver);
+    const incoming = await getIncomingBookingsForDriver(req.driver, bookingInclude);
     res.json({ success: true, data: incoming.map(toDeliveryJob) });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/driver/jobs/:id — full detail
+// GET /api/driver/jobs/:id
 router.get('/:id', async (req, res, next) => {
   try {
     const booking = await prisma.booking.findUnique({
@@ -380,7 +260,6 @@ router.post('/:id/accept', async (req, res, next) => {
 router.post('/:id/reject', async (req, res, next) => {
   try {
     console.log('[driver-jobs] POST reject — driver:', driverLabel(req.driver), 'bookingId:', req.params.id);
-    // Record rejection so this booking won't show up again for this driver
     await prisma.bookingRejection.upsert({
       where: { driverId_bookingId: { driverId: req.driver.id, bookingId: req.params.id } },
       create: { driverId: req.driver.id, bookingId: req.params.id },
@@ -392,7 +271,7 @@ router.post('/:id/reject', async (req, res, next) => {
   }
 });
 
-// PUT /api/driver/jobs/:id/status — update status with mapping
+// PUT /api/driver/jobs/:id/status
 router.put('/:id/status', async (req, res, next) => {
   try {
     const { status } = req.body;
@@ -405,6 +284,9 @@ router.put('/:id/status', async (req, res, next) => {
     }
     if (backendStatus === 'DELIVERED') {
       return next(new AppError('Use proof submission to complete delivery', 400));
+    }
+    if (backendStatus === 'PICKUP_DONE') {
+      return next(new AppError('Use pickup OTP verification to confirm pickup', 400));
     }
 
     const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
@@ -426,7 +308,7 @@ router.put('/:id/status', async (req, res, next) => {
   }
 });
 
-// POST /api/driver/jobs/:id/verify-pickup-otp — verify OTP at pickup
+// POST /api/driver/jobs/:id/verify-pickup-otp
 router.post('/:id/verify-pickup-otp', async (req, res, next) => {
   try {
     const { otp } = req.body;
@@ -459,9 +341,11 @@ router.post('/:id/verify-pickup-otp', async (req, res, next) => {
   }
 });
 
-// POST /api/driver/jobs/:id/request-delivery-otp — generate/send recipient OTP at drop-off
+// POST /api/driver/jobs/:id/request-delivery-otp
 router.post('/:id/request-delivery-otp', async (req, res, next) => {
   try {
+    const forceResend = req.body?.forceResend === true;
+    const now = new Date();
     console.log('[driver-jobs] POST request-delivery-otp — driver:', driverLabel(req.driver), 'bookingId:', req.params.id);
     const booking = await prisma.booking.findUnique({
       where: { id: req.params.id },
@@ -474,30 +358,62 @@ router.post('/:id/request-delivery-otp', async (req, res, next) => {
     }
 
     const recipientEmail = booking.deliveryAddress?.contactEmail || booking.user?.email || '';
+    const isAdminDispatch = booking.dispatchSource === 'ADMIN';
+    if (!isAdminDispatch && !recipientEmail) {
+      return next(new AppError('Recipient email is required to send delivery OTP', 400));
+    }
+
+    const existingWindow = deliveryOtpWindow(booking.deliveryOtpSentAt, now);
+    const hasActiveAdminOtp = isAdminDispatch && booking.deliveryOtp && existingWindow.active;
+    const hasActiveEmailOtp = !isAdminDispatch && booking.deliveryOtpSentAt && existingWindow.active;
+    if (!forceResend && (hasActiveAdminOtp || hasActiveEmailOtp)) {
+      return res.json({
+        success: true,
+        data: deliveryOtpPayload({
+          booking,
+          recipientEmail,
+          now,
+          adminOtp: isAdminDispatch ? booking.deliveryOtp : null,
+          alreadySent: true,
+        }),
+        message: recipientEmail
+          ? `OTP already sent for ${maskEmail(recipientEmail)}`
+          : 'OTP already generated',
+      });
+    }
+
+    if (forceResend && booking.deliveryOtpSentAt && !existingWindow.canResend) {
+      return res.json({
+        success: true,
+        data: deliveryOtpPayload({
+          booking,
+          recipientEmail,
+          now,
+          adminOtp: isAdminDispatch ? booking.deliveryOtp : null,
+          alreadySent: true,
+        }),
+        message: `OTP can be resent after ${existingWindow.resendAvailableAt.toISOString()}`,
+      });
+    }
+
     const generatedOtp = generateDeliveryOtp();
     const updateData = {
-      deliveryOtpSentAt: new Date(),
+      deliveryOtpSentAt: now,
       deliveryOtpVerifiedAt: null,
     };
-    const isAdminDispatch = booking.dispatchSource === 'ADMIN';
     if (isAdminDispatch) {
       updateData.deliveryOtp = generatedOtp;
     } else {
       updateData.deliveryOtp = '';
     }
-    await prisma.booking.update({
+    const updatedBooking = await prisma.booking.update({
       where: { id: req.params.id },
       data: updateData,
+      include: bookingInclude,
     });
 
     if (!isAdminDispatch && recipientEmail) {
-      const { error } = await getSupabaseAdmin().auth.signInWithOtp({
-        email: recipientEmail,
-        options: { shouldCreateUser: true },
-      });
-      if (error) {
-        return next(new AppError(`Failed to send recipient OTP email: ${error.message}`, 500));
-      }
+      await sendEmailOtp(recipientEmail);
     }
 
     console.log(
@@ -513,15 +429,17 @@ router.post('/:id/request-delivery-otp', async (req, res, next) => {
       isAdminDispatch ? generatedOtp : '[supabase-email-otp]'
     );
 
-    await notifyUserBookingEvent(booking, 'DELIVERY_OTP_REQUESTED');
+    await notifyUserBookingEvent(updatedBooking, 'DELIVERY_OTP_REQUESTED');
 
     res.json({
       success: true,
-      data: {
-        recipientEmail: recipientEmail ? maskEmail(recipientEmail) : '',
-        otpSentAt: new Date().toISOString(),
+      data: deliveryOtpPayload({
+        booking: updatedBooking,
+        recipientEmail,
+        now,
         adminOtp: isAdminDispatch ? generatedOtp : null,
-      },
+        alreadySent: false,
+      }),
       message: recipientEmail
         ? `OTP sent for ${maskEmail(recipientEmail)}`
         : 'OTP generated (recipient email missing)',
@@ -531,7 +449,7 @@ router.post('/:id/request-delivery-otp', async (req, res, next) => {
   }
 });
 
-// POST /api/driver/jobs/:id/proof — proof of delivery
+// POST /api/driver/jobs/:id/proof
 router.post('/:id/proof', async (req, res, next) => {
   try {
     const { photoUrl, recipientName, otpCode } = req.body;
@@ -540,7 +458,7 @@ router.post('/:id/proof', async (req, res, next) => {
     if (!booking) return next(new AppError('Job not found', 404));
     if (booking.driverId !== req.driver.id) return next(new AppError('Not authorized', 403));
     if (booking.status === 'DELIVERED') {
-      if (!isSettlementEligibleBooking(booking)) {
+      if (!isSettlementEligible(booking)) {
         return next(new AppError('Delivered booking is missing handover verification', 409));
       }
       const alreadyDelivered = await prisma.booking.findUnique({
@@ -552,29 +470,23 @@ router.post('/:id/proof', async (req, res, next) => {
     if (!otpCode || String(otpCode).trim().length < 4) {
       return next(new AppError('Recipient OTP is required', 400));
     }
-    const normalizedOtp = String(otpCode).trim();
-    const recipientEmail = booking.deliveryAddress?.contactEmail || booking.user?.email || '';
 
-    if (booking.dispatchSource === 'ADMIN') {
-      if (!booking.deliveryOtp || booking.deliveryOtp !== normalizedOtp) {
-        return next(new AppError('Invalid recipient OTP', 400));
-      }
-    } else if (recipientEmail) {
-      const { error } = await getSupabaseAdmin().auth.verifyOtp({
-        email: recipientEmail,
-        token: normalizedOtp,
-        type: 'email',
-      });
-      if (error) {
-        return next(new AppError('Invalid recipient OTP', 400));
-      }
-    } else if (!booking.deliveryOtp || booking.deliveryOtp !== normalizedOtp) {
-      return next(new AppError('Invalid recipient OTP', 400));
+    const recipientEmail = booking.deliveryAddress?.contactEmail || booking.user?.email || '';
+    const otpWindow = deliveryOtpWindow(booking.deliveryOtpSentAt);
+    if (!booking.deliveryOtpSentAt || !otpWindow.active) {
+      return next(new AppError('Recipient OTP expired. Please resend the OTP.', 400));
+    }
+
+    const otpResult = await verifyDeliveryOtp({ booking, otp: otpCode, recipientEmail });
+    if (!otpResult.valid) {
+      return next(new AppError(otpResult.error, 400));
     }
 
     const now = new Date();
 
     const updated = await prisma.$transaction(async (tx) => {
+      const { creditDriverEarning } = require('../services/bookingLifecycle');
+
       const deliverResult = await tx.booking.updateMany({
         where: {
           id: req.params.id,
@@ -604,36 +516,7 @@ router.post('/:id/proof', async (req, res, next) => {
         create: { bookingId: req.params.id, completedAt: now },
       });
 
-      const wallet = await tx.driverWallet.findUnique({ where: { driverId: req.driver.id } });
-      if (wallet) {
-        const existingEarning = await tx.driverWalletTransaction.findFirst({
-          where: {
-            walletId: wallet.id,
-            type: 'DELIVERY_EARNING',
-            jobId: req.params.id,
-          },
-        });
-        if (!existingEarning) {
-          const earning = deliveredBooking.finalPrice || deliveredBooking.estimatedPrice;
-          console.log('[driver-jobs] proof — driver:', driverLabel(req.driver), 'customer:', deliveredBooking.user?.name || 'unknown', 'bookingId:', req.params.id, 'crediting earnings:', earning);
-          await tx.driverWalletTransaction.create({
-            data: {
-              walletId: wallet.id,
-              type: 'DELIVERY_EARNING',
-              amount: earning,
-              description: `Delivery earning for job ${req.params.id.slice(0, 8)}`,
-              jobId: req.params.id,
-            },
-          });
-          await tx.driverWallet.update({
-            where: { id: wallet.id },
-            data: {
-              balance: { increment: earning },
-              lifetimeEarnings: { increment: earning },
-            },
-          });
-        }
-      }
+      await creditDriverEarning(tx, req.driver.id, deliveredBooking);
 
       await tx.driver.update({
         where: { id: req.driver.id },
@@ -651,7 +534,7 @@ router.post('/:id/proof', async (req, res, next) => {
   }
 });
 
-// POST /api/driver/jobs/:id/cancel — cancel an accepted job (re-queues it)
+// POST /api/driver/jobs/:id/cancel
 router.post('/:id/cancel', async (req, res, next) => {
   try {
     console.log('[driver-jobs] POST cancel — driver:', driverLabel(req.driver), 'bookingId:', req.params.id);
@@ -659,14 +542,13 @@ router.post('/:id/cancel', async (req, res, next) => {
     if (!booking) return next(new AppError('Job not found', 404));
     if (booking.driverId !== req.driver.id) return next(new AppError('Not authorized', 403));
 
-    if (booking.status === 'DELIVERED' || booking.status === 'CANCELLED') {
-      return next(new AppError('Job is already completed or cancelled', 400));
-    }
-    if (['PICKUP_DONE', 'IN_TRANSIT'].includes(booking.status)) {
+    if (!canDriverCancel(booking.status)) {
+      if (booking.status === 'DELIVERED' || booking.status === 'CANCELLED') {
+        return next(new AppError('Job is already completed or cancelled', 400));
+      }
       return next(new AppError('Cannot cancel after picking up the package', 400));
     }
 
-    // DRIVER_ASSIGNED or DRIVER_ARRIVED — re-queue the job
     const updated = await prisma.booking.update({
       where: { id: req.params.id },
       data: { status: 'SEARCHING_DRIVER', driverId: null },

@@ -14,12 +14,13 @@ const app = express();
 const allowedOrigins = process.env.FRONTEND_URL
   ? process.env.FRONTEND_URL.split(',').map(s => s.trim())
   : [];
-app.use(cors(allowedOrigins.length > 0 ? {
-  origin: allowedOrigins,
-  credentials: true,
-} : undefined));
+const corsOptions = allowedOrigins.length > 0
+  ? { origin: allowedOrigins, credentials: true }
+  : (process.env.NODE_ENV === 'production' ? { origin: false } : undefined);
+app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan('dev'));
+app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
 app.use(express.json({ limit: '100kb' }));
 
 // Rate limiting
@@ -37,11 +38,19 @@ const walletLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+const locationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  message: { success: false, message: 'Too many location requests. Please wait a moment.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 app.use('/api/auth/send-otp', authLimiter);
 app.use('/api/auth/verify-otp', authLimiter);
 app.use('/api/auth/refresh', authLimiter);
 app.use('/api/wallet/topup', walletLimiter);
 app.use('/api/wallet/pay', walletLimiter);
+app.use('/api/location', locationLimiter);
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
@@ -58,6 +67,7 @@ app.use('/api/upload', require('./routes/upload.routes'));
 app.use('/api/promo', require('./routes/promo.routes'));
 app.use('/api/chat', require('./routes/chat.routes'));
 app.use('/api/wallet', require('./routes/wallet.routes'));
+app.use('/api/payments', require('./routes/payment.routes'));
 app.use('/api/support', require('./routes/support.routes'));
 app.use('/api/ratings', require('./routes/rating.routes'));
 app.use('/api/invoices', require('./routes/invoice.routes'));
@@ -73,6 +83,7 @@ app.use('/api/driver/ratings', require('./routes/driver-ratings.routes'));
 app.use('/api/driver/support', require('./routes/driver-support.routes'));
 app.use('/api/driver/notifications', require('./routes/driver-notifications.routes'));
 app.use('/api/driver/chat', require('./routes/driver-chat.routes'));
+app.use('/api/driver/payouts', require('./routes/driver-payouts.routes'));
 
 // Admin routes (protected by admin key)
 const { adminAuth } = require('./middleware/adminAuth');

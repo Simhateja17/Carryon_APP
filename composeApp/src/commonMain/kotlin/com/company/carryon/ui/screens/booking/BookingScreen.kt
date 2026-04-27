@@ -72,7 +72,7 @@ fun BookingScreen(
     var isLoadingVehicles by remember { mutableStateOf(true) }
 
     var selectedVehicle by remember { mutableStateOf<VehicleOption?>(null) }
-    var paymentType by remember { mutableStateOf("DuitNow") }
+    var paymentType by remember { mutableStateOf("CarryOn Wallet") }
     var paidBy by remember { mutableStateOf("Me") }
 
     // Map & route state
@@ -345,12 +345,7 @@ fun BookingScreen(
                         Text("Payment type", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(10.dp))
                         val paymentMethods = listOf(
-                            Pair("", "Cash"),
-                            Pair("🇲🇾", "DuitNow"),
-                            Pair("", "Touch 'n Go"),
-                            Pair("", "GrabPay"),
-                            Pair("", "FPX"),
-                            Pair("", "Card")
+                            Pair("", "CarryOn Wallet")
                         )
                         val rows = paymentMethods.chunked(3)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -416,14 +411,7 @@ fun BookingScreen(
                 Button(
                     onClick = { 
                         selectedVehicle?.let { vehicle ->
-                            // Map UI payment type to API payment method
-                            val apiPaymentMethod = when (paymentType) {
-                                "Cash" -> "CASH"
-                                "DuitNow" -> "DUITNOW"
-                                "Card" -> "CARD"
-                                else -> "WALLET"
-                            }
-                            onConfirmBooking(vehicle.name, vehicle.priceValue, apiPaymentMethod)
+                            onConfirmBooking(vehicle.name, vehicle.priceValue, "WALLET")
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(52.dp),

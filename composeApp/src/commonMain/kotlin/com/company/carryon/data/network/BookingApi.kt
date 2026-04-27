@@ -26,6 +26,7 @@ data class CreateBookingRequest(
     val receiverPhone: String,
     val receiverEmail: String? = null,
     val notes: String? = null,
+    val deliveryMode: String = "Regular",
     val estimatedPrice: Double = 0.0,
     val distance: Double = 0.0,
     val duration: Int = 0

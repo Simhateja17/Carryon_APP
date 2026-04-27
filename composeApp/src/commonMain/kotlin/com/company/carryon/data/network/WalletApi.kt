@@ -10,13 +10,44 @@ import kotlinx.serialization.Serializable
 private data class TopUpRequest(val amount: Double, val paymentReference: String? = null)
 
 @Serializable
+private data class TopUpIntentRequest(val amount: Double)
+
+@Serializable
 private data class WalletPayRequest(val bookingId: String)
+
+@Serializable
+data class PaymentConfig(
+    val publishableKey: String = "",
+    val currency: String = "myr",
+    val country: String = "MY",
+    val walletTopUpMin: Double = 10.0,
+    val walletTopUpMax: Double = 1000.0
+)
+
+@Serializable
+data class WalletTopUpIntent(
+    val paymentIntentId: String = "",
+    val clientSecret: String = "",
+    val amount: Double = 0.0,
+    val currency: String = "myr"
+)
 
 object WalletApi {
     private val client get() = HttpClientFactory.client
 
     suspend fun getWallet(): Result<ApiResponse<Wallet>> = runCatching {
         client.get("/api/wallet").body()
+    }
+
+    suspend fun getPaymentConfig(): Result<ApiResponse<PaymentConfig>> = runCatching {
+        client.get("/api/payments/config").body()
+    }
+
+    suspend fun createTopUpIntent(amount: Double): Result<ApiResponse<WalletTopUpIntent>> = runCatching {
+        client.post("/api/wallet/topup/intent") {
+            contentType(ContentType.Application.Json)
+            setBody(TopUpIntentRequest(amount))
+        }.body()
     }
 
     suspend fun topUp(amount: Double, paymentReference: String? = null): Result<ApiResponse<WalletTopUpResponse>> = runCatching {

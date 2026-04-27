@@ -46,9 +46,11 @@ fun SenderReceiverScreen(
     var senderNameError by remember { mutableStateOf(false) }
     var receiverNameError by remember { mutableStateOf(false) }
     var recipientContactError by remember { mutableStateOf(false) }
+    var recipientEmailError by remember { mutableStateOf(false) }
     var hasAttemptedSubmit by remember { mutableStateOf(false) }
     
     val strings = LocalStrings.current
+    fun isValidEmail(value: String): Boolean = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(value.trim())
 
     Scaffold(
         topBar = {
@@ -132,7 +134,17 @@ fun SenderReceiverScreen(
                 recipientContact = contact.phone
             }
             Spacer(modifier = Modifier.height(14.dp))
-            BookingInputField(label = "Recipient Email (OTP)", value = recipientEmail, placeholder = "e.g. receiver@example.com", onValueChange = { recipientEmail = it })
+            BookingInputField(
+                label = "Recipient Email (OTP)",
+                value = recipientEmail,
+                placeholder = "e.g. receiver@example.com",
+                onValueChange = {
+                    recipientEmail = it
+                    if (hasAttemptedSubmit) recipientEmailError = !isValidEmail(it)
+                },
+                isError = recipientEmailError,
+                errorMessage = "Valid recipient email is required for delivery OTP"
+            )
             Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.address, value = address, placeholder = "e.g. Jalan Bukit Bintang, KL", onValueChange = { address = it })
 
@@ -145,15 +157,16 @@ fun SenderReceiverScreen(
                     senderNameError = senderName.isBlank()
                     receiverNameError = receiverName.isBlank()
                     recipientContactError = recipientContact.isBlank() || recipientContact.filter { it.isDigit() }.length < 9
+                    recipientEmailError = !isValidEmail(recipientEmail)
                     
                     // Only proceed if all required fields are filled
-                    if (!senderNameError && !receiverNameError && !recipientContactError) {
+                    if (!senderNameError && !receiverNameError && !recipientContactError && !recipientEmailError) {
                         onNext(
                             senderName,
                             recipientContact,
                             receiverName,
                             recipientContact,
-                            recipientEmail,
+                            recipientEmail.trim(),
                             request
                         )
                     }

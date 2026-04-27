@@ -50,7 +50,7 @@ fun RequestForRideScreen(
     onContinue: (bookingId: String, amount: Double) -> Unit,
     onBack: () -> Unit
 ) {
-    var selectedPayment by remember { mutableStateOf("cash") }
+    var selectedPayment by remember { mutableStateOf("wallet") }
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
@@ -140,12 +140,7 @@ fun RequestForRideScreen(
     val totalAmount = subtotal + taxAmount
 
     // Map payment selection to API format
-    val paymentMethodApi = when (selectedPayment) {
-        "cash" -> "CASH"
-        "card" -> "CARD"
-        "wallet" -> "DUITNOW"
-        else -> "CASH"
-    }
+    val paymentMethodApi = "WALLET"
 
     // Map vehicle type to API format
     val vehicleTypeApi = when (vehicleType) {
@@ -205,6 +200,7 @@ fun RequestForRideScreen(
                                 receiverName = receiverName,
                                 receiverPhone = receiverPhone,
                                 receiverEmail = receiverEmail,
+                                deliveryMode = deliveryMode,
                                 estimatedPrice = totalAmount,
                                 distance = distanceKm,
                                 duration = 0
@@ -410,23 +406,9 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             PaymentMethodRow(
-                iconRes = Res.drawable.payment_cash,
-                title = strings.cash,
-                subtitle = "",
-                isSelected = selectedPayment == "cash"
-            ) { selectedPayment = "cash" }
-            Spacer(modifier = Modifier.height(10.dp))
-            PaymentMethodRow(
-                iconRes = Res.drawable.payment_visa,
-                title = "Credit / Debit Card",
-                subtitle = "",
-                isSelected = selectedPayment == "card"
-            ) { selectedPayment = "card" }
-            Spacer(modifier = Modifier.height(10.dp))
-            PaymentMethodRow(
                 iconRes = Res.drawable.payment_paypal,
-                title = "E-Wallet",
-                subtitle = "",
+                title = "CarryOn Wallet",
+                subtitle = "Top up with Stripe before dispatch",
                 isSelected = selectedPayment == "wallet"
             ) { selectedPayment = "wallet" }
 

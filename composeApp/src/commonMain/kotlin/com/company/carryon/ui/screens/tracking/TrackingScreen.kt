@@ -3,6 +3,7 @@ package com.company.carryon.ui.screens.tracking
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +19,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import carryon.composeapp.generated.resources.Res
+import carryon.composeapp.generated.resources.vehicle_bike_icon
+import carryon.composeapp.generated.resources.vehicle_car
+import carryon.composeapp.generated.resources.vehicle_truck_icon
+import carryon.composeapp.generated.resources.vehicle_van
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
@@ -26,6 +32,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
+import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -131,6 +138,8 @@ fun TrackingScreen(
     val etaMinutes = booking?.eta?.let { "$it min" } ?: strings.estimatedDelivery
     val vehicleType = booking?.vehicleType ?: "—"
     val displayOrderId = formatOrderDisplayId(bookingId, booking?.orderCode)
+    val vehicleIconRes = booking?.vehicleType.toVehicleIconResource()
+    val vehicleLabel = booking?.vehicleType.toDisplayVehicleLabel().ifBlank { "Vehicle" }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -253,7 +262,11 @@ fun TrackingScreen(
                                     .background(PrimaryBlueSurface, RoundedCornerShape(12.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("", fontSize = 28.sp)
+                                Image(
+                                    painter = painterResource(vehicleIconRes),
+                                    contentDescription = vehicleLabel,
+                                    modifier = Modifier.size(42.dp)
+                                )
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -449,6 +462,30 @@ fun TrackingScreen(
             }
         )
     }
+}
+
+private fun String?.toDisplayVehicleLabel(): String {
+    return when (this?.trim()?.uppercase()) {
+        "BIKE" -> "Bike"
+        "CAR" -> "Car"
+        "PICKUP" -> "Pickup"
+        "VAN" -> "Van"
+        "VAN_7FT" -> "Van 7ft"
+        "VAN_9FT" -> "Van 9ft"
+        "LORRY_10FT" -> "Small Lorry 10ft"
+        "LORRY_14FT" -> "Medium Lorry 14ft"
+        "LORRY_17FT" -> "Large Lorry 17ft"
+        "TRUCK" -> "Truck"
+        else -> this?.trim().orEmpty()
+    }
+}
+
+private fun String?.toVehicleIconResource() = when (this?.trim()?.lowercase()) {
+    "bike", "2 wheeler" -> Res.drawable.vehicle_bike_icon
+    "car", "auto", "car (2-seat)", "car (4-seat)" -> Res.drawable.vehicle_car
+    "van 7ft", "van_7ft", "van 9ft", "van_9ft", "mini van", "mini truck", "minitruck" -> Res.drawable.vehicle_van
+    "pickup", "4x4 pickup", "lorry_10ft", "lorry_14ft", "lorry_17ft", "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "truck", "open truck" -> Res.drawable.vehicle_truck_icon
+    else -> Res.drawable.vehicle_truck_icon
 }
 
 @Composable

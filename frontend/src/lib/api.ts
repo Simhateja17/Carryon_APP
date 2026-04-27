@@ -1,5 +1,4 @@
-const PRODUCTION_URL = "https://carryon-backend-wb3t.onrender.com";
-const ADMIN_KEY = process.env.NEXT_PUBLIC_ADMIN_API_KEY || "";
+const PRODUCTION_URL = "https://api.carryon.my";
 
 let _resolvedBase: string | null = null;
 
@@ -27,18 +26,16 @@ export async function apiFetch<T>(
   path: string,
   options?: RequestInit
 ): Promise<T> {
-  const API_BASE = await getApiBase();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options?.headers as Record<string, string>),
   };
 
-  // Attach admin key for admin endpoints
-  if (path.startsWith("/api/admin") && ADMIN_KEY) {
-    headers["x-admin-key"] = ADMIN_KEY;
-  }
+  const url = path.startsWith("/api/admin")
+    ? path
+    : `${await getApiBase()}${path}`;
 
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(url, {
     ...options,
     headers,
   });

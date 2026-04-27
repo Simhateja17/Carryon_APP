@@ -19,6 +19,7 @@ import com.company.carryon.data.network.initTokenStorage
 import com.company.carryon.data.network.savePendingPushNavigation
 import com.company.carryon.data.network.savePushToken
 import com.company.carryon.data.network.PushNavigationSignal
+import com.company.carryon.data.payment.StripePaymentLauncher
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 
@@ -33,6 +34,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initTokenStorage(applicationContext)
+        StripePaymentLauncher.init(this)
         enableEdgeToEdge()
         createNotificationChannel()
         handlePushNavigationIntent(intent)
