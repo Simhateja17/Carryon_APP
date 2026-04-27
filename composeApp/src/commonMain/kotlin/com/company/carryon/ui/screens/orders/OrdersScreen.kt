@@ -71,6 +71,7 @@ import carryon.composeapp.generated.resources.vector_truck
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.data.network.BookingApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
@@ -208,7 +209,7 @@ fun OrdersScreen(
             .padding(horizontal = 16.dp)
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        OrdersHeader()
+        OrdersHeader(onBack = onBack)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -268,7 +269,7 @@ fun OrdersScreen(
 
         if (showOngoing) {
             if (ongoingOrder != null) {
-                OngoingOrderCard(order = ongoingOrder, onTrack = { onOrderClick(ongoingOrder.id) })
+                OngoingOrderCard(order = ongoingOrder, onTrack = { onTrackOrder(ongoingOrder.id) })
                 Spacer(modifier = Modifier.height(12.dp))
             } else {
                 EmptyOrdersState("No ongoing deliveries")
@@ -390,7 +391,7 @@ private fun CompletedOrdersScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "←",
+                text = "‹",
                 color = Color(0xFF2F80ED),
                 fontSize = 22.sp,
                 modifier = Modifier.clickable { onBack() }
@@ -526,7 +527,7 @@ private fun OngoingDeliveriesScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "←",
+                text = "‹",
                 modifier = Modifier
                     .size(30.dp)
                     .clickable { onBack() },
@@ -800,24 +801,13 @@ private fun OngoingDeliveryCard(
 }
 @Composable
 private fun OrdersHeader(
+    onBack: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Orders",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF1D254B)
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-    }
-    HorizontalDivider(color = Color(0xFFE9ECF2))
+    CarryOnHeader(
+        title = "Orders",
+        onBack = onBack,
+        contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)
+    )
 }
 
 @Composable
@@ -838,15 +828,6 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(52.dp)
-                        .background(Color(0xFFAED0F3), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) { Text("", fontSize = 22.sp) }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
                 Column(modifier = Modifier.weight(1f)) {
                     Text("ID: ${formatOrderDisplayId(order.id, order.orderCode)}", color = Color(0xFF8F9BB3), fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Normal)
                     Text("Ongoing Delivery", color = Color(0xFF28345E), fontWeight = FontWeight.Medium, fontSize = OrderCardHeadingFontSize, maxLines = 1)
@@ -933,15 +914,6 @@ private fun ScheduledOrderCard(
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(Color(0xFFDCE6F1), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("", fontSize = 20.sp)
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             text = "PICKUP SCHEDULED",
@@ -1084,9 +1056,8 @@ private fun CompletedOrderCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
-                            modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) { Text("", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Medium) }
+                            modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape)
+                        )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(card.statusText, color = Color(0xFF2F80ED), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
                     }
@@ -1191,11 +1162,7 @@ private fun CancelledOrderCard(
                         fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("", fontSize = 12.sp)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
-                    }
+                    Text(card.dateTime, color = Color.Black, fontSize = OrderCardMetaFontSize, fontWeight = FontWeight.Medium)
                 }
                 Surface(
                     shape = RoundedCornerShape(999.dp),

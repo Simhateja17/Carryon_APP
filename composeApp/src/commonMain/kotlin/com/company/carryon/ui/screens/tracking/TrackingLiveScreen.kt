@@ -247,7 +247,7 @@ fun TrackingLiveScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "<",
+                            "‹",
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary,

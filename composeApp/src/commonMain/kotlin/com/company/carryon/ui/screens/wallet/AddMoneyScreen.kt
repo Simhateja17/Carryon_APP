@@ -2,7 +2,6 @@ package com.company.carryon.ui.screens.wallet
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -34,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,7 +69,14 @@ fun AddMoneyScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Payment", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
+            Text(
+                "‹",
+                color = Color.Black,
+                fontSize = 24.sp,
+                modifier = Modifier.clickable { onBack() }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Payment", color = Color(0xFF1F2937), fontSize = 21.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.weight(1f))
             Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
             Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
@@ -268,21 +272,6 @@ fun AddMoneyScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            MiniTab(Res.drawable.icon_home, "HOME", false)
-            MiniTab(Res.drawable.icon_timer, "ORDERS", false)
-            MiniTab(Res.drawable.wallet_add_money_icon, "WALLET", true)
-            MiniTab(Res.drawable.icon_people, "PROFILE", false)
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         Text(
             "Back",
             modifier = Modifier
@@ -312,29 +301,5 @@ private fun QuickAmountButton(
         )
     ) {
         Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun MiniTab(iconRes: DrawableResource, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .background(if (selected) PrimaryBlue else Color.Transparent, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(iconRes),
-                contentDescription = label,
-                colorFilter = ColorFilter.tint(if (selected) Color.White else PrimaryBlue),
-                modifier = Modifier.size(18.dp)
-            )
-        }
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(label, color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
     }
 }

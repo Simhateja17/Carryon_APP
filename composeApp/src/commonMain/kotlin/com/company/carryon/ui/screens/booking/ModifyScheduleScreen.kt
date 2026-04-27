@@ -146,8 +146,8 @@ private fun HeaderRow(onBack: () -> Unit) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "←",
-                color = PrimaryBlue,
+                text = "‹",
+                color = Color.Black,
                 fontSize = 18.sp,
                 modifier = Modifier.clickable { onBack() }
             )

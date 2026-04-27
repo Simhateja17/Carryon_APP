@@ -61,7 +61,7 @@ fun LanguageSettingsScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "←",
+                        text = "‹",
                         color = PrimaryBlue,
                         fontSize = 22.sp,
                         modifier = Modifier.clickable { onBack() }

@@ -299,7 +299,9 @@ fun SelectAddressScreen(
                     }
                 },
                 actions = { IconButton(onClick = {}) { Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp)) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                expandedHeight = 56.dp,
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         bottomBar = {
@@ -319,20 +321,18 @@ fun SelectAddressScreen(
             }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(Color.White)) {
-            // Bottom sheet
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(Color.White)
+                .verticalScroll(rememberScrollState())
+        ) {
             Column(
-                modifier = Modifier.fillMaxWidth().offset(y = (-16).dp)
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
-                    .background(Color.White)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
-                Spacer(modifier = Modifier.height(10.dp))
-                // Handle bar
-                Box(modifier = Modifier.width(120.dp).height(4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x802F80ED)).align(Alignment.CenterHorizontally))
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(strings.selectAddress, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -490,8 +490,7 @@ fun SelectAddressScreen(
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                } // end inner Column
-            } // end outer Column
+            }
         }
     }
 }

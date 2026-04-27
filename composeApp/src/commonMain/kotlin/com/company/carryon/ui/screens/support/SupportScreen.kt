@@ -26,6 +26,7 @@ import carryon.composeapp.generated.resources.support_call_icon
 import carryon.composeapp.generated.resources.support_chat_icon
 import com.company.carryon.data.model.SupportTicket
 import com.company.carryon.data.network.SupportApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
@@ -44,21 +45,11 @@ fun SupportScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("←", color = PrimaryBlue, fontSize = 24.sp, modifier = Modifier.clickable { onBack() })
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Help & Support", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-            }
-        }
+        CarryOnHeader(
+            title = "Help & Support",
+            onBack = onBack,
+            contentPadding = PaddingValues(0.dp)
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
         Text("Quick Support", color = Color(0xFF0F172A), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
@@ -267,7 +258,7 @@ private fun LegacySupportScreen(
             TopAppBar(
                 title = { Text(strings.supportTitle, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    TextButton(onClick = onBack) { Text("< ${strings.back}", color = Color.Black) }
+                    TextButton(onClick = onBack) { Text("‹ ${strings.back}", color = Color.Black) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 
 @Composable
@@ -29,34 +30,12 @@ fun ClearCacheScreen(
             .background(Color(0xFFF3F4F6))
             .verticalScroll(rememberScrollState())
     ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(64.dp)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "←",
-                    color = PrimaryBlue,
-                    fontSize = 24.sp,
-                    modifier = Modifier.clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Storage Management",
-                    color = Color(0xFF282B51),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "CarryOn",
-                    color = PrimaryBlue,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            CarryOnHeader(
+                title = "Storage Management",
+                titleColor = Color(0xFF282B51),
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp)
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 

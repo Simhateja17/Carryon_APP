@@ -170,7 +170,9 @@ fun ActiveShipmentScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White
-                )
+                ),
+                expandedHeight = 56.dp,
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         containerColor = Color.White

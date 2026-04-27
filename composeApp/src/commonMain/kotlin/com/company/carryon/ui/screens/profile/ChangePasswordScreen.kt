@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
+import com.company.carryon.ui.components.CarryOnHeader
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.change_password_active_icon
 import carryon.composeapp.generated.resources.change_password_encryption_shape
@@ -48,38 +50,11 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .background(Color(0xFFF5F6F8))
     ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "←",
-                        color = PrimaryBlue,
-                        fontSize = 24.sp,
-                        modifier = Modifier.clickable { onBack() }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Change Password",
-                        color = Color(0xFF1D254B),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                }
-            }
+            CarryOnHeader(
+                title = "Change Password",
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
+            )
 
             Column(
                 modifier = Modifier

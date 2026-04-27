@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -157,8 +158,8 @@ fun DetailsScreen(
                 },
                 navigationIcon = {
                     Text(
-                        text = "←",
-                        color = Color(0xFF2563EB),
+                        text = "‹",
+                        color = Color.Black,
                         fontSize = 16.sp,
                         modifier = Modifier
                             .padding(start = 8.dp)
@@ -167,7 +168,9 @@ fun DetailsScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.White
-                )
+                ),
+                expandedHeight = 56.dp,
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         },
         bottomBar = {
@@ -272,25 +275,29 @@ fun DetailsScreen(
 
                     if (deliveryMode == DeliveryModePooling) {
                         Spacer(modifier = Modifier.height(12.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(Color(0xFF2F80ED))
-                                .padding(25.dp)
+                        Surface(
+                            shape = RoundedCornerShape(24.dp),
+                            color = SectionTint20,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column {
-                                        Text("Pooling Delivery", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
-                                        Text("Grouped delivery with flexible timing", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Box(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Color.White)
+                                    .padding(20.dp)
+                            ) {
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Column {
+                                            Text("Pooling Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                                            Text("Grouped delivery with flexible timing", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                                        }
                                     }
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("⚑", color = Color.White, fontSize = 12.sp)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Orders may be grouped to reduce delivery cost", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("Orders may be grouped to reduce delivery cost", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                    }
                                 }
                             }
                         }
@@ -301,25 +308,23 @@ fun DetailsScreen(
                             color = SectionTint20,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = Color(0xFF2F80ED),
-                                    modifier = Modifier.size(48.dp)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text("◫", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Box(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Color.White)
+                                    .padding(16.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Priority Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                                        Text(
+                                            "Faster dispatch for urgent\nshipments that need priority handling.",
+                                            color = Color.Black,
+                                            fontSize = 14.sp,
+                                            lineHeight = 20.sp
+                                        )
                                     }
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text("Priority Delivery", color = Color.Black, fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                                    Text(
-                                        "Faster dispatch for urgent\nshipments that need priority handling.",
-                                        color = Color.Black,
-                                        fontSize = 14.sp,
-                                        lineHeight = 20.sp
-                                    )
                                 }
                             }
                         }
@@ -374,7 +379,38 @@ fun DetailsScreen(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            if (deliveryMode == DeliveryModePooling) {
+            if (deliveryMode == DeliveryModePriority) {
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
+                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    SameDaySlotCard(
+                        title = "Morning",
+                        time = "10 AM – 12 PM",
+                        selected = sameDaySlot == "Morning",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Morning" }
+                    SameDaySlotCard(
+                        title = "Afternoon",
+                        time = "12 PM – 2 PM",
+                        selected = sameDaySlot == "Afternoon",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Afternoon" }
+                    SameDaySlotCard(
+                        title = "Late Afr.",
+                        time = "2 PM – 5 PM",
+                        selected = sameDaySlot == "Late Afr.",
+                        modifier = Modifier.weight(1f)
+                    ) { sameDaySlot = "Late Afr." }
+                }
+                Spacer(modifier = Modifier.height(20.dp))
+            }
+
+            if (false && deliveryMode == DeliveryModePooling) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressInputCard(
@@ -384,7 +420,7 @@ fun DetailsScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 ExpressDropdownCard(
-                    icon = "⌂",
+                    icon = "",
                     label = "Parcel Type",
                     valueText = parcelType.ifBlank { "Package" },
                     expanded = parcelDropdownExpanded,
@@ -422,7 +458,7 @@ fun DetailsScreen(
                 SectionTitle("RECEIVER DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressLabeledInputCard(
-                    icon = "◉",
+                    icon = "",
                     placeholder = "Receiver Name",
                     value = receiverName,
                     onValueChange = { receiverName = it }
@@ -458,12 +494,6 @@ fun DetailsScreen(
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(shape = RoundedCornerShape(16.dp), color = Color(0xFFA6D2F3), modifier = Modifier.size(48.dp)) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("⚲", color = Color.White, fontSize = 24.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text("STANDARD BIKE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                                 Text("ETA: 25 mins", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, lineHeight = 28.sp)
@@ -475,7 +505,7 @@ fun DetailsScreen(
                         }
                     }
                 }
-            } else if (deliveryMode == DeliveryModePriority) {
+            } else if (false && deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
                     Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
@@ -507,15 +537,24 @@ fun DetailsScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 Text("Parcel Details", fontSize = 32.sp, color = Color.Black, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(12.dp))
+                val parcelCardHeight = 116.dp
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = SectionTint20,
+                        modifier = Modifier.weight(1f).height(parcelCardHeight)
+                    ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("WEIGHT (KG)", fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(parcelWeight, fontSize = 20.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                         }
                     }
-                    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.weight(1f)) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = SectionTint20,
+                        modifier = Modifier.weight(1f).height(parcelCardHeight)
+                    ) {
                         ExposedDropdownMenuBox(
                             expanded = parcelDropdownExpanded,
                             onExpandedChange = { parcelDropdownExpanded = !parcelDropdownExpanded }
@@ -531,8 +570,8 @@ fun DetailsScreen(
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Color.Transparent,
                                     unfocusedBorderColor = Color.Transparent,
-                                    focusedContainerColor = SectionTint20,
-                                    unfocusedContainerColor = SectionTint20
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent
                                 ),
                                 modifier = Modifier.fillMaxWidth().menuAnchor()
                             )
@@ -1078,16 +1117,18 @@ private fun ExpressInputCard(
 ) {
     ExpressContainerCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(icon, color = Color.Black, fontSize = 12.sp)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            if (icon.isNotBlank()) {
+                Text(icon, color = Color.Black, fontSize = 12.sp)
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             valueText,
             color = Color(0x6671749E),
             fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold
         )
     }
 }
@@ -1107,7 +1148,7 @@ private fun ExpressDropdownCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(icon, color = Color.Black, fontSize = 12.sp)
             Spacer(modifier = Modifier.width(8.dp))
-            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(label, color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(modifier = Modifier.height(8.dp))
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { onToggle() }) {
@@ -1130,13 +1171,20 @@ private fun ExpressDropdownCard(
                 ),
                 textStyle = androidx.compose.ui.text.TextStyle(
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold
                 ),
                 modifier = Modifier.fillMaxWidth().menuAnchor()
             )
-            DropdownMenu(expanded = expanded, onDismissRequest = onToggle) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = onToggle,
+                containerColor = SectionTint20
+            ) {
                 options.forEach {
-                    DropdownMenuItem(text = { Text(it) }, onClick = { onSelect(it) })
+                    DropdownMenuItem(
+                        text = { Text(it, color = Color.Black) },
+                        onClick = { onSelect(it) }
+                    )
                 }
             }
         }
@@ -1153,8 +1201,10 @@ private fun ExpressLabeledInputCard(
 ) {
     ExpressContainerCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(icon, color = Color.Black, fontSize = 16.sp)
-            Spacer(modifier = Modifier.width(16.dp))
+            if (icon.isNotBlank()) {
+                Text(icon, color = Color.Black, fontSize = 16.sp)
+                Spacer(modifier = Modifier.width(16.dp))
+            }
             OutlinedTextField(
                 value = value,
                 onValueChange = onValueChange,

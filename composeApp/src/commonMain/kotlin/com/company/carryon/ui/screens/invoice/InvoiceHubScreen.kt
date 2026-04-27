@@ -7,8 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +50,7 @@ import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.wallet_add_money_icon
 import com.company.carryon.data.model.Invoice
 import com.company.carryon.data.network.InvoiceApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatDecimal
@@ -84,7 +87,8 @@ fun InvoiceHubScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF7F9FC)
+        containerColor = Color(0xFFF7F9FC),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -94,26 +98,12 @@ fun InvoiceHubScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "←",
-                            color = PrimaryBlue,
-                            fontSize = 22.sp,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Payments", color = Color(0xFF1F2937), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    }
-                }
+                CarryOnHeader(
+                    title = "Payments",
+                    titleColor = Color(0xFF1F2937),
+                    onBack = onBack,
+                    contentPadding = PaddingValues(0.dp)
+                )
             }
 
             item {
@@ -169,15 +159,26 @@ fun InvoiceHubScreen(
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    FilterChip("Month ▾")
-                    FilterChip("2023 ▾")
-                    Box(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        FilterChip("Month ▾")
+                        FilterChip("2023 ▾")
+                    }
                     Button(
                         onClick = { },
                         shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                        modifier = Modifier.height(30.dp)
+                        modifier = Modifier
+                            .width(96.dp)
+                            .height(30.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
                     ) {
                         Text("Apply", fontSize = 11.sp, color = Color.White)
                     }
@@ -209,7 +210,7 @@ fun InvoiceHubScreen(
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
-                            .background(Color(0xFFD5E5F8), RoundedCornerShape(999.dp))
+                            .background(Color(0xFFFFFFFF), RoundedCornerShape(999.dp))
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                     Text(

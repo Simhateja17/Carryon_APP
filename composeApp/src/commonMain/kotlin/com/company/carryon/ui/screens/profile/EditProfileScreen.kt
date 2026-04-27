@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.*
 import org.jetbrains.compose.resources.painterResource
 import kotlinx.coroutines.launch
@@ -59,7 +60,8 @@ fun EditProfileScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF5F6F8)
+        containerColor = Color(0xFFF5F6F8),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
         if (isFetching) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
@@ -85,20 +87,11 @@ fun EditProfileScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "←",
-                                color = PrimaryBlue,
-                                fontSize = 24.sp,
-                                modifier = Modifier.clickable { onBack() }
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text("Personal Info", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        }
+                        CarryOnHeader(
+                            title = "Personal Info",
+                            onBack = onBack,
+                            contentPadding = PaddingValues(0.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))

@@ -71,7 +71,7 @@ fun AddAddressScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "←",
+                        text = "‹",
                         color = PrimaryBlue,
                         fontSize = 25.sp,
                         modifier = Modifier.clickable { onBack() }

@@ -7,8 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,6 +48,7 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.mini_van
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
@@ -62,6 +65,7 @@ fun DefaultVehicleScreen(
 
     Scaffold(
         containerColor = Color(0xFFF3F4F6),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             Row(
                 modifier = Modifier
@@ -86,26 +90,11 @@ fun DefaultVehicleScreen(
                 .padding(horizontal = 24.dp)
         ) {
             Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "←",
-                        color = PrimaryBlue,
-                        fontSize = 24.sp,
-                        modifier = Modifier.clickable { onBack() }
-                    )
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Text("Default Vehicle", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                }
-            }
+            CarryOnHeader(
+                title = "Default Vehicle",
+                onBack = onBack,
+                contentPadding = PaddingValues(0.dp)
+            )
 
             Spacer(modifier = Modifier.height(30.dp))
             Text(
