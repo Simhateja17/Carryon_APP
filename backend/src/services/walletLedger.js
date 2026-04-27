@@ -10,8 +10,16 @@ const { REFERRAL_REWARD_AMOUNT } = require('./businessConfig');
 async function reserveBookingPayment(tx, userId, bookingId, orderCode, amount) {
   const wallet = await tx.wallet.findUnique({ where: { userId } });
   if (!wallet || wallet.balance < amount) {
+    const currentBalance = wallet?.balance || 0;
+    const shortfall = Math.max(0, amount - currentBalance);
     const err = new Error('Insufficient wallet balance. Please top up before booking.');
     err.statusCode = 402;
+    err.details = {
+      currentBalance,
+      amountDue: amount,
+      shortfall,
+      currency: 'MYR',
+    };
     throw err;
   }
 

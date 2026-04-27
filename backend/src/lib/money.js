@@ -1,3 +1,5 @@
+const { DRIVER_COMMISSION_RATE } = require('../services/businessConfig');
+
 function toMinorUnits(amount) {
   const parsed = Number(amount);
   if (!Number.isFinite(parsed)) return 0;
@@ -16,8 +18,7 @@ function money(value) {
 
 function driverEarningFromGross(grossAmount) {
   const grossMinor = toMinorUnits(grossAmount);
-  const rate = Number(process.env.DRIVER_COMMISSION_RATE || 0.88);
-  const driverMinor = Math.round(grossMinor * rate);
+  const driverMinor = Math.round(grossMinor * DRIVER_COMMISSION_RATE);
   const platformMinor = Math.max(grossMinor - driverMinor, 0);
   return {
     grossAmount: fromMinorUnits(grossMinor),

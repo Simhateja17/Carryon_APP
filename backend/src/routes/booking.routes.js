@@ -91,8 +91,6 @@ router.post('/', async (req, res, next) => {
           const orderCode = await generateNextOrderCode(tx);
           const amountDue = money(quote.estimatedPrice);
 
-          await reserveBookingPayment(tx, req.user.userId, null, orderCode, amountDue);
-
           const createdBooking = await tx.booking.create({
             data: {
               orderCode,
@@ -114,14 +112,7 @@ router.post('/', async (req, res, next) => {
             include: bookingIncludes,
           });
 
-          // Update the wallet transaction with the booking reference
-          await tx.walletTransaction.updateMany({
-            where: {
-              description: `Payment for booking ${orderCode}`,
-              referenceId: null,
-            },
-            data: { referenceId: createdBooking.id },
-          });
+          await reserveBookingPayment(tx, req.user.userId, createdBooking.id, orderCode, amountDue);
 
           return createdBooking;
         });
@@ -139,6 +130,46 @@ router.post('/', async (req, res, next) => {
     });
 
     res.status(201).json({ success: true, data: booking });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/bookings/quote
+router.post('/quote', async (req, res, next) => {
+  try {
+    const {
+      pickupAddress,
+      deliveryAddress,
+      vehicleType,
+      deliveryMode,
+      estimatedPrice,
+      distance,
+      duration,
+    } = req.body;
+
+    if (!pickupAddress || !deliveryAddress) {
+      return next(new AppError('pickupAddress and deliveryAddress are required', 400));
+    }
+
+    const quote = serverQuote({
+      pickupAddress,
+      deliveryAddress,
+      vehicleType,
+      deliveryMode,
+      estimatedPrice,
+      distance,
+      duration,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        estimatedPrice: quote.estimatedPrice,
+        distance: quote.distance,
+        duration: quote.duration,
+      },
+    });
   } catch (err) {
     next(err);
   }

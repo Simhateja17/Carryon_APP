@@ -15,11 +15,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import carryon.composeapp.generated.resources.vehicle_truck_new
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,12 +53,7 @@ fun ReadyToBookScreen(
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Image(
-                            painter = painterResource(Res.drawable.bell_icon),
-                            contentDescription = "Notifications",
-                            modifier = Modifier.size(24.dp),
-                            contentScale = ContentScale.Fit
-                        )
+                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

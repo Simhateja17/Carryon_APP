@@ -23,8 +23,13 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.*
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
+import com.company.carryon.data.network.BookingQuoteRequest
 import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
+import com.company.carryon.data.network.InsufficientBalanceException
+import com.company.carryon.data.network.WalletApi
+import com.company.carryon.data.payment.StripePaymentLauncher
+import com.company.carryon.data.payment.StripePaymentResult
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
@@ -54,7 +59,25 @@ fun RequestForRideScreen(
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
-    // Pricing is fully determined by VehiclePricing constants — no API fetch needed
+    val vehicleTypeApi = when (vehicleType) {
+        "2 Wheeler"        -> "BIKE"
+        "Car"              -> "CAR"
+        "4x4 Pickup"       -> "PICKUP"
+        "Van 7ft"          -> "VAN_7FT"
+        "Van 9ft"          -> "VAN_9FT"
+        "Small Lorry 10ft" -> "LORRY_10FT"
+        "Medium Lorry 14ft"-> "LORRY_14FT"
+        "Large Lorry 17ft" -> "LORRY_17FT"
+        // Legacy
+        "Bike"             -> "BIKE"
+        "Car (2-Seat)"     -> "CAR"
+        "Car (4-Seat)"     -> "CAR"
+        "Mini Van"         -> "VAN_7FT"
+        "Truck", "Open Truck" -> "PICKUP"
+        else               -> "CAR"
+    }
+
+    // Local pricing is only a fallback while the backend quote is loading/unavailable.
     val pricePerKm by remember(vehicleType, deliveryMode) {
         mutableStateOf(com.company.carryon.data.model.VehiclePricing.ratePerKm(vehicleType, deliveryMode))
     }
@@ -75,8 +98,16 @@ fun RequestForRideScreen(
     var isCreatingBooking by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    // Calculate price based on distance
-    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm, offloading) {
+    // Inline top-up state
+    var showTopUpSheet by remember { mutableStateOf(false) }
+    var topUpShortfall by remember { mutableStateOf(0.0) }
+    var topUpCurrency by remember { mutableStateOf("MYR") }
+    var walletTopUpMin by remember { mutableStateOf(10.0) }
+    var isToppingUp by remember { mutableStateOf(false) }
+    var topUpStatus by remember { mutableStateOf<String?>(null) }
+
+    // Calculate route locally, then ask backend for the authoritative booking quote.
+    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm, offloading, vehicleTypeApi, deliveryMode) {
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
             estimatedPrice = 0.0
             val subtotal = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
@@ -101,9 +132,32 @@ fun RequestForRideScreen(
             ).getOrNull()
             if (route != null && route.distance > 0) {
                 distanceKm = route.distance
-                val fairPrice = com.company.carryon.data.model.VehiclePricing.calculateBaseFare(
+                val fallbackPrice = com.company.carryon.data.model.VehiclePricing.calculateBaseFare(
                     vehicleType, deliveryMode, route.distance
                 )
+                val quoteRequest = BookingQuoteRequest(
+                    pickupAddress = CreateAddressData(
+                        address = pickupAddress,
+                        latitude = pickupGeo.lat,
+                        longitude = pickupGeo.lng,
+                        contactName = senderName,
+                        contactPhone = senderPhone
+                    ),
+                    deliveryAddress = CreateAddressData(
+                        address = deliveryAddress,
+                        latitude = deliveryGeo.lat,
+                        longitude = deliveryGeo.lng,
+                        contactName = receiverName,
+                        contactPhone = receiverPhone,
+                        contactEmail = receiverEmail
+                    ),
+                    vehicleType = vehicleTypeApi,
+                    deliveryMode = deliveryMode,
+                    distance = route.distance,
+                    duration = route.duration
+                )
+                val backendQuote = BookingApi.quoteBooking(quoteRequest).getOrNull()?.data
+                val fairPrice = backendQuote?.estimatedPrice ?: fallbackPrice
                 val subtotal = fairPrice + if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
                 estimatedPrice = kotlin.math.round(fairPrice * 100).toDouble() / 100.0
                 taxAmount = kotlin.math.round(subtotal * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0
@@ -141,25 +195,6 @@ fun RequestForRideScreen(
 
     // Map payment selection to API format
     val paymentMethodApi = "WALLET"
-
-    // Map vehicle type to API format
-    val vehicleTypeApi = when (vehicleType) {
-        "2 Wheeler"        -> "BIKE"
-        "Car"              -> "CAR"
-        "4x4 Pickup"       -> "PICKUP"
-        "Van 7ft"          -> "VAN_7FT"
-        "Van 9ft"          -> "VAN_9FT"
-        "Small Lorry 10ft" -> "LORRY_10FT"
-        "Medium Lorry 14ft"-> "LORRY_14FT"
-        "Large Lorry 17ft" -> "LORRY_17FT"
-        // Legacy
-        "Bike"             -> "BIKE"
-        "Car (2-Seat)"     -> "AUTO"
-        "Car (4-Seat)"     -> "CAR"
-        "Mini Van"         -> "MINI_TRUCK"
-        "Truck", "Open Truck" -> "TRUCK"
-        else               -> "CAR"
-    }
 
     Scaffold(
         containerColor = Color.White,
@@ -216,7 +251,19 @@ fun RequestForRideScreen(
                                     }
                                 }
                                 .onFailure { e ->
-                                    errorMessage = e.message ?: "Failed to create booking"
+                                    if (e is InsufficientBalanceException) {
+                                        topUpShortfall = e.shortfall
+                                        topUpCurrency = e.currency
+                                        // Fetch actual minimum so we can show the real top-up amount
+                                        scope.launch {
+                                            WalletApi.getPaymentConfig().getOrNull()?.data?.let {
+                                                walletTopUpMin = it.walletTopUpMin
+                                            }
+                                        }
+                                        showTopUpSheet = true
+                                    } else {
+                                        errorMessage = e.message ?: "Failed to create booking"
+                                    }
                                 }
                             isCreatingBooking = false
                         }
@@ -246,7 +293,7 @@ fun RequestForRideScreen(
                         Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                actions = { IconButton(onClick = {}) { Text("🔔", fontSize = 20.sp) } },
+                actions = { IconButton(onClick = {}) { Text("", fontSize = 20.sp) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
@@ -415,6 +462,162 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
+
+    // Inline top-up bottom sheet
+    if (showTopUpSheet) {
+        val actualTopUp = maxOf(topUpShortfall, walletTopUpMin)
+        ModalBottomSheet(
+            onDismissRequest = { showTopUpSheet = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    "Insufficient Wallet Balance",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Add $topUpCurrency ${actualTopUp.formatDecimal(2)} to your wallet to confirm this delivery.",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+                if (actualTopUp > topUpShortfall) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "(RM ${topUpShortfall.formatDecimal(2)} for this delivery + RM ${(actualTopUp - topUpShortfall).formatDecimal(2)} minimum top-up)",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                topUpStatus?.let {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        it,
+                        fontSize = 13.sp,
+                        color = if (it.contains("completed", ignoreCase = true)) Color(0xFF2E7D32) else Color(0xFFC62828)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            isToppingUp = true
+                            topUpStatus = "Starting payment..."
+                            val config = WalletApi.getPaymentConfig().getOrNull()?.data
+                            val topUpAmount = maxOf(topUpShortfall, config?.walletTopUpMin ?: 10.0)
+                            val intent = WalletApi.createTopUpIntent(topUpAmount).getOrNull()?.data
+                            if (config?.publishableKey.isNullOrBlank() || intent?.clientSecret.isNullOrBlank()) {
+                                topUpStatus = "Payment setup unavailable. Please try again."
+                                isToppingUp = false
+                                return@launch
+                            }
+
+                            topUpStatus = "Complete payment in Stripe..."
+                            val result = StripePaymentLauncher.presentWalletTopUp(
+                                clientSecret = intent.clientSecret,
+                                publishableKey = config.publishableKey
+                            )
+
+                            when (result) {
+                                StripePaymentResult.COMPLETED -> {
+                                    topUpStatus = "Top-up completed. Retrying booking..."
+                                    // Retry booking automatically
+                                    val request = CreateBookingRequest(
+                                        pickupAddress = CreateAddressData(
+                                            address = pickupAddress,
+                                            latitude = pickupLat!!,
+                                            longitude = pickupLng!!,
+                                            contactName = senderName,
+                                            contactPhone = senderPhone
+                                        ),
+                                        deliveryAddress = CreateAddressData(
+                                            address = deliveryAddress,
+                                            latitude = deliveryLat!!,
+                                            longitude = deliveryLng!!,
+                                            contactName = receiverName,
+                                            contactPhone = receiverPhone,
+                                            contactEmail = receiverEmail
+                                        ),
+                                        vehicleType = vehicleTypeApi,
+                                        paymentMethod = paymentMethodApi,
+                                        scheduledTime = scheduledTime,
+                                        senderName = senderName,
+                                        senderPhone = senderPhone,
+                                        receiverName = receiverName,
+                                        receiverPhone = receiverPhone,
+                                        receiverEmail = receiverEmail,
+                                        deliveryMode = deliveryMode,
+                                        estimatedPrice = totalAmount,
+                                        distance = distanceKm,
+                                        duration = 0
+                                    )
+                                    BookingApi.createBooking(request)
+                                        .onSuccess { response ->
+                                            val booking = response.data
+                                            if (booking != null) {
+                                                showTopUpSheet = false
+                                                onContinue(booking.id, totalAmount)
+                                            } else {
+                                                topUpStatus = "Booking failed after top-up. Please contact support."
+                                            }
+                                        }
+                                        .onFailure { e ->
+                                            topUpStatus = e.message ?: "Booking failed after top-up."
+                                        }
+                                }
+                                StripePaymentResult.CANCELED -> {
+                                    topUpStatus = "Payment canceled."
+                                }
+                                StripePaymentResult.FAILED -> {
+                                    topUpStatus = "Payment failed. Please try another card."
+                                }
+                            }
+                            isToppingUp = false
+                        }
+                    },
+                    enabled = !isToppingUp,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                ) {
+                    if (isToppingUp) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            "Top Up $topUpCurrency ${actualTopUp.formatDecimal(2)} & Confirm",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedButton(
+                    onClick = { showTopUpSheet = false },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Cancel", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
 }
 
 @Composable
@@ -453,7 +656,7 @@ private fun PaymentMethodRow(
             Box(
                 modifier = Modifier.size(20.dp).clip(CircleShape).background(PrimaryBlue),
                 contentAlignment = Alignment.Center
-            ) { Text("✓", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold) }
+            ) { Text("", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.Bold) }
         }
     }
 }

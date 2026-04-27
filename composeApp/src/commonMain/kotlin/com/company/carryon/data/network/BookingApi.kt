@@ -43,6 +43,24 @@ data class CreateAddressData(
     val landmark: String = ""
 )
 
+@Serializable
+data class BookingQuoteRequest(
+    val pickupAddress: CreateAddressData,
+    val deliveryAddress: CreateAddressData,
+    val vehicleType: String,
+    val deliveryMode: String = "Regular",
+    val estimatedPrice: Double = 0.0,
+    val distance: Double = 0.0,
+    val duration: Int = 0
+)
+
+@Serializable
+data class BookingQuote(
+    val estimatedPrice: Double = 0.0,
+    val distance: Double = 0.0,
+    val duration: Int = 0
+)
+
 object BookingApi {
     private val client get() = HttpClientFactory.client
 
@@ -75,6 +93,13 @@ object BookingApi {
 
     suspend fun createBooking(request: CreateBookingRequest): Result<ApiResponse<Booking>> = runCatching {
         client.post("/api/bookings") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }.body()
+    }
+
+    suspend fun quoteBooking(request: BookingQuoteRequest): Result<ApiResponse<BookingQuote>> = runCatching {
+        client.post("/api/bookings/quote") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }.body()

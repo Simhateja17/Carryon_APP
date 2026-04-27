@@ -12,10 +12,27 @@ import {
 
 const DOC_TYPE_LABELS: Record<string, string> = {
   DRIVERS_LICENSE: "Driver's License",
+  DRIVERS_LICENSE_BACK: "Driver's License Back",
+  GDL: "GDL",
   VEHICLE_REGISTRATION: "Vehicle Registration",
+  ROAD_TAX: "Road Tax",
+  PUSPAKOM: "PUSPAKOM",
+  APAD_PERMIT: "APAD / LPKP Permit",
+  VEHICLE_PHOTO_FRONT: "Vehicle Front Photo",
+  VEHICLE_PHOTO_BACK: "Vehicle Back Photo",
+  VEHICLE_PHOTO_LEFT: "Vehicle Left Photo",
+  VEHICLE_PHOTO_RIGHT: "Vehicle Right Photo",
+  VEHICLE_PHOTO_INTERIOR: "Vehicle Interior Photo",
+  BANK_STATEMENT: "Bank Statement",
+  POLICE_CLEARANCE: "Police Clearance",
   INSURANCE: "Insurance Certificate",
   PROFILE_PHOTO: "Profile Photo",
   ID_PROOF: "Government ID",
+  MYKAD_FRONT: "MyKad Front",
+  MYKAD_BACK: "MyKad Back",
+  SELFIE: "Selfie",
+  PASSPORT: "Passport",
+  WORK_PERMIT_PLKS: "Work Permit / PLKS",
 };
 
 const DOC_STATUS_STYLES: Record<string, string> = {
@@ -261,6 +278,12 @@ export default function DriverDetailPage() {
                   <p className="text-xs text-gray-400 mb-3">
                     Uploaded {new Date(doc.uploadedAt).toLocaleDateString()}
                   </p>
+
+                  {doc.expiryDate && (
+                    <p className="text-xs text-gray-500 mb-3">
+                      Expires {new Date(doc.expiryDate).toLocaleDateString()}
+                    </p>
+                  )}
 
                   {doc.rejectionReason && (
                     <p className="text-xs text-red-600 bg-red-50 rounded p-2 mb-3">

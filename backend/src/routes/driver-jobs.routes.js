@@ -7,6 +7,7 @@ const { driverEarningFromGross } = require('../lib/money');
 const {
   isSettlementEligible,
   canDriverCancel,
+  canTransition,
 } = require('../services/bookingLifecycle');
 const { OFFER_EXPIRY_MS } = require('../services/businessConfig');
 const { getIncomingBookingsForDriver } = require('../services/dispatch');
@@ -237,7 +238,7 @@ router.post('/:id/accept', async (req, res, next) => {
       include: bookingInclude,
     });
     if (!updated) return next(new AppError('Job not found', 404));
-    console.log('[driver-jobs] ✔ Accepted — driver:', driverLabel(req.driver), 'bookingId:', req.params.id, 'customer:', booking.user?.name || 'unknown', 'status → DRIVER_ASSIGNED');
+    console.log('[driver-jobs]  Accepted — driver:', driverLabel(req.driver), 'bookingId:', req.params.id, 'customer:', booking.user?.name || 'unknown', 'status → DRIVER_ASSIGNED');
 
     await prisma.driverNotification.create({
       data: {
@@ -292,6 +293,16 @@ router.put('/:id/status', async (req, res, next) => {
     const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
     if (!booking) return next(new AppError('Job not found', 404));
     if (booking.driverId !== req.driver.id) return next(new AppError('Not authorized', 403));
+    if (booking.status === backendStatus) {
+      const unchanged = await prisma.booking.findUnique({
+        where: { id: req.params.id },
+        include: bookingInclude,
+      });
+      return res.json({ success: true, data: toDeliveryJob(unchanged) });
+    }
+    if (!canTransition(booking.status, backendStatus)) {
+      return next(new AppError(`Cannot transition from ${booking.status} to ${backendStatus}`, 400));
+    }
 
     const updated = await prisma.booking.update({
       where: { id: req.params.id },
@@ -321,7 +332,7 @@ router.post('/:id/verify-pickup-otp', async (req, res, next) => {
     if (booking.status !== 'DRIVER_ARRIVED') {
       return next(new AppError('OTP verification is only allowed when driver has arrived at pickup', 400));
     }
-    if (booking.otp !== otp) {
+    if (booking.otp !== String(otp).trim()) {
       console.log('[driver-jobs] verify-pickup-otp — OTP mismatch — driver:', driverLabel(req.driver), 'bookingId:', req.params.id);
       return next(new AppError('Invalid OTP', 400));
     }

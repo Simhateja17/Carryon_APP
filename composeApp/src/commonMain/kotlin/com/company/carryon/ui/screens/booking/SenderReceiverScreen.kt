@@ -17,12 +17,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.bell_icon
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.ContactInfo
 import com.company.carryon.ui.components.ContactPickerButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,12 +58,12 @@ fun SenderReceiverScreen(
             TopAppBar(
                 title = {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
-                        Text(" On", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlueDark)
+                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
                 navigationIcon = { IconButton(onClick = onBack) { Text("←", fontSize = 22.sp, color = TextPrimary) } },
-                actions = { IconButton(onClick = {}) { Image(painter = painterResource(Res.drawable.bell_icon), contentDescription = "Notifications", modifier = Modifier.size(24.dp), contentScale = ContentScale.Fit) } },
+                actions = { IconButton(onClick = {}) { Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp)) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         },

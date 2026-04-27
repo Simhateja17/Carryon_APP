@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.doubleOrNull
 
 private val networkJson = Json {
     ignoreUnknownKeys = true
@@ -55,12 +56,25 @@ object HttpClientFactory {
                 }
                 if (response.status.value >= 400) {
                     val body = response.bodyAsText()
-                    val message = try {
-                        networkJson.parseToJsonElement(body).jsonObject["message"]?.jsonPrimitive?.content
-                            ?: "Request failed"
+                    val json = try {
+                        networkJson.parseToJsonElement(body).jsonObject
                     } catch (_: Exception) {
-                        "Request failed (${response.status.value})"
+                        null
                     }
+                    val message = json?.get("message")?.jsonPrimitive?.content
+                        ?: "Request failed (${response.status.value})"
+
+                    if (response.status.value == 402) {
+                        val details = json?.get("details")?.jsonObject
+                        throw InsufficientBalanceException(
+                            message = message,
+                            currentBalance = details?.get("currentBalance")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                            amountDue = details?.get("amountDue")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                            shortfall = details?.get("shortfall")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                            currency = details?.get("currency")?.jsonPrimitive?.content ?: "MYR"
+                        )
+                    }
+
                     throw Exception(message)
                 }
             }
@@ -78,12 +92,25 @@ object HttpClientFactory {
         }
         if (response.status.value >= 400) {
             val body = response.bodyAsText()
-            val message = try {
-                networkJson.parseToJsonElement(body).jsonObject["message"]?.jsonPrimitive?.content
-                    ?: "Request failed"
+            val json = try {
+                networkJson.parseToJsonElement(body).jsonObject
             } catch (_: Exception) {
-                "Request failed (${response.status.value})"
+                null
             }
+            val message = json?.get("message")?.jsonPrimitive?.content
+                ?: "Request failed (${response.status.value})"
+
+            if (response.status.value == 402) {
+                val details = json?.get("details")?.jsonObject
+                throw InsufficientBalanceException(
+                    message = message,
+                    currentBalance = details?.get("currentBalance")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    amountDue = details?.get("amountDue")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    shortfall = details?.get("shortfall")?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    currency = details?.get("currency")?.jsonPrimitive?.content ?: "MYR"
+                )
+            }
+
             throw Exception(message)
         }
         return response
