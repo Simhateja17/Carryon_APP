@@ -27,9 +27,7 @@ data class CreateBookingRequest(
     val receiverEmail: String? = null,
     val notes: String? = null,
     val deliveryMode: String = "Regular",
-    val estimatedPrice: Double = 0.0,
-    val distance: Double = 0.0,
-    val duration: Int = 0
+    val offloading: Boolean = false
 )
 
 @Serializable
@@ -49,16 +47,30 @@ data class BookingQuoteRequest(
     val deliveryAddress: CreateAddressData,
     val vehicleType: String,
     val deliveryMode: String = "Regular",
-    val estimatedPrice: Double = 0.0,
+    val offloading: Boolean = false
+)
+
+@Serializable
+data class BookingQuoteBreakdown(
+    val currency: String = "MYR",
+    val vehicleType: String = "",
+    val basePrice: Double = 0.0,
     val distance: Double = 0.0,
-    val duration: Int = 0
+    val pricePerKm: Double = 0.0,
+    val distanceFare: Double = 0.0,
+    val offloadingFee: Double = 0.0,
+    val tax: Double = 0.0,
+    val total: Double = 0.0
 )
 
 @Serializable
 data class BookingQuote(
     val estimatedPrice: Double = 0.0,
+    val price: Double = 0.0,
     val distance: Double = 0.0,
-    val duration: Int = 0
+    val duration: Int = 0,
+    val isEstimated: Boolean = false,
+    val breakdown: BookingQuoteBreakdown? = null
 )
 
 object BookingApi {
@@ -91,9 +103,10 @@ object BookingApi {
         }.body()
     }
 
-    suspend fun createBooking(request: CreateBookingRequest): Result<ApiResponse<Booking>> = runCatching {
+    suspend fun createBooking(request: CreateBookingRequest, idempotencyKey: String): Result<ApiResponse<Booking>> = runCatching {
         client.post("/api/bookings") {
             contentType(ContentType.Application.Json)
+            header("Idempotency-Key", idempotencyKey)
             setBody(request)
         }.body()
     }

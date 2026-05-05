@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.settings_auto_apply_coupons_icon
 import carryon.composeapp.generated.resources.settings_clear_cache_icon
-import carryon.composeapp.generated.resources.settings_dark_mode_icon
 import carryon.composeapp.generated.resources.settings_data_saver_mode_icon
 import carryon.composeapp.generated.resources.settings_default_vehicle_icon
 import carryon.composeapp.generated.resources.settings_language_icon
@@ -48,7 +47,6 @@ fun SettingsScreen(
 ) {
     var userName by remember { mutableStateOf("—") }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
-    var darkModeEnabled by remember { mutableStateOf(false) }
     var autoApplyCoupons by remember { mutableStateOf(true) }
     var saveLastAddress by remember { mutableStateOf(false) }
     var dataSaverMode by remember { mutableStateOf(false) }
@@ -138,13 +136,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             SettingsGroupCard {
-                SettingsToggleRow(
-                    iconRes = Res.drawable.settings_dark_mode_icon,
-                    title = "Dark Mode",
-                    titleColor = Color(0xFF000000),
-                    checked = darkModeEnabled,
-                    onCheckedChange = { darkModeEnabled = it }
-                )
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_language_icon,
                     title = "Language",

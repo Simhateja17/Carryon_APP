@@ -1,17 +1,23 @@
 package com.company.carryon.data.network
 
 import com.company.carryon.data.model.ApiResponse
+import com.company.carryon.data.model.AccountDeleteResponse
+import com.company.carryon.data.model.PrivacyConsentResponse
 import com.company.carryon.data.model.User
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 private data class UpdateProfileRequest(
     val name: String? = null,
     val email: String? = null
 )
+
+@Serializable
+private data class PrivacyConsentRequest(val policyVersion: String)
 
 object UserApi {
     private val client get() = HttpClientFactory.client
@@ -45,5 +51,25 @@ object UserApi {
         val response = client.get("/api/users/me/stats")
             .body<ApiResponse<UserStats>>()
         response.data ?: throw Exception("Stats not found")
+    }
+
+    suspend fun exportAccount(): Result<JsonObject> = runCatching {
+        val response = client.get("/api/v1/users/me/export")
+            .body<ApiResponse<JsonObject>>()
+        response.data ?: throw Exception("Export not found")
+    }
+
+    suspend fun deleteAccount(): Result<AccountDeleteResponse> = runCatching {
+        val response = client.delete("/api/v1/users/me")
+            .body<ApiResponse<AccountDeleteResponse>>()
+        response.data ?: throw Exception("Delete failed")
+    }
+
+    suspend fun recordPrivacyConsent(policyVersion: String): Result<PrivacyConsentResponse> = runCatching {
+        val response = client.post("/api/v1/users/me/privacy-consent") {
+            contentType(ContentType.Application.Json)
+            setBody(PrivacyConsentRequest(policyVersion))
+        }.body<ApiResponse<PrivacyConsentResponse>>()
+        response.data ?: throw Exception("Consent update failed")
     }
 }

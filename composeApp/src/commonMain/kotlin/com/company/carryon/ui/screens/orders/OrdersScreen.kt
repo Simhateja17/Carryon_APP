@@ -56,8 +56,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -838,9 +841,33 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Pickup: ${order.pickup}", color = Color(0xFF4E5B7C), fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(
+                buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Bold)) {
+                        append("Pickup: ")
+                    }
+                    withStyle(style = SpanStyle(color = Color(0xFF4E5B7C))) {
+                        append(order.pickup)
+                    }
+                },
+                fontSize = 14.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
             Spacer(modifier = Modifier.height(6.dp))
-            Text("Drop: ${order.delivery}", color = Color(0xFF4E5B7C), fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(
+                buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.Black, fontWeight = FontWeight.Bold)) {
+                        append("Drop: ")
+                    }
+                    withStyle(style = SpanStyle(color = Color(0xFF4E5B7C))) {
+                        append(order.delivery)
+                    }
+                },
+                fontSize = 14.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
 
             Spacer(modifier = Modifier.height(14.dp))
             HorizontalDivider(color = Color(0xFFD7E3F4))

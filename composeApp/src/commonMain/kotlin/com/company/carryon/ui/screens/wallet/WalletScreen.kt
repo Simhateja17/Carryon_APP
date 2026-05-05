@@ -1,7 +1,6 @@
 package com.company.carryon.ui.screens.wallet
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,9 +61,9 @@ fun WalletScreen(
     onBack: () -> Unit,
     onAddMoney: () -> Unit = {},
     onSendMoney: () -> Unit = {},
-    onAddNewMethod: () -> Unit = {},
     onDownloadInvoices: () -> Unit = {},
-    onViewReceipts: () -> Unit = {}
+    onViewReceipts: () -> Unit = {},
+    onSeeAllTransactions: () -> Unit = {}
 ) {
     var wallet by remember { mutableStateOf<Wallet?>(null) }
     var isLoading by remember { mutableStateOf(true) }
@@ -157,7 +156,13 @@ fun WalletScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-                    Text("See All", color = Color(0xFF3B82F6), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        "See All",
+                        color = Color(0xFF3B82F6),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable { onSeeAllTransactions() }
+                    )
                 }
             }
 
@@ -176,34 +181,6 @@ fun WalletScreen(
                             TransactionRow(txn)
                         }
                     }
-                }
-            }
-
-            item {
-                Text("Saved Methods", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
-            }
-
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(14.dp))
-                        .padding(14.dp)
-                ) {
-                    Text("No payment methods available", color = TextSecondary, fontSize = 14.sp)
-                }
-            }
-
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onAddNewMethod() }
-                        .border(1.dp, Color(0xFFD1D5DB), RoundedCornerShape(14.dp))
-                        .padding(vertical = 14.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("+ Add New Method", color = Color(0xFF3B82F6), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 
@@ -307,38 +284,6 @@ private fun TransactionRow(txn: WalletTransaction) {
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-    }
-}
-
-@Composable
-private fun PaymentMethodItem(icon: ImageVector, title: String, subtitle: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Color(0x33A6D2F3))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .background(Color(0xFFE7EEF9), RoundedCornerShape(10.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                modifier = Modifier.size(18.dp),
-                tint = PrimaryBlue
-            )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(subtitle, color = Color(0xFF334155), fontSize = 13.sp)
-        }
-        Text("›", color = Color.Black, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
 }
 

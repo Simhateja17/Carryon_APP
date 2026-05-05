@@ -40,11 +40,19 @@ actual object StripePaymentLauncher {
         PaymentConfiguration.init(currentActivity, publishableKey)
         continuation = cont
         cont.invokeOnCancellation { continuation = null }
+        val configuration = PaymentSheet.Configuration.Builder("CarryOn")
+            .defaultBillingDetails(
+                PaymentSheet.BillingDetails(
+                    address = PaymentSheet.Address(country = "MY")
+                )
+            )
+            .allowsDelayedPaymentMethods(true)
+            .paymentMethodOrder(listOf("grabpay", "fpx", "card", "link"))
+            .userOverrideCountry("MY")
+            .build()
         currentSheet.presentWithPaymentIntent(
             paymentIntentClientSecret = clientSecret,
-            configuration = PaymentSheet.Configuration(
-                merchantDisplayName = "CarryOn"
-            )
+            configuration = configuration
         )
     }
 }

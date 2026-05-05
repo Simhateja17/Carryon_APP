@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PromoScreen(
     onBack: () -> Unit,
+    initialReferralCode: String = "",
     onApplyCoupon: ((String) -> Unit)? = null
 ) {
     val strings = LocalStrings.current
@@ -36,8 +37,8 @@ fun PromoScreen(
     var coupons by remember { mutableStateOf<List<Coupon>>(emptyList()) }
     var referralInfo by remember { mutableStateOf<ReferralInfo?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedTab by remember { mutableStateOf(0) }
-    var referralCodeInput by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableStateOf(if (initialReferralCode.isBlank()) 0 else 1) }
+    var referralCodeInput by remember { mutableStateOf(initialReferralCode.uppercase()) }
     var referralMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {

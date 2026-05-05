@@ -12,7 +12,24 @@ data class User(
     val language: String = "",
     val isVerified: Boolean = false,
     val referralCode: String? = null,
+    val deletedAt: String? = null,
+    val privacyConsentAt: String? = null,
+    val privacyPolicyVersion: String? = null,
     val createdAt: String = ""
+)
+
+@Serializable
+data class PrivacyConsentResponse(
+    val id: String = "",
+    val privacyConsentAt: String? = null,
+    val privacyPolicyVersion: String? = null
+)
+
+@Serializable
+data class AccountDeleteResponse(
+    val id: String = "",
+    val deletedAt: String? = null,
+    val retainedRecords: List<String> = emptyList()
 )
 
 @Serializable

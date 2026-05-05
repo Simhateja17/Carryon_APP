@@ -28,14 +28,13 @@ import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
 import com.company.carryon.data.network.InsufficientBalanceException
 import com.company.carryon.data.network.WalletApi
+import com.company.carryon.data.network.newUuid
 import com.company.carryon.data.payment.StripePaymentLauncher
 import com.company.carryon.data.payment.StripePaymentResult
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,10 +76,6 @@ fun RequestForRideScreen(
         else               -> "CAR"
     }
 
-    // Local pricing is only a fallback while the backend quote is loading/unavailable.
-    val pricePerKm by remember(vehicleType, deliveryMode) {
-        mutableStateOf(com.company.carryon.data.model.VehiclePricing.ratePerKm(vehicleType, deliveryMode))
-    }
     val basePrice = 0.0
     val isLoadingVehicles = false
 
@@ -92,11 +87,13 @@ fun RequestForRideScreen(
     var geocodeError by remember { mutableStateOf<String?>(null) }
 
     var estimatedPrice by remember { mutableStateOf(basePrice) }
-    var taxAmount by remember { mutableStateOf(kotlin.math.round(basePrice * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0) }
+    var taxAmount by remember { mutableStateOf(0.0) }
+    var offloadingFee by remember { mutableStateOf(0.0) }
     var distanceKm by remember { mutableStateOf(0.0) }
     var isCalculating by remember { mutableStateOf(pickupAddress.isNotBlank() && deliveryAddress.isNotBlank()) }
     var isCreatingBooking by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var bookingAttemptKey by remember { mutableStateOf<String?>(null) }
 
     // Inline top-up state
     var showTopUpSheet by remember { mutableStateOf(false) }
@@ -106,12 +103,14 @@ fun RequestForRideScreen(
     var isToppingUp by remember { mutableStateOf(false) }
     var topUpStatus by remember { mutableStateOf<String?>(null) }
 
-    // Calculate route locally, then ask backend for the authoritative booking quote.
-    LaunchedEffect(pickupAddress, deliveryAddress, pricePerKm, offloading, vehicleTypeApi, deliveryMode) {
+    // Backend quote is the only fare authority. The app geocodes only to provide coordinates.
+    LaunchedEffect(pickupAddress, deliveryAddress, offloading, vehicleTypeApi, deliveryMode) {
+        bookingAttemptKey = null
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
             estimatedPrice = 0.0
-            val subtotal = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
-            taxAmount = kotlin.math.round(subtotal * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0
+            taxAmount = 0.0
+            offloadingFee = 0.0
+            distanceKm = 0.0
             isCalculating = false
             geocodeError = null
             return@LaunchedEffect
@@ -126,41 +125,42 @@ fun RequestForRideScreen(
             deliveryLat = deliveryGeo.lat
             deliveryLng = deliveryGeo.lng
 
-            val route = LocationApi.calculateRoute(
-                pickupGeo.lat, pickupGeo.lng,
-                deliveryGeo.lat, deliveryGeo.lng
-            ).getOrNull()
-            if (route != null && route.distance > 0) {
-                distanceKm = route.distance
-                val fallbackPrice = com.company.carryon.data.model.VehiclePricing.calculateBaseFare(
-                    vehicleType, deliveryMode, route.distance
-                )
-                val quoteRequest = BookingQuoteRequest(
-                    pickupAddress = CreateAddressData(
-                        address = pickupAddress,
-                        latitude = pickupGeo.lat,
-                        longitude = pickupGeo.lng,
-                        contactName = senderName,
-                        contactPhone = senderPhone
-                    ),
-                    deliveryAddress = CreateAddressData(
-                        address = deliveryAddress,
-                        latitude = deliveryGeo.lat,
-                        longitude = deliveryGeo.lng,
-                        contactName = receiverName,
-                        contactPhone = receiverPhone,
-                        contactEmail = receiverEmail
-                    ),
-                    vehicleType = vehicleTypeApi,
-                    deliveryMode = deliveryMode,
-                    distance = route.distance,
-                    duration = route.duration
-                )
-                val backendQuote = BookingApi.quoteBooking(quoteRequest).getOrNull()?.data
-                val fairPrice = backendQuote?.estimatedPrice ?: fallbackPrice
-                val subtotal = fairPrice + if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
-                estimatedPrice = kotlin.math.round(fairPrice * 100).toDouble() / 100.0
-                taxAmount = kotlin.math.round(subtotal * com.company.carryon.data.model.VehiclePricing.TAX_RATE * 100).toDouble() / 100.0
+            val quoteRequest = BookingQuoteRequest(
+                pickupAddress = CreateAddressData(
+                    address = pickupAddress,
+                    latitude = pickupGeo.lat,
+                    longitude = pickupGeo.lng,
+                    contactName = senderName,
+                    contactPhone = senderPhone
+                ),
+                deliveryAddress = CreateAddressData(
+                    address = deliveryAddress,
+                    latitude = deliveryGeo.lat,
+                    longitude = deliveryGeo.lng,
+                    contactName = receiverName,
+                    contactPhone = receiverPhone,
+                    contactEmail = receiverEmail
+                ),
+                vehicleType = vehicleTypeApi,
+                deliveryMode = deliveryMode,
+                offloading = offloading
+            )
+            val quoteResult = BookingApi.quoteBooking(quoteRequest)
+            val backendQuote = quoteResult.getOrNull()?.data
+            if (backendQuote != null && backendQuote.estimatedPrice > 0) {
+                val breakdown = backendQuote.breakdown
+                taxAmount = breakdown?.tax ?: 0.0
+                offloadingFee = breakdown?.offloadingFee ?: 0.0
+                estimatedPrice = breakdown?.let {
+                    kotlin.math.round((it.total - it.tax - it.offloadingFee) * 100).toDouble() / 100.0
+                } ?: backendQuote.estimatedPrice
+                distanceKm = backendQuote.distance
+            } else {
+                estimatedPrice = 0.0
+                taxAmount = 0.0
+                offloadingFee = 0.0
+                distanceKm = 0.0
+                geocodeError = quoteResult.exceptionOrNull()?.message ?: "Could not calculate an accurate route price. Please try again."
             }
         } else {
             geocodeError = "Could not determine location coordinates. Please check the addresses."
@@ -189,7 +189,6 @@ fun RequestForRideScreen(
         else                               -> Res.drawable.car_mustang
     }
     val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
-    val offloadingFee = if (offloading) com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE else 0.0
     val subtotal = estimatedPrice + offloadingFee
     val totalAmount = subtotal + taxAmount
 
@@ -236,12 +235,11 @@ fun RequestForRideScreen(
                                 receiverPhone = receiverPhone,
                                 receiverEmail = receiverEmail,
                                 deliveryMode = deliveryMode,
-                                estimatedPrice = totalAmount,
-                                distance = distanceKm,
-                                duration = 0
+                                offloading = offloading
                             )
+                            val idempotencyKey = bookingAttemptKey ?: newUuid().also { bookingAttemptKey = it }
                             
-                            BookingApi.createBooking(request)
+                            BookingApi.createBooking(request, idempotencyKey)
                                 .onSuccess { response ->
                                     val booking = response.data
                                     if (booking != null) {
@@ -403,7 +401,7 @@ fun RequestForRideScreen(
                         Text(vehicleDisplayName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            "$deliveryMode · RM ${pricePerKm.formatDecimal(2)}/km",
+                            deliveryMode,
                             fontSize = 12.sp, color = PrimaryBlue
                         )
                         if (distanceKm > 0) {
@@ -440,7 +438,7 @@ fun RequestForRideScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Offloading", fontSize = 14.sp, color = TextSecondary)
-                        Text("RM ${com.company.carryon.data.model.VehiclePricing.OFFLOADING_FEE.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                        Text("RM ${offloadingFee.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -567,11 +565,10 @@ fun RequestForRideScreen(
                                         receiverPhone = receiverPhone,
                                         receiverEmail = receiverEmail,
                                         deliveryMode = deliveryMode,
-                                        estimatedPrice = totalAmount,
-                                        distance = distanceKm,
-                                        duration = 0
+                                        offloading = offloading
                                     )
-                                    BookingApi.createBooking(request)
+                                    val idempotencyKey = bookingAttemptKey ?: newUuid().also { bookingAttemptKey = it }
+                                    BookingApi.createBooking(request, idempotencyKey)
                                         .onSuccess { response ->
                                             val booking = response.data
                                             if (booking != null) {

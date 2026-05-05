@@ -37,7 +37,15 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="carryon-customer" />
+                <data android:scheme="carryon-customer" android:host="track" />
+                <data android:scheme="carryon-customer" android:host="ref" />
+            </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="carryon.app" android:pathPrefix="/track" />
+                <data android:scheme="https" android:host="carryon.app" android:pathPrefix="/ref" />
             </intent-filter>
         </activity>
 

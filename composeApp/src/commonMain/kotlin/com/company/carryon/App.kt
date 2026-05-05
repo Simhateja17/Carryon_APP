@@ -58,6 +58,7 @@ import com.company.carryon.ui.screens.booking.RequestForRideScreen
 import com.company.carryon.ui.screens.wallet.AddMoneyScreen
 import com.company.carryon.ui.screens.wallet.AddPaymentMethodScreen
 import com.company.carryon.ui.screens.wallet.SendMoneyScreen
+import com.company.carryon.ui.screens.wallet.TransactionsScreen
 import com.company.carryon.ui.screens.wallet.WalletScreen
 import com.company.carryon.ui.screens.chat.ChatScreen
 import com.company.carryon.ui.screens.support.ReportIssueScreen
@@ -80,6 +81,7 @@ import com.company.carryon.ui.screens.profile.PrivacySecurityScreen
 import com.company.carryon.ui.screens.profile.SavedAddressesScreen
 import com.company.carryon.ui.screens.help.HelpScreen
 import com.company.carryon.data.network.AuthStateManager
+import com.company.carryon.data.network.DeepLinkTarget
 import com.company.carryon.data.network.PendingPushNavigation
 import com.company.carryon.data.network.PushNavigationSignal
 import com.company.carryon.data.network.PushRegistrar
@@ -87,6 +89,7 @@ import com.company.carryon.data.network.clearToken
 import com.company.carryon.data.network.consumePendingPushNavigation
 import com.company.carryon.data.network.getLanguage
 import com.company.carryon.data.network.SupabaseConfig
+import com.company.carryon.data.network.toDeepLinkTarget
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -183,6 +186,7 @@ sealed class AppScreen {
     data object SendMoney : AppScreen()
     data object AddPaymentMethod : AppScreen()
     data object DeliveryReceipts : AppScreen()
+    data object Transactions : AppScreen()
     data class Chat(val bookingId: String, val driverName: String = "Driver") : AppScreen()
     data object Support : AppScreen()
     data object SupportChat : AppScreen()
@@ -192,12 +196,18 @@ sealed class AppScreen {
     data object PrivacySecurity : AppScreen()
     data object ChangePassword : AppScreen()
     data object LoggedInDevices : AppScreen()
-    data object Promo : AppScreen()
+    data class Promo(val referralCode: String = "") : AppScreen()
     data object InvoiceHub : AppScreen()
     data class Invoice(val bookingId: String) : AppScreen()
 }
 
 private fun PendingPushNavigation.toAppScreen(): AppScreen? {
+    toDeepLinkTarget()?.let { target ->
+        return when (target) {
+            is DeepLinkTarget.TrackBooking -> AppScreen.TrackOrder(target.bookingId)
+            is DeepLinkTarget.Referral -> AppScreen.Promo(target.code)
+        }
+    }
     val bookingId = bookingId?.takeIf { it.isNotBlank() } ?: return null
     return when (type.uppercase()) {
         "DRIVER_ASSIGNED" -> AppScreen.SearchingDriver(bookingId)
@@ -276,7 +286,8 @@ fun App() {
         currentScreen !is AppScreen.ReportIssue &&
         currentScreen !is AppScreen.AddMoney &&
         currentScreen !is AppScreen.SendMoney &&
-        currentScreen !is AppScreen.AddPaymentMethod
+        currentScreen !is AppScreen.AddPaymentMethod &&
+        currentScreen !is AppScreen.Transactions
 
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
@@ -292,6 +303,7 @@ fun App() {
         is AppScreen.SendMoney -> 2
         is AppScreen.AddPaymentMethod -> 2
         is AppScreen.DeliveryReceipts -> 2
+        is AppScreen.Transactions -> 2
         is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses, is AppScreen.AddAddress,
         is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support, is AppScreen.ReportIssue,
         is AppScreen.SupportChat, is AppScreen.SupportCall, is AppScreen.TicketDetail, is AppScreen.PrivacySecurity, is AppScreen.ChangePassword, is AppScreen.LoggedInDevices, is AppScreen.LanguageSettings, is AppScreen.DefaultVehicle, is AppScreen.ClearCache, is AppScreen.Promo, is AppScreen.DriverRating,
@@ -378,7 +390,7 @@ fun App() {
                     onLanguageChanged = { currentLanguage = it }
                 )
             }
-            is AppScreen.Profile -> {
+        is AppScreen.Profile -> {
                 ProfileScreen(
                     onNavigateToEditProfile = { currentScreen = AppScreen.EditProfile },
                     onNavigateToSavedAddresses = { currentScreen = AppScreen.SavedAddresses(fromSettings = false) },
@@ -390,7 +402,7 @@ fun App() {
                     onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToPromo = { currentScreen = AppScreen.PrivacySecurity },
+                    onNavigateToPromo = { currentScreen = AppScreen.Promo() },
                     onLogout = {
                         AuthStateManager.setLoggedIn(false)
                         scope.launch { AuthStateManager.logout() }
@@ -720,10 +732,7 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, deliveryMode, offloading, scheduledTime ->
-                        val recipientEmail = receiverPhone
-                            .filter { it.isDigit() }
-                            .ifBlank { "recipient" } + "@carryon.app"
+                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, receiverEmail, deliveryMode, offloading, scheduledTime ->
                         currentScreen = AppScreen.RequestForRide(
                             vt,
                             pickup,
@@ -732,7 +741,7 @@ fun App() {
                             senderPhone,
                             receiverName,
                             receiverPhone,
-                            recipientEmail,
+                            receiverEmail,
                             deliveryMode,
                             offloading,
                             scheduledTime
@@ -765,7 +774,9 @@ fun App() {
                     offloading = screen.offloading,
                     scheduledTime = screen.scheduledTime,
                     onContinue = { bookingId, amount, paymentMethod ->
-                        if (paymentMethod == "card" || paymentMethod == "wallet") {
+                        if (paymentMethod == "wallet") {
+                            currentScreen = AppScreen.SearchingDriver(bookingId, amount)
+                        } else if (paymentMethod == "card") {
                             currentScreen = AppScreen.BookingPayment(
                                 bookingId = bookingId,
                                 pickupAddress = screen.pickup,
@@ -826,9 +837,14 @@ fun App() {
                     onBack = { currentScreen = AppScreen.Profile },
                     onAddMoney = { currentScreen = AppScreen.AddMoney },
                     onSendMoney = { currentScreen = AppScreen.SendMoney },
-                    onAddNewMethod = { currentScreen = AppScreen.AddPaymentMethod },
                     onDownloadInvoices = { currentScreen = AppScreen.InvoiceHub },
-                    onViewReceipts = { currentScreen = AppScreen.DeliveryReceipts }
+                    onViewReceipts = { currentScreen = AppScreen.DeliveryReceipts },
+                    onSeeAllTransactions = { currentScreen = AppScreen.Transactions }
+                )
+            }
+            is AppScreen.Transactions -> {
+                TransactionsScreen(
+                    onBack = { currentScreen = AppScreen.Wallet }
                 )
             }
             is AppScreen.AddMoney -> {
@@ -901,6 +917,7 @@ fun App() {
             }
             is AppScreen.Promo -> {
                 PromoScreen(
+                    initialReferralCode = screen.referralCode,
                     onBack = { currentScreen = AppScreen.Profile },
                     onApplyCoupon = null
                 )

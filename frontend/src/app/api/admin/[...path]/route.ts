@@ -23,8 +23,21 @@ async function proxyAdminRequest(
   }
 
   const params = await context.params;
+  if (params.path.some((segment) => segment === "." || segment === "..")) {
+    return NextResponse.json(
+      { success: false, message: "Invalid admin path" },
+      { status: 400 }
+    );
+  }
+
   const path = params.path.join("/");
   const targetUrl = new URL(`/api/admin/${path}`, backendBaseUrl());
+  if (!targetUrl.pathname.startsWith("/api/admin/")) {
+    return NextResponse.json(
+      { success: false, message: "Invalid admin path" },
+      { status: 400 }
+    );
+  }
   targetUrl.search = request.nextUrl.search;
 
   const headers = new Headers(request.headers);

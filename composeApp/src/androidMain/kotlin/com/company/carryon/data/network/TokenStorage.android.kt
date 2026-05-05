@@ -109,6 +109,8 @@ actual fun getOrCreateDeviceId(): String {
     return created
 }
 
+actual fun newUuid(): String = java.util.UUID.randomUUID().toString()
+
 actual fun savePendingPushNavigation(type: String, bookingId: String?, targetScreen: String?) {
     prefsOrNull()?.edit()
         ?.putString(KEY_PUSH_TYPE, type)

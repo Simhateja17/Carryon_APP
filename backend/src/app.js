@@ -4,6 +4,12 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
+const prisma = require('./lib/prisma');
+const {
+  legacyApiHeaders,
+  mountVersionedMiddleware,
+  mountVersionedRoute,
+} = require('./routes/mountApiRoutes');
 
 // Initialize Firebase Admin SDK early
 require('./lib/firebase');
@@ -19,8 +25,11 @@ const corsOptions = allowedOrigins.length > 0
   : (process.env.NODE_ENV === 'production' ? { origin: false } : undefined);
 app.use(cors(corsOptions));
 app.use(helmet());
-app.use(morgan('dev'));
-app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', {
+  skip: (req, res) => process.env.NODE_ENV === 'production' && res.statusCode === 404,
+}));
+app.use('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
+app.use('/api/stripe/webhook', legacyApiHeaders, express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
 app.use(express.json({ limit: '100kb' }));
 
 // Rate limiting
@@ -45,51 +54,100 @@ const locationLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api/auth/send-otp', authLimiter);
-app.use('/api/auth/verify-otp', authLimiter);
-app.use('/api/auth/refresh', authLimiter);
-app.use('/api/wallet/topup', walletLimiter);
-app.use('/api/wallet/pay', walletLimiter);
-app.use('/api/location', locationLimiter);
+mountVersionedMiddleware(app, '/auth/send-otp', authLimiter);
+mountVersionedMiddleware(app, '/auth/verify-otp', authLimiter);
+mountVersionedMiddleware(app, '/auth/refresh', authLimiter);
+mountVersionedMiddleware(app, '/wallet/topup', walletLimiter);
+mountVersionedMiddleware(app, '/wallet/pay', walletLimiter);
+mountVersionedMiddleware(app, '/location', locationLimiter);
 
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'ok' });
+  } catch (err) {
+    console.error('[health] Database connectivity check failed:', err.message);
+    res.status(503).json({ status: 'error', database: 'unreachable' });
+  }
+});
+
+// Storage diagnostic — call on prod to verify Supabase storage config
+app.get('/health/storage', async (req, res) => {
+  const { getSupabaseAdmin } = require('./lib/supabase');
+  const keyConfigured = !!process.env.SUPABASE_SERVICE_KEY;
+  const keyPrefix = keyConfigured
+    ? process.env.SUPABASE_SERVICE_KEY.substring(0, 12) + '...'
+    : 'NOT SET';
+
+  try {
+    const { data: buckets, error } = await getSupabaseAdmin().storage.listBuckets();
+    if (error) {
+      console.error('[health/storage] listBuckets failed:', error.message);
+      return res.status(503).json({
+        status: 'error',
+        storage: 'unreachable',
+        keyConfigured,
+        keyPrefix,
+        error: error.message,
+        hint: !keyConfigured
+          ? 'SUPABASE_SERVICE_KEY is not set in this environment'
+          : 'Key is set but Supabase rejected it — ensure it is the service_role key, not the anon key',
+      });
+    }
+    const bucketNames = (buckets || []).map(b => b.name);
+    const hasPackageImages = bucketNames.includes('package-images');
+    res.json({
+      status: hasPackageImages ? 'ok' : 'degraded',
+      storage: 'reachable',
+      keyConfigured,
+      keyPrefix,
+      buckets: bucketNames,
+      packageImagesBucketExists: hasPackageImages,
+      hint: hasPackageImages ? null : 'package-images bucket missing — run: node scripts/setup-storage-buckets.js',
+    });
+  } catch (err) {
+    console.error('[health/storage] unexpected error:', err.message);
+    res.status(500).json({ status: 'error', error: err.message, keyConfigured, keyPrefix });
+  }
+});
 
 // Routes
 console.log('[app] Mounting routes...');
-app.use('/api/auth', require('./routes/auth.routes'));
-app.use('/api/users', require('./routes/user.routes'));
-app.use('/api/addresses', require('./routes/address.routes'));
-app.use('/api/bookings', require('./routes/booking.routes'));
-app.use('/api/vehicles', require('./routes/vehicle.routes'));
-app.use('/api/location', require('./routes/location.routes'));
-app.use('/api/upload', require('./routes/upload.routes'));
-app.use('/api/promo', require('./routes/promo.routes'));
-app.use('/api/chat', require('./routes/chat.routes'));
-app.use('/api/wallet', require('./routes/wallet.routes'));
-app.use('/api/payments', require('./routes/payment.routes'));
-app.use('/api/support', require('./routes/support.routes'));
-app.use('/api/ratings', require('./routes/rating.routes'));
-app.use('/api/invoices', require('./routes/invoice.routes'));
+mountVersionedRoute(app, '/auth', require('./routes/auth.routes'));
+mountVersionedRoute(app, '/users', require('./routes/user.routes'));
+mountVersionedRoute(app, '/addresses', require('./routes/address.routes'));
+mountVersionedRoute(app, '/bookings', require('./routes/booking.routes'));
+mountVersionedRoute(app, '/vehicles', require('./routes/vehicle.routes'));
+mountVersionedRoute(app, '/location', require('./routes/location.routes'));
+mountVersionedRoute(app, '/upload', require('./routes/upload.routes'));
+mountVersionedRoute(app, '/promo', require('./routes/promo.routes'));
+mountVersionedRoute(app, '/chat', require('./routes/chat.routes'));
+mountVersionedRoute(app, '/wallet', require('./routes/wallet.routes'));
+mountVersionedRoute(app, '/payments', require('./routes/payment.routes'));
+mountVersionedRoute(app, '/support', require('./routes/support.routes'));
+mountVersionedRoute(app, '/ratings', require('./routes/rating.routes'));
+mountVersionedRoute(app, '/invoices', require('./routes/invoice.routes'));
 
 // Driver routes
-app.use('/api/driver/auth', require('./routes/driver-auth.routes'));
-app.use('/api/driver/profile', require('./routes/driver-profile.routes'));
-app.use('/api/driver/documents', require('./routes/driver-documents.routes'));
-app.use('/api/driver/upload', require('./routes/driver-upload.routes'));
-app.use('/api/driver/vehicle', require('./routes/driver-vehicle.routes'));
-app.use('/api/driver/jobs', require('./routes/driver-jobs.routes'));
-app.use('/api/driver/earnings', require('./routes/driver-earnings.routes'));
-app.use('/api/driver/ratings', require('./routes/driver-ratings.routes'));
-app.use('/api/driver/support', require('./routes/driver-support.routes'));
-app.use('/api/driver/notifications', require('./routes/driver-notifications.routes'));
-app.use('/api/driver/chat', require('./routes/driver-chat.routes'));
-app.use('/api/driver/payouts', require('./routes/driver-payouts.routes'));
+mountVersionedRoute(app, '/driver/auth', require('./routes/driver-auth.routes'));
+mountVersionedRoute(app, '/driver/profile', require('./routes/driver-profile.routes'));
+mountVersionedRoute(app, '/driver/documents', require('./routes/driver-documents.routes'));
+mountVersionedRoute(app, '/driver/upload', require('./routes/driver-upload.routes'));
+mountVersionedRoute(app, '/driver/vehicle', require('./routes/driver-vehicle.routes'));
+mountVersionedRoute(app, '/driver/jobs', require('./routes/driver-jobs.routes'));
+mountVersionedRoute(app, '/driver', require('./routes/driver-demand.routes'));
+mountVersionedRoute(app, '/driver/earnings', require('./routes/driver-earnings.routes'));
+mountVersionedRoute(app, '/driver/ratings', require('./routes/driver-ratings.routes'));
+mountVersionedRoute(app, '/driver/support', require('./routes/driver-support.routes'));
+mountVersionedRoute(app, '/driver/notifications', require('./routes/driver-notifications.routes'));
+mountVersionedRoute(app, '/driver/chat', require('./routes/driver-chat.routes'));
+mountVersionedRoute(app, '/driver/payouts', require('./routes/driver-payouts.routes'));
 
 // Admin routes (protected by admin key)
 const { adminAuth } = require('./middleware/adminAuth');
-app.use('/api/admin/notifications', adminAuth, require('./routes/admin-notifications.routes'));
-app.use('/api/admin/drivers', adminAuth, require('./routes/admin-drivers.routes'));
+mountVersionedRoute(app, '/admin/notifications', require('./routes/admin-notifications.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/drivers', require('./routes/admin-drivers.routes'), adminAuth);
 console.log('[app] All routes mounted');
 
 // Error handling

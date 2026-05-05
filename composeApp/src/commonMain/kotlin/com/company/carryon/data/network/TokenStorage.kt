@@ -29,6 +29,7 @@ expect fun getPushToken(): String?
 expect fun clearPushToken()
 
 expect fun getOrCreateDeviceId(): String
+expect fun newUuid(): String
 
 expect fun savePendingPushNavigation(type: String, bookingId: String?, targetScreen: String?)
 expect fun consumePendingPushNavigation(): PendingPushNavigation?

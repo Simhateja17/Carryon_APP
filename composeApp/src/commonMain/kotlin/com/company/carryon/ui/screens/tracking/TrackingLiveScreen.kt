@@ -28,6 +28,7 @@ import com.company.carryon.data.model.RouteResult
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
+import com.company.carryon.data.network.LiveTrackingApi
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import androidx.compose.material.icons.Icons
@@ -63,6 +64,7 @@ fun TrackingLiveScreen(
     val gpsHistory = remember { mutableListOf<LatLng>() }
     var trackingStale by remember { mutableStateOf(false) }
     var consecutiveFailures by remember { mutableStateOf(0) }
+    var liveTrackingConnected by remember { mutableStateOf(false) }
 
     // Load booking data
     LaunchedEffect(bookingId) {
@@ -112,29 +114,52 @@ fun TrackingLiveScreen(
         }
     }
 
+    LaunchedEffect(bookingId) {
+        LiveTrackingApi.subscribeToBooking(
+            bookingId = bookingId,
+            onConnected = {
+                liveTrackingConnected = true
+                trackingStale = false
+                consecutiveFailures = 0
+            },
+            onLocation = { location ->
+                driverLat = location.latitude
+                driverLng = location.longitude
+                gpsHistory.add(LatLng(location.latitude, location.longitude))
+                trackingStale = false
+                consecutiveFailures = 0
+            }
+        ).onFailure {
+            liveTrackingConnected = false
+            trackingStale = true
+        }
+    }
+
     // Poll driver position every 8 seconds (only if we have a driver)
     LaunchedEffect(driverId, deliveryLat, deliveryLng) {
         if (driverId.isBlank() || deliveryLat == 0.0) return@LaunchedEffect
         
         while (true) {
-            // Try to get real position from tracker
-            LocationApi.getPosition(driverId)
-                .onSuccess { pos ->
-                    if (pos.latitude != 0.0 && pos.longitude != 0.0) {
-                        driverLat = pos.latitude
-                        driverLng = pos.longitude
-                        gpsHistory.add(LatLng(pos.latitude, pos.longitude))
-                        consecutiveFailures = 0
-                        trackingStale = false
+            if (!liveTrackingConnected) {
+                // REST polling fallback for older backends or disconnected sockets.
+                LocationApi.getPosition(driverId)
+                    .onSuccess { pos ->
+                        if (pos.latitude != 0.0 && pos.longitude != 0.0) {
+                            driverLat = pos.latitude
+                            driverLng = pos.longitude
+                            gpsHistory.add(LatLng(pos.latitude, pos.longitude))
+                            consecutiveFailures = 0
+                            trackingStale = false
+                        }
                     }
-                }
-                .onFailure {
-                    consecutiveFailures++
-                    // Show stale indicator after 3 consecutive failures (24s)
-                    if (consecutiveFailures >= 3) {
-                        trackingStale = true
+                    .onFailure {
+                        consecutiveFailures++
+                        // Show stale indicator after 3 consecutive failures (24s)
+                        if (consecutiveFailures >= 3) {
+                            trackingStale = true
+                        }
                     }
-                }
+            }
 
             // Snap GPS trail to roads for smooth display
             if (gpsHistory.size >= 2) {

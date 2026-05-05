@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.company.carryon.data.network.initTokenStorage
+import com.company.carryon.data.network.DeepLinkRouter
+import com.company.carryon.data.network.DeepLinkTarget
 import com.company.carryon.data.network.savePendingPushNavigation
 import com.company.carryon.data.network.savePushToken
 import com.company.carryon.data.network.PushNavigationSignal
@@ -123,6 +125,24 @@ class MainActivity : ComponentActivity() {
 
     private fun handlePushNavigationIntent(intent: Intent?) {
         val pushType = intent?.getStringExtra(EXTRA_PUSH_TYPE)?.trim().orEmpty()
+        val deepLinkTarget = DeepLinkRouter.parse(intent?.dataString)
+        if (deepLinkTarget != null) {
+            when (deepLinkTarget) {
+                is DeepLinkTarget.TrackBooking -> savePendingPushNavigation(
+                    type = "DEEP_LINK_TRACK",
+                    bookingId = deepLinkTarget.bookingId,
+                    targetScreen = null
+                )
+                is DeepLinkTarget.Referral -> savePendingPushNavigation(
+                    type = "DEEP_LINK_REFERRAL",
+                    bookingId = null,
+                    targetScreen = deepLinkTarget.code
+                )
+            }
+            PushNavigationSignal.signalPendingNavigation()
+            return
+        }
+
         if (pushType.isEmpty()) return
 
         val bookingId = intent?.getStringExtra(EXTRA_BOOKING_ID)?.trim()?.takeIf { it.isNotBlank() }

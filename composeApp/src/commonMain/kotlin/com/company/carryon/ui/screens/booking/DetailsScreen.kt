@@ -82,7 +82,7 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, deliveryMode: String, offloading: Boolean, scheduledTime: String?) -> Unit,
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, receiverEmail: String, deliveryMode: String, offloading: Boolean, scheduledTime: String?) -> Unit,
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
@@ -103,6 +103,7 @@ fun DetailsScreen(
     var instructions by rememberSaveable { mutableStateOf("") }
     var receiverName by rememberSaveable { mutableStateOf("") }
     var receiverPhone by rememberSaveable { mutableStateOf("") }
+    var receiverEmail by rememberSaveable { mutableStateOf("") }
     var showValidationError by rememberSaveable { mutableStateOf(false) }
 
     var senderName by rememberSaveable { mutableStateOf("") }
@@ -133,7 +134,8 @@ fun DetailsScreen(
     val hasValidParcelType = parcelType.isNotBlank()
     val hasValidReceiverName = normalizedReceiverName.isNotBlank()
     val hasValidReceiverPhone = normalizedPhoneDigits.length >= 8
-    val canContinue = hasValidWeight && hasValidParcelType && hasValidReceiverName && hasValidReceiverPhone
+    val hasValidReceiverEmail = isValidRecipientEmail(receiverEmail)
+    val canContinue = hasValidWeight && hasValidParcelType && hasValidReceiverName && hasValidReceiverPhone && hasValidReceiverEmail
     val vehicleLabel = vehicleType.ifBlank { "Standard Delivery" }
     val vehicleEmoji = vehicleType.toVehicleEmoji()
 
@@ -207,6 +209,7 @@ fun DetailsScreen(
                                     senderPhone,
                                     receiverName,
                                     receiverPhone,
+                                    receiverEmail.trim(),
                                     deliveryMode,
                                     offloading,
                                     scheduledTime
@@ -236,6 +239,7 @@ fun DetailsScreen(
                             !hasValidWeight -> "Enter parcel weight greater than 0 kg."
                             !hasValidReceiverName -> "Enter receiver name."
                             !hasValidReceiverPhone -> "Enter a valid receiver phone number."
+                            !hasValidReceiverEmail -> "Enter a valid recipient email for delivery OTP."
                             !hasValidParcelType -> "Select parcel type."
                             else -> "Fill all required details to continue."
                         }
@@ -767,6 +771,24 @@ fun DetailsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = receiverEmail,
+                        onValueChange = { receiverEmail = it },
+                        placeholder = { Text("Recipient Email for OTP", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium) },
+                        singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Email),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     ContactPickerButton { contact ->
                         receiverName = contact.name
                         receiverPhone = contact.phone
@@ -905,6 +927,10 @@ private fun String.toVehicleEmoji(): String {
         "4x4 pickup", "pickup", "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "lorry_10ft", "lorry_14ft", "lorry_17ft", "truck", "open truck" -> "🚚"
         else -> "🚚"
     }
+}
+
+private fun isValidRecipientEmail(value: String): Boolean {
+    return Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(value.trim())
 }
 
 private data class TimeSlotOption(

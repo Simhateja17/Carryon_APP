@@ -93,6 +93,8 @@ actual fun getOrCreateDeviceId(): String {
     return created
 }
 
+actual fun newUuid(): String = platform.Foundation.NSUUID().UUIDString()
+
 actual fun savePendingPushNavigation(type: String, bookingId: String?, targetScreen: String?) {
     NSUserDefaults.standardUserDefaults.setObject(type, forKey = KEY_PUSH_TYPE)
     if (bookingId == null) {
