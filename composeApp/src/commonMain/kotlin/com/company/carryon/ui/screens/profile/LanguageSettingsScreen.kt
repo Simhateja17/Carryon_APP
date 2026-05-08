@@ -17,33 +17,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
-import com.company.carryon.data.network.getLanguage
-import com.company.carryon.data.network.saveLanguage
+import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.i18n.SupportedLanguages
+import com.company.carryon.i18n.currentLanguageOrDefault
+import com.company.carryon.i18n.storeLanguagePreference
 import com.company.carryon.ui.theme.PrimaryBlue
 import kotlinx.coroutines.launch
-
-private data class LanguageOption(
-    val code: String,
-    val title: String,
-    val subtitle: String,
-    val icon: String
-)
 
 @Composable
 fun LanguageSettingsScreen(
     onBack: () -> Unit,
     onLanguageChanged: (String) -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
-    var selectedLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
-
-    val options = listOf(
-        LanguageOption("en", "English", "Default System Language", "文A"),
-        LanguageOption("hi", "Hindi", "हिन्दी", "ग"),
-        LanguageOption("es", "Spanish", "Español", "ñ"),
-        LanguageOption("fr", "French", "Français", "ç"),
-        LanguageOption("de", "German", "Deutsch", "ä")
-    )
+    var selectedLanguage by remember { mutableStateOf(currentLanguageOrDefault()) }
 
     Column(
         modifier = Modifier
@@ -68,7 +56,7 @@ fun LanguageSettingsScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Settings",
+                        text = strings.settings,
                         color = Color.Black,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.SemiBold
@@ -84,13 +72,13 @@ fun LanguageSettingsScreen(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "Language",
+                    text = strings.language,
                     color = Color.Black,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = "Select your preferred language for the\napplication interface.",
+                    text = strings.languageSettingsDescription,
                     color = Color.Black,
                     fontSize = 16.sp,
                     lineHeight = 24.sp
@@ -98,18 +86,18 @@ fun LanguageSettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                options.forEach { option ->
+                SupportedLanguages.all.forEach { option ->
                     LanguageItemCard(
-                        title = option.title,
-                        subtitle = option.subtitle,
-                        icon = option.icon,
+                        title = option.englishName,
+                        subtitle = option.nativeName,
+                        icon = option.iconText,
                         selected = selectedLanguage == option.code,
                         onClick = {
-                            selectedLanguage = option.code
-                            saveLanguage(option.code)
-                            onLanguageChanged(option.code)
+                            val language = storeLanguagePreference(option.code)
+                            selectedLanguage = language
+                            onLanguageChanged(language)
                             scope.launch {
-                                UserApi.updateLanguage(option.code)
+                                UserApi.updateLanguage(language)
                             }
                         }
                     )
@@ -126,14 +114,14 @@ fun LanguageSettingsScreen(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "Global Connectivity",
+                            text = strings.globalConnectivityTitle,
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Experience our services in your native\nlanguage for a more intuitive and\npersonalized delivery journey.",
+                            text = strings.globalConnectivityDescription,
                             color = Color(0xCCFFFFFF),
                             fontSize = 14.sp,
                             lineHeight = 22.sp

@@ -43,9 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
-import com.company.carryon.ui.theme.PrimaryBlueDark
 
 @Composable
 fun PrivacySecurityScreen(
@@ -53,6 +53,7 @@ fun PrivacySecurityScreen(
     onChangePassword: () -> Unit,
     onLoggedInDevices: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var locationEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(false) }
 
@@ -66,7 +67,7 @@ fun PrivacySecurityScreen(
                 .background(Color(0xFFF5F6F8))
         ) {
             CarryOnHeader(
-                title = "Privacy & Security",
+                title = strings.privacyAndSecurity,
                 onBack = onBack,
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp)
             )
@@ -78,17 +79,17 @@ fun PrivacySecurityScreen(
                     .padding(horizontal = 24.dp)
                     .padding(top = 24.dp)
             ) {
-                SectionTitle("ACCOUNT SECURITY")
+                SectionTitle(strings.accountSecurity.uppercase())
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = Icons.Outlined.Lock, title = "Change Password", onClick = onChangePassword)
+                ActionCard(icon = Icons.Outlined.Lock, title = strings.changePassword, onClick = onChangePassword)
 
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("LOGIN & ACCESS")
+                SectionTitle(strings.loginAndAccess.uppercase())
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = Icons.Outlined.Devices, title = "Logged in devices", onClick = onLoggedInDevices)
+                ActionCard(icon = Icons.Outlined.Devices, title = strings.loggedInDevices, onClick = onLoggedInDevices)
 
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("PERMISSIONS")
+                SectionTitle(strings.permissions.uppercase())
                 Spacer(modifier = Modifier.height(12.dp))
                 Column(
                     modifier = Modifier
@@ -98,7 +99,7 @@ fun PrivacySecurityScreen(
                 ) {
                     ToggleRow(
                         icon = Icons.Outlined.LocationOn,
-                        title = "Location Access",
+                        title = strings.locationAccess,
                         checked = locationEnabled,
                         onToggle = { locationEnabled = !locationEnabled }
                     )
@@ -110,20 +111,20 @@ fun PrivacySecurityScreen(
                     )
                     ToggleRow(
                         icon = Icons.Outlined.Notifications,
-                        title = "Notifications",
+                        title = strings.notifications,
                         checked = notificationsEnabled,
                         onToggle = { notificationsEnabled = !notificationsEnabled }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("DATA & PRIVACY")
+                SectionTitle(strings.dataAndPrivacy.uppercase())
                 Spacer(modifier = Modifier.height(12.dp))
-                ActionCard(icon = Icons.Outlined.Download, title = "Download my data")
+                ActionCard(icon = Icons.Outlined.Download, title = strings.downloadMyData)
 
                 Spacer(modifier = Modifier.height(28.dp))
                 Text(
-                    text = "DANGER ZONE",
+                    text = strings.dangerZone.uppercase(),
                     color = PrimaryBlue,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -143,17 +144,17 @@ fun PrivacySecurityScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.DeleteOutline,
-                        contentDescription = "Delete Account",
+                        contentDescription = strings.deleteAccount,
                         modifier = Modifier.size(20.dp),
                         tint = PrimaryBlue
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Delete Account", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(strings.deleteAccount, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Deleting your account is permanent. All your\ndelivery history, addresses, and saved data will be\nremoved.",
+                    text = strings.deleteAccountWarning,
                     color = Color.Black,
                     fontSize = 12.sp,
                     lineHeight = 19.5.sp,
@@ -172,10 +173,10 @@ fun PrivacySecurityScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomMiniTab(icon = "", label = "Ship", selected = false)
-                BottomMiniTab(icon = "", label = "Track", selected = false)
-                BottomMiniTab(icon = "", label = "History", selected = false)
-                BottomMiniTab(icon = "", label = "Settings", selected = true)
+                BottomMiniTab(icon = "", label = strings.ride, selected = false)
+                BottomMiniTab(icon = "", label = strings.trackShipments, selected = false)
+                BottomMiniTab(icon = "", label = strings.history, selected = false)
+                BottomMiniTab(icon = "", label = strings.settings, selected = true)
             }
         }
     }

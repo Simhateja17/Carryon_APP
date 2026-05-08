@@ -49,6 +49,7 @@ private fun bookingStatusToStep(status: BookingStatus): Int = when (status) {
     BookingStatus.DRIVER_ASSIGNED, BookingStatus.DRIVER_ARRIVED -> 1
     BookingStatus.PICKUP_DONE -> 2
     BookingStatus.IN_TRANSIT -> 3
+    BookingStatus.ARRIVED_AT_DROP -> 4
     BookingStatus.DELIVERED -> 5
     BookingStatus.CANCELLED -> -1
 }
@@ -59,6 +60,7 @@ private fun progressFor(status: BookingStatus): Float = when (status) {
     BookingStatus.DRIVER_ARRIVED -> 0.45f
     BookingStatus.PICKUP_DONE -> 0.55f
     BookingStatus.IN_TRANSIT -> 0.7f
+    BookingStatus.ARRIVED_AT_DROP -> 0.9f
     BookingStatus.DELIVERED -> 1.0f
     BookingStatus.CANCELLED -> 0.0f
 }

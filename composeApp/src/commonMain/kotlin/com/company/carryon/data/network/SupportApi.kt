@@ -7,6 +7,15 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class AiChatMessage(val role: String, val parts: String)
+
+@Serializable
+private data class AiChatRequest(val message: String, val history: List<AiChatMessage>)
+
+@Serializable
+data class AiChatResponse(val reply: String)
+
+@Serializable
 private data class CreateTicketRequest(
     val subject: String,
     val category: String = "OTHER",
@@ -51,5 +60,15 @@ object SupportApi {
 
     suspend fun closeTicket(ticketId: String): Result<ApiResponse<SupportTicket>> = runCatching {
         client.post("/api/support/tickets/$ticketId/close").body()
+    }
+
+    suspend fun sendAiMessage(
+        message: String,
+        history: List<AiChatMessage>
+    ): Result<ApiResponse<AiChatResponse>> = runCatching {
+        client.post("/api/support/ai-chat") {
+            contentType(ContentType.Application.Json)
+            setBody(AiChatRequest(message, history))
+        }.body()
     }
 }

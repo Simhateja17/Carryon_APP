@@ -65,7 +65,7 @@ private fun formatISODate(isoDate: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveShipmentScreen(
-    onTrackShipments: () -> Unit,
+    onTrackShipments: (bookingId: String) -> Unit,
     onChatWithDriver: (String, String) -> Unit = { _, _ -> }
 ) {
     val strings = LocalStrings.current
@@ -125,6 +125,7 @@ fun ActiveShipmentScreen(
     }
     val etaText = fallbackEta?.let { "$it min  ●●●" } ?: "—  ●●●"
     val orderId = activeBooking?.id ?: "—"
+    val canTrackShipment = !isLoading && activeBooking?.status?.isLiveTrackable() == true
     val displayOrderId = activeBooking?.let { formatOrderDisplayId(it.id, it.orderCode) } ?: "ord 0000"
     val pickupAddress = activeBooking?.pickupAddress?.address ?: "—"
     val recipientName = activeBooking?.deliveryAddress?.contactName?.ifBlank {
@@ -353,11 +354,16 @@ fun ActiveShipmentScreen(
 
                 // Track Shipments Button
                 Button(
-                    onClick = onTrackShipments,
+                    onClick = {
+                        activeBooking?.id
+                            ?.takeIf { canTrackShipment }
+                            ?.let(onTrackShipments)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(54.dp),
                     shape = RoundedCornerShape(12.dp),
+                    enabled = canTrackShipment,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryBlue
                     )

@@ -50,6 +50,7 @@ private fun Booking.toOrderHistory() = OrderHistory(
     status = when (status) {
         BookingStatus.DELIVERED -> "Completed"
         BookingStatus.CANCELLED -> "Cancelled"
+        BookingStatus.ARRIVED_AT_DROP -> "Arrived at Drop"
         BookingStatus.IN_TRANSIT -> "In Transit"
         BookingStatus.PICKUP_DONE -> "Picked Up"
         BookingStatus.DRIVER_ASSIGNED, BookingStatus.DRIVER_ARRIVED -> "Driver Assigned"

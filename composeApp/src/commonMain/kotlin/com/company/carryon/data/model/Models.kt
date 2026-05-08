@@ -102,6 +102,7 @@ enum class BookingStatus {
     DRIVER_ARRIVED,
     PICKUP_DONE,
     IN_TRANSIT,
+    ARRIVED_AT_DROP,
     DELIVERED,
     CANCELLED
 }
@@ -459,6 +460,11 @@ data class EtaResponse(
 )
 
 // ── Invoice Models ──────────────────────────────────────
+
+@Serializable
+data class InvoiceDownloadLink(
+    val url: String = ""
+)
 
 @Serializable
 data class Invoice(

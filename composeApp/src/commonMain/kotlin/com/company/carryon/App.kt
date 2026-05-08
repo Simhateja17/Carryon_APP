@@ -87,9 +87,14 @@ import com.company.carryon.data.network.PushNavigationSignal
 import com.company.carryon.data.network.PushRegistrar
 import com.company.carryon.data.network.clearToken
 import com.company.carryon.data.network.consumePendingPushNavigation
-import com.company.carryon.data.network.getLanguage
 import com.company.carryon.data.network.SupabaseConfig
+import com.company.carryon.data.network.UserApi
 import com.company.carryon.data.network.toDeepLinkTarget
+import com.company.carryon.i18n.currentLanguageOrDefault
+import com.company.carryon.i18n.hasStoredLanguagePreference
+import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.i18n.storeLanguagePreference
+import com.company.carryon.ui.components.LanguageSelectionDialog
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -201,6 +206,22 @@ sealed class AppScreen {
     data class Invoice(val bookingId: String) : AppScreen()
 }
 
+enum class AppScreenDestination {
+    ActiveShipment,
+    TrackingLive,
+    Other
+}
+
+fun AppScreen.contentDestination(): AppScreenDestination =
+    when (this) {
+        is AppScreen.ActiveShipment,
+        is AppScreen.TrackShipment,
+        is AppScreen.TrackOrder,
+        is AppScreen.DeliveryDetails -> AppScreenDestination.ActiveShipment
+        is AppScreen.TrackingLive -> AppScreenDestination.TrackingLive
+        else -> AppScreenDestination.Other
+    }
+
 private fun PendingPushNavigation.toAppScreen(): AppScreen? {
     toDeepLinkTarget()?.let { target ->
         return when (target) {
@@ -222,7 +243,10 @@ private fun PendingPushNavigation.toAppScreen(): AppScreen? {
 @Preview
 fun App() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
-    var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
+    var previousScreenBeforeTrackingLive by remember { mutableStateOf<AppScreen>(AppScreen.Home) }
+    var previousScreenBeforeChat by remember { mutableStateOf<AppScreen>(AppScreen.Home) }
+    var currentLanguage by remember { mutableStateOf(currentLanguageOrDefault()) }
+    var showLanguageDialog by remember { mutableStateOf(!hasStoredLanguagePreference()) }
     val scope = rememberCoroutineScope()
     val isLoggedIn by AuthStateManager.isLoggedIn.collectAsState()
 
@@ -231,6 +255,11 @@ fun App() {
         pending.toAppScreen()?.let { target ->
             currentScreen = target
         }
+    }
+
+    fun navigateToTrackingLive(bookingId: String) {
+        previousScreenBeforeTrackingLive = currentScreen
+        currentScreen = AppScreen.TrackingLive(bookingId)
     }
 
     LaunchedEffect(isLoggedIn, currentScreen) {
@@ -332,6 +361,7 @@ fun App() {
                 SplashScreen(
                     onLoggedIn = {
                         AuthStateManager.setLoggedIn(true)
+                        scope.launch { UserApi.updateLanguage(currentLanguage) }
                         currentScreen = AppScreen.Home
                     },
                     onNotLoggedIn = { currentScreen = AppScreen.Welcome }
@@ -349,6 +379,7 @@ fun App() {
                     onNavigateToRegister = { currentScreen = AppScreen.Register() },
                     onGoogleSignInSuccess = {
                         AuthStateManager.setLoggedIn(true)
+                        scope.launch { UserApi.updateLanguage(currentLanguage) }
                         currentScreen = AppScreen.Home
                     }
                 )
@@ -369,6 +400,7 @@ fun App() {
                     name = screen.name,
                     onVerifySuccess = {
                         AuthStateManager.setLoggedIn(true)
+                        scope.launch { UserApi.updateLanguage(currentLanguage) }
                         currentScreen = AppScreen.Home
                     },
                     onBack = { currentScreen = AppScreen.Login }
@@ -384,7 +416,7 @@ fun App() {
                     },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToProfile = { currentScreen = AppScreen.Profile },
-                    onNavigateToTracking = { currentScreen = AppScreen.ActiveShipment },
+                    onNavigateToTracking = { bookingId -> navigateToTrackingLive(bookingId) },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
                     onNavigateToCalculate = { currentScreen = AppScreen.SelectAddress() },
                     onLanguageChanged = { currentLanguage = it }
@@ -398,7 +430,7 @@ fun App() {
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
                     onNavigateToCalculate = { currentScreen = AppScreen.SelectAddress() },
                     onNavigateToHistory = { currentScreen = AppScreen.History },
-                    onNavigateToTrackShipment = { currentScreen = AppScreen.ActiveShipment },
+                    onNavigateToTrackShipment = { currentScreen = AppScreen.Orders },
                     onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
@@ -454,7 +486,7 @@ fun App() {
                 HelpScreen(
                     onBack = { currentScreen = AppScreen.Profile },
                     onNavigateToOrders = { currentScreen = AppScreen.Orders },
-                    onNavigateToTracking = { currentScreen = AppScreen.ActiveShipment },
+                    onNavigateToTracking = { currentScreen = AppScreen.Orders },
                     onNavigateToSupport = { currentScreen = AppScreen.Support }
                 )
             }
@@ -479,30 +511,34 @@ fun App() {
                 HistoryScreen(
                     onInstantDelivery = { currentScreen = AppScreen.SelectAddress() },
                     onScheduleDelivery = { currentScreen = AppScreen.SelectAddress() },
-                    onOrderClick = { currentScreen = AppScreen.ActiveShipment },
+                    onOrderClick = { orderId -> currentScreen = AppScreen.PackageDetails(orderId) },
                     onViewAll = { currentScreen = AppScreen.Orders }
                 )
             }
             is AppScreen.TrackShipment -> {
                 ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onTrackShipments = { bookingId -> navigateToTrackingLive(bookingId) },
                     onChatWithDriver = { bookingId, driverName ->
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
                 )
             }
             is AppScreen.TrackingLive -> {
-                ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                TrackingLiveScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = previousScreenBeforeTrackingLive },
                     onChatWithDriver = { bookingId, driverName ->
+                        previousScreenBeforeChat = currentScreen
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
                 )
             }
             is AppScreen.TrackOrder -> {
-                ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                TrackingLiveScreen(
+                    bookingId = screen.bookingId,
+                    onBack = { currentScreen = AppScreen.Home },
                     onChatWithDriver = { bookingId, driverName ->
+                        previousScreenBeforeChat = currentScreen
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
                 )
@@ -510,11 +546,11 @@ fun App() {
             is AppScreen.Orders -> {
                 OrdersScreen(
                     onBack = { currentScreen = AppScreen.Home },
-                    onOrderClick = {
-                        currentScreen = AppScreen.ActiveShipment
+                    onOrderClick = { orderId ->
+                        currentScreen = AppScreen.PackageDetails(orderId)
                     },
-                    onTrackOrder = {
-                        currentScreen = AppScreen.ActiveShipment
+                    onTrackOrder = { bookingId ->
+                        navigateToTrackingLive(bookingId)
                     },
                 )
             }
@@ -666,7 +702,7 @@ fun App() {
             is AppScreen.DriverApproaching -> {
                 DriverApproachingScreen(
                     bookingId = screen.bookingId,
-                    onPickupDone = { currentScreen = AppScreen.ActiveShipment },
+                    onPickupDone = { navigateToTrackingLive(screen.bookingId) },
                     onBack = { currentScreen = AppScreen.Orders }
                 )
             }
@@ -676,14 +712,14 @@ fun App() {
                     bookingId = screen.bookingId,
                     onSubmit = {
                         if (screen.bookingId.isNotBlank()) {
-                            currentScreen = AppScreen.ActiveShipment
+                            currentScreen = AppScreen.Home
                         } else {
                             currentScreen = AppScreen.Orders
                         }
                     },
                     onBack = {
                         if (screen.bookingId.isNotBlank()) {
-                            currentScreen = AppScreen.ActiveShipment
+                            currentScreen = AppScreen.Home
                         } else {
                             currentScreen = AppScreen.Orders
                         }
@@ -697,7 +733,7 @@ fun App() {
             }
             is AppScreen.ActiveShipment -> {
                 ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onTrackShipments = { bookingId -> navigateToTrackingLive(bookingId) },
                     onChatWithDriver = { bookingId, driverName ->
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
@@ -705,7 +741,7 @@ fun App() {
             }
             is AppScreen.DeliveryDetails -> {
                 ActiveShipmentScreen(
-                    onTrackShipments = { currentScreen = AppScreen.ActiveShipment },
+                    onTrackShipments = { bookingId -> navigateToTrackingLive(bookingId) },
                     onChatWithDriver = { bookingId, driverName ->
                         currentScreen = AppScreen.Chat(bookingId, driverName)
                     }
@@ -876,7 +912,7 @@ fun App() {
                 ChatScreen(
                     bookingId = screen.bookingId,
                     driverName = screen.driverName,
-                    onBack = { currentScreen = AppScreen.ActiveShipment }
+                    onBack = { currentScreen = previousScreenBeforeChat }
                 )
             }
             is AppScreen.Support -> {
@@ -929,6 +965,20 @@ fun App() {
                 )
             }
         }
+        if (showLanguageDialog) {
+            LanguageSelectionDialog(
+                currentLanguage = currentLanguage,
+                onDismiss = {},
+                onLanguageSelected = { code ->
+                    val language = storeLanguagePreference(code)
+                    currentLanguage = language
+                    showLanguageDialog = false
+                    if (isLoggedIn) {
+                        scope.launch { UserApi.updateLanguage(language) }
+                    }
+                }
+            )
+        }
         }
         }
     }
@@ -942,15 +992,16 @@ private fun AppBottomBar(
     onPaymentsClick: () -> Unit,
     onAccountClick: () -> Unit
 ) {
+    val strings = LocalStrings.current
     Surface(
         color = Color.White,
         shadowElevation = 8.dp
     ) {
         val items = listOf(
-            Res.drawable.icon_home to "HOME",
-            Res.drawable.icon_timer to "ORDERS",
-            Res.drawable.wallet_add_money_icon to "WALLET",
-            Res.drawable.icon_people to "PROFILE"
+            Res.drawable.icon_home to strings.navHome.uppercase(),
+            Res.drawable.icon_timer to strings.navOrders.uppercase(),
+            Res.drawable.wallet_add_money_icon to strings.walletTitle.uppercase(),
+            Res.drawable.icon_people to strings.profile.uppercase()
         )
         val actions = listOf(onHomeClick, onOrdersClick, onPaymentsClick, onAccountClick)
 

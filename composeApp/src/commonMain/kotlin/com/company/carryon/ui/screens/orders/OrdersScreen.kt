@@ -45,6 +45,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +76,7 @@ import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.components.CarryOnHeader
+import com.company.carryon.ui.screens.tracking.isLiveTrackable
 import com.company.carryon.ui.theme.ErrorRed
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
@@ -134,7 +136,7 @@ fun OrdersScreen(
     onOrderClick: (orderId: String) -> Unit,
     onTrackOrder: (orderId: String) -> Unit = onOrderClick
 ) {
-    var selectedTab by remember { mutableStateOf(OrdersTab.ALL) }
+    var selectedTab by rememberSaveable { mutableStateOf(OrdersTab.ALL) }
 
     var bookings by remember { mutableStateOf<List<Booking>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -168,7 +170,8 @@ fun OrdersScreen(
             BookingStatus.DRIVER_ASSIGNED,
             BookingStatus.DRIVER_ARRIVED,
             BookingStatus.PICKUP_DONE,
-            BookingStatus.IN_TRANSIT
+            BookingStatus.IN_TRANSIT,
+            BookingStatus.ARRIVED_AT_DROP
         )
     }
 
@@ -272,7 +275,11 @@ fun OrdersScreen(
 
         if (showOngoing) {
             if (ongoingOrder != null) {
-                OngoingOrderCard(order = ongoingOrder, onTrack = { onTrackOrder(ongoingOrder.id) })
+                OngoingOrderCard(
+                    order = ongoingOrder,
+                    canTrack = ongoingOrder.status.isLiveTrackable(),
+                    onTrack = { onTrackOrder(ongoingOrder.id) }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             } else {
                 EmptyOrdersState("No ongoing deliveries")
@@ -814,13 +821,14 @@ private fun OrdersHeader(
 }
 
 @Composable
-private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
+private fun OngoingOrderCard(order: OrderItem, canTrack: Boolean, onTrack: () -> Unit) {
     val statusText = when (order.status) {
         BookingStatus.SEARCHING_DRIVER -> "SEARCHING DRIVER"
         BookingStatus.DRIVER_ASSIGNED -> "DRIVER ASSIGNED"
         BookingStatus.DRIVER_ARRIVED -> "DRIVER ARRIVED"
         BookingStatus.PICKUP_DONE -> "PICKUP DONE"
         BookingStatus.IN_TRANSIT -> "IN TRANSIT"
+        BookingStatus.ARRIVED_AT_DROP -> "ARRIVED AT DROP"
         else -> order.status.name.replace('_', ' ')
     }
     Card(
@@ -881,6 +889,7 @@ private fun OngoingOrderCard(order: OrderItem, onTrack: () -> Unit) {
                 Button(
                     onClick = onTrack,
                     shape = RoundedCornerShape(999.dp),
+                    enabled = canTrack,
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
                 ) {

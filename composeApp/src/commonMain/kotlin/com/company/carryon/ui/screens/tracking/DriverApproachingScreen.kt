@@ -111,6 +111,7 @@ fun DriverApproachingScreen(
                     booking = updated
                     if (updated.status == BookingStatus.PICKUP_DONE ||
                         updated.status == BookingStatus.IN_TRANSIT ||
+                        updated.status == BookingStatus.ARRIVED_AT_DROP ||
                         updated.status == BookingStatus.DELIVERED
                     ) {
                         pickupDoneHandled = true

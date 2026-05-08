@@ -36,6 +36,8 @@ import carryon.composeapp.generated.resources.saved_address_delete
 import carryon.composeapp.generated.resources.saved_address_edit
 import carryon.composeapp.generated.resources.saved_address_hub
 import carryon.composeapp.generated.resources.saved_address_primary
+import com.company.carryon.i18n.AppStrings
+import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
@@ -53,12 +55,13 @@ fun SavedAddressesScreen(
     onAddNewAddress: () -> Unit,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var addresses by remember { mutableStateOf<List<SavedAddressUi>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(strings) {
         AddressApi.getAddresses()
-            .onSuccess { result -> addresses = result.map(::toSavedAddressUi) }
+            .onSuccess { result -> addresses = result.map { toSavedAddressUi(it, strings) } }
             .onFailure { addresses = emptyList() }
         isLoading = false
     }
@@ -79,13 +82,13 @@ fun SavedAddressesScreen(
                     .padding(bottom = 90.dp)
             ) {
                 CarryOnHeader(
-                    title = "Saved Addresses",
+                    title = strings.savedAddressesMenu,
                     onBack = onBack,
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp)
                 )
 
                 Text(
-                    text = "Frequent Locations",
+                    text = strings.frequentLocations,
                     color = Color(0xFF111111),
                     fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
@@ -115,7 +118,7 @@ fun SavedAddressesScreen(
                                     .padding(horizontal = 18.dp, vertical = 24.dp)
                             ) {
                                 Text(
-                                    text = "No saved addresses yet.",
+                                    text = strings.noSavedAddressesYet,
                                     color = Color(0xFF111111),
                                     fontSize = 16.sp
                                 )
@@ -144,7 +147,7 @@ fun SavedAddressesScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
                 ) {
                     Text(
-                        text = "+ Add New Address",
+                        text = strings.addNewAddress,
                         color = Color.White,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Medium
@@ -155,7 +158,7 @@ fun SavedAddressesScreen(
     }
 }
 
-private fun toSavedAddressUi(address: Address): SavedAddressUi {
+private fun toSavedAddressUi(address: Address, strings: AppStrings): SavedAddressUi {
     val icon = when (address.type) {
         AddressType.HOME -> Res.drawable.saved_address_primary
         AddressType.OFFICE -> Res.drawable.saved_address_hub
@@ -164,15 +167,15 @@ private fun toSavedAddressUi(address: Address): SavedAddressUi {
     val subtitleLines = listOfNotNull(
         address.address.takeIf { it.isNotBlank() },
         address.landmark.takeIf { it.isNotBlank() }
-    ).ifEmpty { listOf("Address unavailable") }
+    ).ifEmpty { listOf(strings.addressUnavailable) }
 
     return SavedAddressUi(
         icon = icon,
         title = address.label.ifBlank {
             when (address.type) {
-                AddressType.HOME -> "Home"
-                AddressType.OFFICE -> "Office"
-                AddressType.OTHER -> "Saved Address"
+                AddressType.HOME -> strings.navHome
+                AddressType.OFFICE -> strings.office
+                AddressType.OTHER -> strings.savedAddress
             }
         },
         lines = subtitleLines

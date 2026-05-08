@@ -31,6 +31,7 @@ import com.company.carryon.ui.theme.*
 import com.company.carryon.ui.components.getLanguageDisplayName
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.data.network.getLanguage
+import com.company.carryon.i18n.LocalStrings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -45,6 +46,7 @@ fun SettingsScreen(
     onNavigateToClearCache: () -> Unit,
     onLanguageChanged: (String) -> Unit = {}
 ) {
+    val strings = LocalStrings.current
     var userName by remember { mutableStateOf("—") }
     var currentLanguage by remember { mutableStateOf(getLanguage() ?: "en") }
     var autoApplyCoupons by remember { mutableStateOf(true) }
@@ -75,7 +77,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             CarryOnHeader(
-                title = "Settings",
+                title = strings.settings,
                 onBack = onBack,
                 contentPadding = PaddingValues(horizontal = 2.dp)
             )
@@ -94,20 +96,20 @@ fun SettingsScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "ACTIVE PROFILE",
+                            text = strings.activeProfile.uppercase(),
                             color = Color.White,
                             fontSize = 12.sp,
                             letterSpacing = 1.2.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = if (isLoadingProfile) "Loading..." else userName,
+                            text = if (isLoadingProfile) strings.loading else userName,
                             color = Color(0xFF0B1220),
                             fontSize = 34.sp,
                             fontWeight = FontWeight.ExtraBold
                         )
                         Text(
-                            text = "Logistics Manager",
+                            text = strings.logisticsManager,
                             color = Color.White,
                             fontSize = 14.sp
                         )
@@ -138,7 +140,7 @@ fun SettingsScreen(
             SettingsGroupCard {
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_language_icon,
-                    title = "Language",
+                    title = strings.language,
                     titleColor = Color(0xFF000000),
                     trailingText = getLanguageDisplayName(currentLanguage),
                     onClick = { onNavigateToLanguage() }
@@ -148,16 +150,16 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             SettingsGroupCard(
-                heading = "DELIVERY PREFERENCES"
+                heading = strings.deliveryPreferences.uppercase()
             ) {
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_save_last_address_icon,
-                    title = "Saved address",
+                    title = strings.savedAddress,
                     onClick = { onNavigateToSavedAddresses() }
                 )
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_default_vehicle_icon,
-                    title = "Default Vehicle",
+                    title = strings.defaultVehicle,
                     onClick = { onNavigateToDefaultVehicle() }
                 )
             }
@@ -165,17 +167,17 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             SettingsGroupCard(
-                heading = "APP AUTOMATION"
+                heading = strings.appAutomation.uppercase()
             ) {
                 SettingsToggleRow(
                     iconRes = Res.drawable.settings_auto_apply_coupons_icon,
-                    title = "Auto-apply coupons",
+                    title = strings.autoApplyCoupons,
                     checked = autoApplyCoupons,
                     onCheckedChange = { autoApplyCoupons = it }
                 )
                 SettingsToggleRow(
                     iconRes = Res.drawable.settings_save_last_address_icon,
-                    title = "Save last address",
+                    title = strings.saveLastAddress,
                     checked = saveLastAddress,
                     onCheckedChange = { saveLastAddress = it }
                 )
@@ -184,16 +186,16 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             SettingsGroupCard(
-                heading = "DATA & SECURITY"
+                heading = strings.dataAndSecurity.uppercase()
             ) {
                 SettingsNavRow(
                     iconRes = Res.drawable.settings_clear_cache_icon,
-                    title = "Clear cache",
+                    title = strings.clearCache,
                     onClick = { onNavigateToClearCache() }
                 )
                 SettingsToggleRow(
                     iconRes = Res.drawable.settings_data_saver_mode_icon,
-                    title = "Data saver mode",
+                    title = strings.dataSaverMode,
                     checked = dataSaverMode,
                     onCheckedChange = { dataSaverMode = it }
                 )
@@ -213,13 +215,13 @@ fun SettingsScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(Res.drawable.settings_logout_icon),
-                        contentDescription = "Log Out",
+                        contentDescription = strings.logout,
                         modifier = Modifier.size(20.dp),
                         contentScale = ContentScale.Fit
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Log Out",
+                        text = strings.logout,
                         color = PrimaryBlue,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
@@ -230,7 +232,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(22.dp))
 
             Text(
-                text = "CARRYON LOGISTICS",
+                text = strings.carryOnLogistics.uppercase(),
                 color = Color.Black,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,

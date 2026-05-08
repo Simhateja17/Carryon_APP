@@ -66,13 +66,13 @@ import carryon.composeapp.generated.resources.truck
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.UserApi
-import com.company.carryon.data.network.getLanguage
-import com.company.carryon.data.network.saveLanguage
 import com.company.carryon.data.model.AutocompleteResult
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
 import com.company.carryon.data.model.GeocodedPlace
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.i18n.hasStoredLanguagePreference
+import com.company.carryon.i18n.storeLanguagePreference
 import com.company.carryon.ui.components.LanguageSelectionDialog
 import com.company.carryon.ui.components.rememberLocationRequester
 import com.company.carryon.ui.theme.BackgroundLight
@@ -147,8 +147,7 @@ fun HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        val savedLang = getLanguage()
-        if (savedLang.isNullOrEmpty()) showLanguageModal = true
+        if (!hasStoredLanguagePreference()) showLanguageModal = true
     }
 
     LaunchedEffect(Unit) {
@@ -165,7 +164,8 @@ fun HomeScreen(
                     BookingStatus.DRIVER_ASSIGNED,
                     BookingStatus.DRIVER_ARRIVED,
                     BookingStatus.PICKUP_DONE,
-                    BookingStatus.IN_TRANSIT
+                    BookingStatus.IN_TRANSIT,
+                    BookingStatus.ARRIVED_AT_DROP
                 )
             }
             recentDeliveredBookings = allBookings
@@ -275,10 +275,10 @@ fun HomeScreen(
         LanguageSelectionDialog(
             onDismiss = {},
             onLanguageSelected = { langCode ->
-                saveLanguage(langCode)
+                val language = storeLanguagePreference(langCode)
                 showLanguageModal = false
-                onLanguageChanged(langCode)
-                scope.launch { UserApi.updateLanguage(langCode) }
+                onLanguageChanged(language)
+                scope.launch { UserApi.updateLanguage(language) }
             }
         )
     }
@@ -306,13 +306,13 @@ fun HomeScreen(
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "WELCOME BACK",
+                    text = strings.welcomeBack.uppercase(),
                     color = TextSecondary,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "Hello, ${userName ?: "—"}",
+                    text = strings.helloUser(userName ?: "—"),
                     color = TextPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold
@@ -346,9 +346,9 @@ fun HomeScreen(
                     }
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Your delivery is in progress", color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
+                        Text(strings.deliveryInProgressStatus, color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp)
                         Text(
-                            activeBooking?.eta?.let { "Arriving in approx. $it mins" } ?: "Driver details updating",
+                            activeBooking?.eta?.let { strings.arrivingInApproxMins(it.toString()) } ?: strings.driverDetailsUpdating,
                             color = TextSecondary,
                             fontSize = 11.sp
                         )
@@ -357,7 +357,7 @@ fun HomeScreen(
                         onClick = { activeBooking?.id?.let(onNavigateToTracking) },
                         contentPadding = PaddingValues(0.dp)
                     ) {
-                        Text("Track now  →", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 12.sp)
+                        Text("${strings.trackNow}  →", color = PrimaryBlue, fontWeight = FontWeight.Medium, fontSize = 12.sp)
                     }
                 }
             }
@@ -369,7 +369,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "No active deliveries right now",
+                    text = strings.noActiveDeliveriesRightNow,
                     color = TextSecondary,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp)
@@ -379,7 +379,7 @@ fun HomeScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        Text("Send a Package", color = TextPrimary, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp)
+        Text(strings.sendAPackage, color = TextPrimary, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -395,7 +395,7 @@ fun HomeScreen(
                 },
                 placeholder = {
                     Text(
-                        if (isGettingLocation) strings.detectingLocation else "Enter pickup location",
+                        if (isGettingLocation) strings.detectingLocation else strings.enterPickupLocation,
                         color = Color(0xFF90A0B7)
                     )
                 },
@@ -479,7 +479,7 @@ fun HomeScreen(
                     searchDelivery(it)
                     showPickupSuggestions = false
                 },
-                placeholder = { Text("Where should we deliver?", color = Color(0xFF000000)) },
+                placeholder = { Text(strings.whereShouldWeDeliver, color = Color(0xFF000000)) },
                 leadingIcon = {
                     Image(
                         painter = painterResource(Res.drawable.icon_home),
@@ -551,7 +551,7 @@ fun HomeScreen(
         if (showDeliveryRequiredError) {
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Select a valid drop location from suggestions to continue",
+                text = strings.selectValidDropLocation,
                 color = Color(0xFFEB5757),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -568,12 +568,12 @@ fun HomeScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("Next", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(strings.next, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        Text("Recent Deliveries", color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
+        Text(strings.recentDeliveries, color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(10.dp))
 
         if (recentDeliveredBookings.isEmpty()) {
@@ -583,7 +583,7 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "No recent deliveries",
+                    text = strings.noRecentDeliveries,
                     color = TextSecondary,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
@@ -591,12 +591,13 @@ fun HomeScreen(
             }
         } else {
             recentDeliveredBookings.forEachIndexed { index, booking ->
-                val pickupTitle = booking.pickupAddress.label.ifBlank { booking.pickupAddress.address }.ifBlank { "Pickup" }
-                val deliveryTitle = booking.deliveryAddress.label.ifBlank { booking.deliveryAddress.address }.ifBlank { "Delivery" }
+                val pickupTitle = booking.pickupAddress.label.ifBlank { booking.pickupAddress.address }.ifBlank { strings.pickup }
+                val deliveryTitle = booking.deliveryAddress.label.ifBlank { booking.deliveryAddress.address }.ifBlank { strings.delivery }
                 val deliveredDate = booking.updatedAt.take(10)
                 RecentDeliveryCard(
-                    title = "$pickupTitle to $deliveryTitle",
-                    subtitle = if (deliveredDate.isNotBlank()) "Delivered on $deliveredDate" else "Delivered",
+                    title = strings.routeTitle(pickupTitle, deliveryTitle),
+                    subtitle = if (deliveredDate.isNotBlank()) strings.deliveredOn(deliveredDate) else strings.delivered,
+                    repeatLabel = strings.repeat,
                     onRepeat = { onNavigateToOrders() }
                 )
                 if (index != recentDeliveredBookings.lastIndex) {
@@ -675,7 +676,7 @@ private fun VehicleCard(
 }
 
 @Composable
-private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> Unit) {
+private fun RecentDeliveryCard(title: String, subtitle: String, repeatLabel: String, onRepeat: () -> Unit) {
     Surface(
         color = HomeCardBackground,
         shape = RoundedCornerShape(14.dp),
@@ -707,7 +708,7 @@ private fun RecentDeliveryCard(title: String, subtitle: String, onRepeat: () -> 
                 modifier = Modifier.clickable(onClick = onRepeat)
             ) {
                 Text(
-                    "Repeat",
+                    repeatLabel,
                     color = PrimaryBlue,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,

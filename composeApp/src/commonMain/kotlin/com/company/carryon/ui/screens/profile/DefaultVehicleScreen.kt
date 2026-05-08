@@ -48,9 +48,9 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.mini_van
+import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
-import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -61,6 +61,7 @@ fun DefaultVehicleScreen(
     onBack: () -> Unit,
     onSave: (String) -> Unit
 ) {
+    val strings = LocalStrings.current
     var selectedVehicle by remember { mutableStateOf(VehicleType.BIKE) }
 
     Scaffold(
@@ -75,10 +76,10 @@ fun DefaultVehicleScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                BottomNavItem(Icons.Outlined.Home, "Home", false)
-                BottomNavItem(Icons.Outlined.Schedule, "Deliveries", false)
-                BottomNavItem(Icons.Outlined.AccountBalanceWallet, "Wallet", false)
-                BottomNavItem(Icons.Outlined.PersonOutline, "Profile", true)
+                BottomNavItem(Icons.Outlined.Home, strings.navHome, false)
+                BottomNavItem(Icons.Outlined.Schedule, strings.deliveries, false)
+                BottomNavItem(Icons.Outlined.AccountBalanceWallet, strings.wallet, false)
+                BottomNavItem(Icons.Outlined.PersonOutline, strings.profile, true)
             }
         }
     ) { paddingValues ->
@@ -91,21 +92,21 @@ fun DefaultVehicleScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
             CarryOnHeader(
-                title = "Default Vehicle",
+                title = strings.defaultVehicle,
                 onBack = onBack,
                 contentPadding = PaddingValues(0.dp)
             )
 
             Spacer(modifier = Modifier.height(30.dp))
             Text(
-                text = "Default Vehicle",
+                text = strings.defaultVehicle,
                 color = Color.Black,
                 fontSize = 72.sp / 2,
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Select your most frequent delivery type",
+                text = strings.defaultVehicleDescription,
                 color = Color.Black,
                 fontSize = 16.sp
             )
@@ -113,24 +114,24 @@ fun DefaultVehicleScreen(
             Spacer(modifier = Modifier.height(26.dp))
 
             VehicleCard(
-                title = "Bike",
-                description = "Small packages up to\n5 kg. Ideal for\ndocuments, food, and\nurgent city deliveries.",
+                title = strings.bike,
+                description = strings.bikeDescription,
                 imageRes = Res.drawable.bike,
                 selected = selectedVehicle == VehicleType.BIKE,
                 onClick = { selectedVehicle = VehicleType.BIKE }
             )
             Spacer(modifier = Modifier.height(16.dp))
             VehicleCard(
-                title = "Car",
-                description = "Medium loads 5-20\nkg. Best for grocery\nhauls and multiple\nmedium-sized boxes.",
+                title = strings.car,
+                description = strings.carDescription,
                 imageRes = Res.drawable.car_4_seater,
                 selected = selectedVehicle == VehicleType.CAR,
                 onClick = { selectedVehicle = VehicleType.CAR }
             )
             Spacer(modifier = Modifier.height(16.dp))
             VehicleCard(
-                title = "Van",
-                description = "Bulk shipments.\nPerfect for furniture,\nlarge appliances, or\nbusiness inventory.",
+                title = strings.van,
+                description = strings.vanDescription,
                 imageRes = Res.drawable.mini_van,
                 selected = selectedVehicle == VehicleType.VAN,
                 onClick = { selectedVehicle = VehicleType.VAN }
@@ -141,9 +142,9 @@ fun DefaultVehicleScreen(
                 onClick = {
                     onSave(
                         when (selectedVehicle) {
-                            VehicleType.BIKE -> "Bike"
-                            VehicleType.CAR -> "Car"
-                            VehicleType.VAN -> "Van"
+                            VehicleType.BIKE -> strings.bike
+                            VehicleType.CAR -> strings.car
+                            VehicleType.VAN -> strings.van
                         }
                     )
                 },
@@ -153,7 +154,7 @@ fun DefaultVehicleScreen(
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4E7FE1))
             ) {
-                Text("Save Preferences", color = Color(0xFFF1F2FF), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text(strings.savePreferences, color = Color(0xFFF1F2FF), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             }
             Spacer(modifier = Modifier.height(18.dp))
         }
@@ -207,7 +208,7 @@ private fun VehicleCard(
                             .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
                             .padding(horizontal = 12.dp, vertical = 4.dp)
                     ) {
-                        Text("SELECTED", color = Color(0xFF2F80ED), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(LocalStrings.current.selected.uppercase(), color = Color(0xFF2F80ED), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }

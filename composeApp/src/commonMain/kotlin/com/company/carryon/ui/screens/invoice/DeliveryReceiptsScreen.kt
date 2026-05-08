@@ -28,7 +28,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalUriHandler
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -55,6 +58,9 @@ fun DeliveryReceiptsScreen(
     var invoices by remember { mutableStateOf<List<Invoice>>(emptyList()) }
     var selectedBookingId by remember { mutableStateOf<String?>(null) }
     var selectedDetail by remember { mutableStateOf<InvoiceDetail?>(null) }
+    var isDownloadingReceipt by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         InvoiceApi.getInvoices()
@@ -62,7 +68,10 @@ fun DeliveryReceiptsScreen(
                 invoices = response.data.orEmpty()
                 selectedBookingId = invoices.firstOrNull()?.bookingId
             }
-            .onFailure { invoices = emptyList() }
+            .onFailure { e ->
+                println("[DeliveryReceipts] Failed to load invoices: ${e.message}")
+                invoices = emptyList()
+            }
     }
 
     LaunchedEffect(selectedBookingId) {
@@ -116,8 +125,23 @@ fun DeliveryReceiptsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            selectedDetail?.let {
-                DetailedReceiptCard(it)
+            selectedDetail?.let { detail ->
+                DetailedReceiptCard(
+                    detail = detail,
+                    isDownloading = isDownloadingReceipt,
+                    onDownload = {
+                        val bookingId = selectedBookingId ?: return@DetailedReceiptCard
+                        scope.launch {
+                            isDownloadingReceipt = true
+                            InvoiceApi.getReceiptDownloadUrl(bookingId)
+                                .onSuccess { response ->
+                                    val url = response.data?.url
+                                    if (!url.isNullOrBlank()) uriHandler.openUri(url)
+                                }
+                            isDownloadingReceipt = false
+                        }
+                    }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -286,7 +310,11 @@ private fun ReceiptRow(
 }
 
 @Composable
-private fun DetailedReceiptCard(detail: InvoiceDetail) {
+private fun DetailedReceiptCard(
+    detail: InvoiceDetail,
+    isDownloading: Boolean = false,
+    onDownload: () -> Unit = {}
+) {
     val invoice = detail.invoice
     val booking = detail.booking
     Column(
@@ -325,7 +353,22 @@ private fun DetailedReceiptCard(detail: InvoiceDetail) {
                         )
                     }
                 }
-                Text("⇩", color = PrimaryBlue, fontSize = 16.sp)
+                if (isDownloading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = PrimaryBlue,
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        "⇩",
+                        color = PrimaryBlue,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .clickable(onClick = onDownload)
+                            .padding(4.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))

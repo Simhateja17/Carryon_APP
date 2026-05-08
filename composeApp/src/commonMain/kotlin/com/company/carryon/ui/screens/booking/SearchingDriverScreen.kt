@@ -71,6 +71,7 @@ fun SearchingDriverScreen(
                             BookingStatus.DRIVER_ARRIVED,
                             BookingStatus.PICKUP_DONE,
                             BookingStatus.IN_TRANSIT,
+                            BookingStatus.ARRIVED_AT_DROP,
                             BookingStatus.DELIVERED -> {
                                 driverFoundHandled = true
                                 if (!hasNavigated) {
@@ -262,7 +263,7 @@ fun SearchingDriverScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(120.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),

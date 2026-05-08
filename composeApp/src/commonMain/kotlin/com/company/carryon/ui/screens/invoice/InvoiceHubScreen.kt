@@ -32,7 +32,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalUriHandler
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -54,6 +57,7 @@ import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatDecimal
+import kotlin.time.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -68,18 +72,49 @@ fun InvoiceHubScreen(
 ) {
     var invoices by remember { mutableStateOf<List<Invoice>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadError by remember { mutableStateOf<String?>(null) }
+    val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         InvoiceApi.getInvoices()
             .onSuccess { response -> invoices = response.data.orEmpty() }
-            .onFailure { invoices = emptyList() }
+            .onFailure { e ->
+                println("[InvoiceHub] Failed to load invoices: ${e.message}")
+                invoices = emptyList()
+            }
         isLoading = false
+    }
+
+    fun downloadStatement() {
+        val latestDate = invoices.maxByOrNull { it.issuedAt }?.issuedAt
+        val (month, year) = runCatching {
+            val dt = Instant.parse(latestDate ?: "").toLocalDateTime(TimeZone.currentSystemDefault())
+            dt.monthNumber to dt.year
+        }.getOrElse {
+            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+            now.monthNumber to now.year
+        }
+        scope.launch {
+            isDownloading = true
+            downloadError = null
+            InvoiceApi.getMonthlyStatementUrl(month, year)
+                .onSuccess { response ->
+                    val url = response.data?.url
+                    if (!url.isNullOrBlank()) uriHandler.openUri(url)
+                    else downloadError = "Invoice not available"
+                }
+                .onFailure { downloadError = it.message ?: "Download failed" }
+            isDownloading = false
+        }
     }
 
     val totalAmount = invoices.sumOf { it.total }
     val latestInvoice = invoices.maxByOrNull { it.issuedAt }
     val invoiceItems = invoices.map { invoice ->
         InvoiceItem(
+            bookingId = invoice.bookingId,
             title = invoice.invoiceNumber.ifBlank { invoice.bookingId },
             subtitle = invoice.issuedAt.takeIf { it.isNotBlank() }?.let(::formatInvoiceDate) ?: "Invoice date unavailable",
             amount = "RM ${invoice.total.formatDecimal(2)}"
@@ -229,13 +264,23 @@ fun InvoiceHubScreen(
                     )
                     Text("Total Amount", color = Color(0xFF334155), fontSize = 10.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                        Column {
+                            Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                            if (downloadError != null) {
+                                Text(downloadError!!, color = Color(0xFFEF4444), fontSize = 10.sp)
+                            }
+                        }
                         Button(
-                            onClick = { },
+                            onClick = { downloadStatement() },
+                            enabled = !isDownloading,
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
                         ) {
-                            Text("⇩ Download\nPDF", color = Color.White, fontSize = 11.sp)
+                            if (isDownloading) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                            } else {
+                                Text("⇩ Download\nPDF", color = Color.White, fontSize = 11.sp)
+                            }
                         }
                     }
                 }
@@ -291,7 +336,16 @@ fun InvoiceHubScreen(
                     }
                 }
             } else items(invoiceItems.size) { index ->
-                InvoiceHistoryRow(invoiceItems[index])
+                val item = invoiceItems[index]
+                InvoiceHistoryRow(item) {
+                    scope.launch {
+                        InvoiceApi.getReceiptDownloadUrl(item.bookingId)
+                            .onSuccess { response ->
+                                val url = response.data?.url
+                                if (!url.isNullOrBlank()) uriHandler.openUri(url)
+                            }
+                    }
+                }
             }
 
             item {
@@ -309,6 +363,7 @@ fun InvoiceHubScreen(
 }
 
 private data class InvoiceItem(
+    val bookingId: String,
     val title: String,
     val subtitle: String,
     val amount: String
@@ -350,7 +405,7 @@ private fun FilterChip(text: String) {
 }
 
 @Composable
-private fun InvoiceHistoryRow(item: InvoiceItem) {
+private fun InvoiceHistoryRow(item: InvoiceItem, onDownload: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -371,6 +426,13 @@ private fun InvoiceHistoryRow(item: InvoiceItem) {
             Spacer(modifier = Modifier.height(4.dp))
             Text(item.amount, color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
         }
-        Text("⇩", color = Color(0xFF3B82F6), fontSize = 14.sp)
+        Text(
+            text = "⇩",
+            color = Color(0xFF3B82F6),
+            fontSize = 14.sp,
+            modifier = Modifier
+                .clickable(onClick = onDownload)
+                .padding(8.dp)
+        )
     }
 }

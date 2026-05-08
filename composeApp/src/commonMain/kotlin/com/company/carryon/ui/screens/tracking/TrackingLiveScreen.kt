@@ -32,6 +32,7 @@ import com.company.carryon.data.network.LiveTrackingApi
 import kotlinx.coroutines.delay
 import kotlin.math.ceil
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.NotificationsNone
 
@@ -40,7 +41,8 @@ import androidx.compose.material.icons.outlined.NotificationsNone
 fun TrackingLiveScreen(
     bookingId: String,
     onBack: () -> Unit,
-    onCallAgent: () -> Unit = {}
+    onCallAgent: () -> Unit = {},
+    onChatWithDriver: (String, String) -> Unit = { _, _ -> }
 ) {
     val strings = LocalStrings.current
     
@@ -221,6 +223,14 @@ fun TrackingLiveScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = {
+                            onChatWithDriver(bookingId, booking?.driver?.name ?: "Driver")
+                        },
+                        enabled = booking?.driver != null
+                    ) {
+                        Icon(imageVector = Icons.AutoMirrored.Outlined.Chat, contentDescription = "Chat with Driver", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
+                    }
                     IconButton(onClick = {}) {
                         Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
                     }

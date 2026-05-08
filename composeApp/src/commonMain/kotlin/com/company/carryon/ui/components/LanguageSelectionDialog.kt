@@ -14,22 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
-
-data class LanguageOption(
-    val code: String,
-    val englishName: String,
-    val nativeName: String
-)
-
-val supportedLanguages = listOf(
-    LanguageOption("en", "English", "English"),
-    LanguageOption("ms", "Malay", "Bahasa Melayu"),
-    LanguageOption("ta", "Tamil", "\u0BA4\u0BAE\u0BBF\u0BB4\u0BCD"),
-    LanguageOption("zh", "Chinese", "\u4E2D\u6587")
-)
+import com.company.carryon.i18n.SupportedLanguages
 
 fun getLanguageDisplayName(code: String): String {
-    return supportedLanguages.find { it.code == code }?.englishName ?: "English"
+    return SupportedLanguages.displayName(code)
 }
 
 @Composable
@@ -55,7 +43,7 @@ fun LanguageSelectionDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                supportedLanguages.forEach { lang ->
+                SupportedLanguages.all.forEach { lang ->
                     val isSelected = selectedCode == lang.code
                     Card(
                         modifier = Modifier

@@ -24,6 +24,7 @@ import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.WindowInsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,7 +65,8 @@ fun PromoScreen(
                         Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
+                windowInsets = WindowInsets(0)
             )
         },
         containerColor = BackgroundLight

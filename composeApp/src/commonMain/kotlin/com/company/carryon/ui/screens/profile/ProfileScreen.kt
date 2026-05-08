@@ -38,6 +38,7 @@ import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
@@ -60,6 +61,7 @@ fun ProfileScreen(
     onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
+    val strings = LocalStrings.current
     var userName by remember { mutableStateOf("—") }
     var userPhone by remember { mutableStateOf("—") }
     var isLoading by remember { mutableStateOf(true) }
@@ -88,7 +90,7 @@ fun ProfileScreen(
         isLoading = false
     }
 
-    val displayName = if (isLoading) "Loading..." else userName
+    val displayName = if (isLoading) strings.loading else userName
 
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
@@ -104,7 +106,7 @@ fun ProfileScreen(
         ) {
             Spacer(modifier = Modifier.height(10.dp))
             CarryOnHeader(
-                title = "Profile",
+                title = strings.profile,
                 titleColor = Color(0xFF1F2937),
                 onBack = onBack,
                 contentPadding = PaddingValues(horizontal = 2.dp)
@@ -148,7 +150,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.SemiBold
             )
             Text(
-                text = if (isLoading) "Loading..." else userPhone,
+                text = if (isLoading) strings.loading else userPhone,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 color = Color(0xFF111827),
                 fontSize = 16.sp
@@ -176,7 +178,7 @@ fun ProfileScreen(
                         .height(142.dp),
                     icon = Icons.Outlined.LocalShipping,
                     value = if (statsError != null) "—" else totalShipments.toString(),
-                    label = "TOTAL SHIPMENTS"
+                    label = strings.totalShipments.uppercase()
                 )
                 StatCard(
                     modifier = Modifier
@@ -184,23 +186,23 @@ fun ProfileScreen(
                         .height(142.dp),
                     icon = Icons.Outlined.StarOutline,
                     value = if (statsError != null) "—" else "${userRating.toInt()}.0",
-                    label = "USER RATING"
+                    label = strings.userRating.uppercase()
                 )
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            ProfileOptionCard(icon = Icons.Outlined.PersonOutline, title = "Personal Info", onClick = onNavigateToEditProfile)
+            ProfileOptionCard(icon = Icons.Outlined.PersonOutline, title = strings.personalInfo, onClick = onNavigateToEditProfile)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.Outlined.LocationOn, title = "Saved Addresses", onClick = onNavigateToSavedAddresses)
+            ProfileOptionCard(icon = Icons.Outlined.LocationOn, title = strings.savedAddressesMenu, onClick = onNavigateToSavedAddresses)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.Outlined.AccountBalanceWallet, title = "Payments & Wallet", subtitleBadge = "VERIFIED", onClick = onNavigateToWallet)
+            ProfileOptionCard(icon = Icons.Outlined.AccountBalanceWallet, title = strings.paymentsAndWallet, subtitleBadge = strings.verified.uppercase(), onClick = onNavigateToWallet)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.Outlined.Settings, title = "Settings", onClick = onNavigateToSettings)
+            ProfileOptionCard(icon = Icons.Outlined.Settings, title = strings.settings, onClick = onNavigateToSettings)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.AutoMirrored.Outlined.HelpOutline, title = "Help & Support", onClick = onNavigateToHelp)
+            ProfileOptionCard(icon = Icons.AutoMirrored.Outlined.HelpOutline, title = strings.helpAndSupport, onClick = onNavigateToHelp)
             Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.Outlined.Security, title = "Privacy & Security", onClick = onNavigateToPromo)
+            ProfileOptionCard(icon = Icons.Outlined.Security, title = strings.promoAndReferrals, onClick = onNavigateToPromo)
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -215,12 +217,12 @@ fun ProfileScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Logout,
-                        contentDescription = "Logout",
+                        contentDescription = strings.logout,
                         tint = PrimaryBlue,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Logout", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.logout, color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 

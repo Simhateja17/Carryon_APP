@@ -65,6 +65,7 @@ private fun buildShipmentTimeline(
         BookingStatus.DRIVER_ASSIGNED, BookingStatus.DRIVER_ARRIVED -> 1
         BookingStatus.PICKUP_DONE -> 2
         BookingStatus.IN_TRANSIT -> 3
+        BookingStatus.ARRIVED_AT_DROP -> 4
         BookingStatus.DELIVERED -> 4
         BookingStatus.CANCELLED -> -1
     }
