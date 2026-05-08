@@ -43,8 +43,9 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - Consistency: frontend and backend must agree on the exact fare
   - Audit: `Booking` record must store the definitive, backend-verified price
 
-### 2. Zero Cancellation Fees (Abuse Magnet) — OPEN ITEM
+### 2. Zero Cancellation Fees (Abuse Magnet) — FIXED
 - **Severity:** CRITICAL
+- **Status:** FIXED 2026-05-08 — customer cancellations after a driver has been assigned for at least 3 minutes now apply a vehicle-tiered fee split 70% driver / 30% platform; driver cancellations remain free for customers.
 - **File:** `backend/src/routes/booking.routes.js` → `POST /:id/cancel`
 - **Problem:** Customers get 100% refund regardless of when they cancel. Driver gets zero compensation for wasted fuel/time.
 - **Impact:**
@@ -61,9 +62,9 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   2. Add `cancellationFee`, `cancelledBy`, `cancelReason` to schema
   3. Compensate driver via `DriverWalletTransaction` (type: `CANCELLATION_COMPENSATION`)
 
-### 3. No SOS / Panic Button — OPEN ITEM
+### 3. No SOS / Panic Button — PARTIALLY FIXED
 - **Severity:** CRITICAL (Legal)
-- **Status:** Completely missing from both apps
+- **Status:** Driver MVP flow fixed 2026-05-08 — driver SOS creates an urgent ops ticket, stores location snapshot text, and returns 999 call intent metadata. Customer panic flow is deliberately deferred for parcel-delivery MVP.
 - **Impact:** If a driver or customer is in danger, there is no in-app emergency feature. Liability exposure.
 - **Open Question:** Direct 999 dial vs. platform ops middleman? Same behavior for customer and driver apps?
 - **Fix:**
@@ -104,9 +105,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
 
 ## TIER 1 — FIX BEFORE SCALE (100+ trips/day)
 
-### 6. Broadcast Dispatch Creates Thundering Herd — OPEN ITEM
+### 6. Broadcast Dispatch Creates Thundering Herd — DECIDED
 - **Severity:** HIGH
 - **File:** `backend/src/services/dispatch.js` → `notifyNearbyDrivers()`
+- **Decision:** No batched dispatch for MVP. Broadcast to all eligible nearby online vehicle-compatible drivers using one deterministic eligibility module. See `docs/adr/0001-mvp-broadcast-dispatch.md`.
 - **Problem:** Notifies **all** online drivers within 10km at once. Race conditions, frustrated drivers, meaningless acceptance metrics.
 - **Open Question:** What batch size and wait time? 3 drivers / 15 seconds? When to switch from broadcast to batched?
 - **Fix:**
@@ -115,9 +117,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   3. Expand batch if no acceptance
   4. Track `acceptanceRate` per driver; penalize chronic rejectors
 
-### 7. No Surge Pricing = No Supply Incentive — OPEN ITEM
+### 7. No Surge Pricing = No Supply Incentive — DECIDED
 - **Severity:** HIGH
 - **File:** `backend/src/services/businessConfig.js`
+- **Decision:** Not implementing for MVP. Revisit after launch volume proves supply shortages that need pricing incentives.
 - **Problem:** Flat rate card regardless of demand. At 6pm in rain with 50 bookings and 3 drivers, price stays the same.
 - **Open Question:** Do we want surge pricing at all? If yes: manual toggle or auto algorithm?
 - **Fix:**
@@ -127,9 +130,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   4. Show "High demand — 1.5x fare" to customer before confirmation
   5. Show "Surge active — earn 1.5x" to driver
 
-### 8. Scheduled Bookings Are Ghosts — OPEN ITEM
+### 8. Scheduled Bookings Are Ghosts — DECIDED
 - **Severity:** HIGH
 - **File:** `schema.prisma` → `Booking.scheduledTime` exists
+- **Decision:** Scheduled bookings are removed from MVP product scope. Customer app no longer sends schedule fields; backend can enforce regular-only mode after rollout with `ENFORCE_REGULAR_BOOKING_MODE=true`.
 - **Problem:** `scheduledTime` is stored but never dispatched. A booking for tomorrow sits in `SEARCHING_DRIVER` forever.
 - **Open Question:** How early to dispatch scheduled bookings? Who handles them (any driver vs. opt-in drivers)?
 - **Fix:**
@@ -158,9 +162,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - `backgroundCheckStatus` field on Driver
   - Block onboarding until cleared; annual re-check
 
-### 11. No Item Insurance / Claims Workflow — OPEN ITEM
+### 11. No Item Insurance / Claims Workflow — DECIDED
 - **Severity:** HIGH
 - **Status:** Missing
+- **Decision:** Not implementing for MVP. Revisit after delivery volume and claims patterns are known.
 - **Impact:** Driver breaks a TV? Package lost? Zero process. Customers will chargeback and post on social media.
 - **Open Question:** Who pays for lost/damaged items? Platform, customer (insurance), or driver?
 - **Fix:**
@@ -198,9 +203,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   2. Inline top-up at checkout (already implemented — shows bottom sheet on 402)
   3. Consider removing `CASH`, `CARD`, `UPI` from schema enums if permanently unsupported
 
-### 14. No Driver Incentives / Quests — OPEN ITEM
+### 14. No Driver Incentives / Quests — DECIDED
 - **Severity:** MEDIUM-HIGH
 - **Status:** Missing
+- **Decision:** Not implementing for MVP. Launch with clear base economics first.
 - **Impact:** Drivers have no reason to drive more hours or accept low-paying trips.
 - **Open Question:** Do we want driver bonuses/quests at all? If yes, what types and when to launch?
 - **Fix:**
@@ -208,9 +214,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - Peak-hour guarantee: "Earn min RM 15/hr 5–9pm"
   - Schema: `DriverIncentive`, `DriverQuestProgress`
 
-### 15. No Driver Penalty System — OPEN ITEM
+### 15. No Driver Penalty System — DECIDED
 - **Severity:** MEDIUM-HIGH
 - **Status:** Missing
+- **Decision:** Not implementing automated penalties for MVP. Use manual ops review initially.
 - **Impact:** Drivers can cancel, no-show, or damage goods with zero consequences.
 - **Open Question:** What penalties for driver misbehavior? Fine amount? Strike system? Immediate ban?
 - **Fix:**
@@ -219,9 +226,10 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - 3 strikes = temporary suspension
   - Appeal workflow
 
-### 16. No Content Moderation on Chat — OPEN ITEM
+### 16. No Content Moderation on Chat — DECIDED
 - **Severity:** MEDIUM
 - **Status:** Chat messages unfiltered
+- **Decision:** Automated moderation deferred for MVP. Manual report/support process remains the launch fallback.
 - **Impact:** PII sharing (phone numbers), abuse, threats — all unmonitored.
 - **Open Question:** Do we want to moderate chat messages? What level of filtering?
 - **Fix:**
@@ -230,9 +238,9 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - Report message button
   - Auto-suspend for repeated abuse
 
-### 17. Driver Document Expiry Not Tracked — OPEN ITEM
+### 17. Driver Document Expiry Not Tracked — FIXED
 - **Severity:** MEDIUM
-- **Status:** `DriverDocument` has no `expiryDate`
+- **Status:** FIXED 2026-05-08 — required driver docs are checked before going online, expiry reminders are generated at 30/14/3 days, and expired required docs auto-offline drivers.
 - **Impact:** Driver with expired insurance stays online. Accident = platform liability.
 - **Open Question:** Do we want auto-offline when documents expire? Who handles manual checks?
 - **Fix:**
@@ -241,9 +249,9 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - Auto-offline on expiry
   - Admin dashboard alert
 
-### 18. No Wait-Time Charges — OPEN ITEM
+### 18. No Wait-Time Charges — FIXED
 - **Severity:** MEDIUM
-- **Status:** Missing
+- **Status:** FIXED 2026-05-08 — pickup wait starts at `DRIVER_ARRIVED`, first 5 minutes are free, then RM0.50/min capped at RM10.
 - **Impact:** Driver waits 20 min at pickup for free.
 - **Open Question:** Do we charge customers for driver wait time? Free buffer duration?
 - **Fix:**
@@ -251,9 +259,9 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
   - Per-minute charge after buffer
   - Schema: `waitTimeMinutes`, `waitTimeCharge`
 
-### 19. No Toll & Parking Fee Pass-Through — OPEN ITEM
+### 19. No Toll & Parking Fee Pass-Through — FIXED
 - **Severity:** MEDIUM
-- **Status:** Missing
+- **Status:** FIXED 2026-05-08 — drivers submit toll/parking amount with proof; admins approve before customer wallet charge and driver reimbursement.
 - **Open Question:** Do we allow drivers to add toll/parking fees to the bill? Who approves?
 - **Fix:**
   - Driver app: "Add extra charge" with photo receipt
@@ -441,6 +449,7 @@ These gaps directly hurt driver earnings, create exploit vectors, or break core 
 | 2026-04-28 | API versioning with `/api/v1/*` canonical routes and legacy deprecation headers | Verified: `npm test -- --runInBand`, `npm run build` |
 | 2026-04-28 | Privacy export, anonymized account deletion, and consent tracking | Verified: `npm test -- --runInBand`, `npm run build`, `./gradlew :composeApp:compileCommonMainKotlinMetadata -q`, `./gradlew :composeApp:compileDebugKotlinAndroid -q` |
 | 2026-04-28 | Customer deep links for tracking and referral promo prefill | Verified: `./gradlew :composeApp:compileCommonMainKotlinMetadata -q`, `./gradlew :composeApp:compileDebugKotlinAndroid -q` |
+| 2026-05-08 | MVP launch policies: regular-only booking compatibility, broadcast dispatch ADR, cancellation fee split, driver SOS baseline, document expiry gating, wait-time charges, toll/parking approval workflow | Verification pending in current tranche |
 | 2026-04-27 | Inline wallet top-up at checkout (402 bottom sheet) | — |
 | 2026-04-27 | Backend 402 error enriched with `currentBalance`, `amountDue`, `shortfall` | — |
 

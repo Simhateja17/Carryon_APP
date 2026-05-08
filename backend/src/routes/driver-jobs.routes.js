@@ -153,6 +153,7 @@ router.post('/:id/accept', async (req, res, next) => {
     }
 
     const claimResult = await prisma.$transaction(async (tx) => {
+      const assignedAt = new Date();
       const result = await tx.booking.updateMany({
         where: {
           id: req.params.id,
@@ -162,6 +163,8 @@ router.post('/:id/accept', async (req, res, next) => {
         data: {
           driverId: req.driver.id,
           status: 'DRIVER_ASSIGNED',
+          driverAssignedAt: assignedAt,
+          driverArrivedAt: null,
         },
       });
       if (result.count === 1) {
@@ -171,7 +174,7 @@ router.post('/:id/accept', async (req, res, next) => {
           entityType: 'Booking',
           entityId: req.params.id,
           oldValue: { status: 'SEARCHING_DRIVER', driverId: null },
-          newValue: { status: 'DRIVER_ASSIGNED', driverId: req.driver.id },
+          newValue: { status: 'DRIVER_ASSIGNED', driverId: req.driver.id, driverAssignedAt: assignedAt },
         });
       }
       return result;
@@ -216,6 +219,46 @@ router.post('/:id/reject', async (req, res, next) => {
       update: {},
     });
     res.json({ success: true, message: 'Job rejected' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/driver/jobs/:id/extra-charges — submit toll/parking for admin approval
+router.post('/:id/extra-charges', async (req, res, next) => {
+  try {
+    const type = String(req.body?.type || '').trim().toUpperCase();
+    const amount = Number(req.body?.amount);
+    const proofUrl = String(req.body?.proofUrl || '').trim();
+    const note = String(req.body?.note || '').trim();
+    if (!['TOLL', 'PARKING'].includes(type)) {
+      return next(new AppError('Extra charge type must be TOLL or PARKING', 400));
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return next(new AppError('Amount must be greater than 0', 400));
+    }
+    if (!proofUrl) {
+      return next(new AppError('Receipt proof is required', 400));
+    }
+
+    const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
+    if (!booking) return next(new AppError('Job not found', 404));
+    if (booking.driverId !== req.driver.id) return next(new AppError('Not authorized', 403));
+    if (['CANCELLED', 'DELIVERED'].includes(booking.status)) {
+      return next(new AppError('Extra charges can only be submitted for active jobs', 400));
+    }
+
+    const charge = await prisma.bookingExtraCharge.create({
+      data: {
+        bookingId: booking.id,
+        driverId: req.driver.id,
+        type,
+        amount: Math.round(amount * 100) / 100,
+        proofUrl,
+        note,
+      },
+    });
+    res.status(201).json({ success: true, data: charge });
   } catch (err) {
     next(err);
   }

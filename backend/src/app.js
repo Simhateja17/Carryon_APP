@@ -149,6 +149,7 @@ mountVersionedRoute(app, '/driver/payouts', require('./routes/driver-payouts.rou
 const { adminAuth } = require('./middleware/adminAuth');
 mountVersionedRoute(app, '/admin/notifications', require('./routes/admin-notifications.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/drivers', require('./routes/admin-drivers.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/extra-charges', require('./routes/admin-extra-charges.routes'), adminAuth);
 console.log('[app] All routes mounted');
 
 // Error handling

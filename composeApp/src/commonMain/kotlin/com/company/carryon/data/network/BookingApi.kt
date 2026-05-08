@@ -18,7 +18,6 @@ data class CreateBookingRequest(
     val deliveryAddress: CreateAddressData,
     val vehicleType: String,
     val paymentMethod: String = "CASH",
-    val scheduledTime: String? = null,
     val promoCode: String? = null,
     val senderName: String,
     val senderPhone: String,
@@ -26,7 +25,6 @@ data class CreateBookingRequest(
     val receiverPhone: String,
     val receiverEmail: String? = null,
     val notes: String? = null,
-    val deliveryMode: String = "Regular",
     val offloading: Boolean = false
 )
 
@@ -46,7 +44,6 @@ data class BookingQuoteRequest(
     val pickupAddress: CreateAddressData,
     val deliveryAddress: CreateAddressData,
     val vehicleType: String,
-    val deliveryMode: String = "Regular",
     val offloading: Boolean = false
 )
 

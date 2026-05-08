@@ -82,7 +82,7 @@ fun DetailsScreen(
     vehicleType: String = "",
     pickup: String = "",
     delivery: String = "",
-    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, receiverEmail: String, deliveryMode: String, offloading: Boolean, scheduledTime: String?) -> Unit,
+    onContinue: (vehicleType: String, pickup: String, delivery: String, senderName: String, senderPhone: String, receiverName: String, receiverPhone: String, receiverEmail: String, offloading: Boolean) -> Unit,
     onBack: () -> Unit,
     onContactSelected: (ContactInfo) -> Unit = {}
 ) {
@@ -93,7 +93,7 @@ fun DetailsScreen(
         List(7) { offset -> LocalDate.fromEpochDays(startEpochDays + offset) }
     }
 
-    var deliveryMode by rememberSaveable { mutableStateOf(DeliveryModeRegular) }
+    val deliveryMode = DeliveryModeRegular
     var offloading by rememberSaveable { mutableStateOf(false) }
     var selectedDateIndex by rememberSaveable { mutableStateOf(defaultSchedule.dateOffset.coerceIn(0, availableDates.lastIndex)) }
     var timeSlot by rememberSaveable { mutableStateOf(defaultSchedule.slot.label) }
@@ -115,21 +115,10 @@ fun DetailsScreen(
     val parcelTypeOptions = listOf("Documents", "Electronics", "Clothes", "Groceries", "Other")
     val selectedDate = availableDates.getOrElse(selectedDateIndex) { availableDates.first() }
     val selectedTimeSlot = RegularTimeSlots.firstOrNull { it.label == timeSlot } ?: defaultSchedule.slot
-    val scheduledTime = remember(deliveryMode, selectedDate, selectedTimeSlot) {
-        if (deliveryMode != DeliveryModeRegular) {
-            null
-        } else {
-            selectedDate
-                .atTime(selectedTimeSlot.hour, selectedTimeSlot.minute)
-                .toInstant(TimeZone.currentSystemDefault())
-                .toString()
-        }
-    }
-
     val normalizedReceiverName = receiverName.trim()
     val normalizedPhoneDigits = receiverPhone.filter { it.isDigit() }
     val parsedWeight = parcelWeight.toDoubleOrNull()
-    val requiresWeight = deliveryMode == DeliveryModeRegular
+    val requiresWeight = true
     val hasValidWeight = !requiresWeight || (parsedWeight != null && parsedWeight > 0.0)
     val hasValidParcelType = parcelType.isNotBlank()
     val hasValidReceiverName = normalizedReceiverName.isNotBlank()
@@ -210,9 +199,7 @@ fun DetailsScreen(
                                     receiverName,
                                     receiverPhone,
                                     receiverEmail.trim(),
-                                    deliveryMode,
-                                    offloading,
-                                    scheduledTime
+                                    offloading
                                 )
                             },
                         contentAlignment = Alignment.Center
@@ -264,157 +251,21 @@ fun DetailsScreen(
         ) {
             Spacer(modifier = Modifier.height(2.dp))
 
-            SectionTitle("DELIVERY TIME")
+            SectionTitle("DELIVERY TYPE")
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 color = SectionTint20,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        DeliveryModeChip(DeliveryModePooling, deliveryMode == DeliveryModePooling, modifier = Modifier.weight(1f), selectedBold = true) { deliveryMode = DeliveryModePooling }
-                        DeliveryModeChip(DeliveryModePriority, deliveryMode == DeliveryModePriority, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModePriority }
-                        DeliveryModeChip(DeliveryModeRegular, deliveryMode == DeliveryModeRegular, modifier = Modifier.weight(1f)) { deliveryMode = DeliveryModeRegular }
-                    }
-
-                    if (deliveryMode == DeliveryModePooling) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Surface(
-                            shape = RoundedCornerShape(24.dp),
-                            color = SectionTint20,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(10.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color.White)
-                                    .padding(20.dp)
-                            ) {
-                                Column {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Column {
-                                            Text("Pooling Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
-                                            Text("Grouped delivery with flexible timing", color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("Orders may be grouped to reduce delivery cost", color = Color.Black, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-                                    }
-                                }
-                            }
-                        }
-                    } else if (deliveryMode == DeliveryModePriority) {
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Surface(
-                            shape = RoundedCornerShape(24.dp),
-                            color = SectionTint20,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(10.dp)
-                                    .clip(RoundedCornerShape(20.dp))
-                                    .background(Color.White)
-                                    .padding(16.dp)
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text("Priority Delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
-                                        Text(
-                                            "Faster dispatch for urgent\nshipments that need priority handling.",
-                                            color = Color.Black,
-                                            fontSize = 14.sp,
-                                            lineHeight = 20.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } else if (deliveryMode == DeliveryModeRegular) {
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                ScheduleSelectorCard(
-                                    title = "SELECT DATE",
-                                    value = selectedDate.toReadableLabel(),
-                                    onClick = { dateDropdownExpanded = true }
-                                )
-                                DropdownMenu(
-                                    expanded = dateDropdownExpanded,
-                                    onDismissRequest = { dateDropdownExpanded = false }
-                                ) {
-                                    availableDates.forEachIndexed { index: Int, date: LocalDate ->
-                                        DropdownMenuItem(
-                                            text = { Text(date.toReadableLabel()) },
-                                            onClick = {
-                                                selectedDateIndex = index
-                                                dateDropdownExpanded = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            Box(modifier = Modifier.weight(1f)) {
-                                ScheduleSelectorCard(
-                                    title = "TIME SLOT",
-                                    value = timeSlot,
-                                    onClick = { timeSlotDropdownExpanded = true }
-                                )
-                                DropdownMenu(
-                                    expanded = timeSlotDropdownExpanded,
-                                    onDismissRequest = { timeSlotDropdownExpanded = false }
-                                ) {
-                                    RegularTimeSlots.forEach { slot ->
-                                        DropdownMenuItem(
-                                            text = { Text(slot.label) },
-                                            onClick = {
-                                                timeSlot = slot.label
-                                                timeSlotDropdownExpanded = false
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Text("Regular delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text("A nearby driver is requested after booking confirmation.", color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            if (deliveryMode == DeliveryModePriority) {
-                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
-                        Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    SameDaySlotCard(
-                        title = "Morning",
-                        time = "10 AM – 12 PM",
-                        selected = sameDaySlot == "Morning",
-                        modifier = Modifier.weight(1f)
-                    ) { sameDaySlot = "Morning" }
-                    SameDaySlotCard(
-                        title = "Afternoon",
-                        time = "12 PM – 2 PM",
-                        selected = sameDaySlot == "Afternoon",
-                        modifier = Modifier.weight(1f)
-                    ) { sameDaySlot = "Afternoon" }
-                    SameDaySlotCard(
-                        title = "Late Afr.",
-                        time = "2 PM – 5 PM",
-                        selected = sameDaySlot == "Late Afr.",
-                        modifier = Modifier.weight(1f)
-                    ) { sameDaySlot = "Late Afr." }
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-
-            if (false && deliveryMode == DeliveryModePooling) {
+            if (false) {
                 SectionTitle("PARCEL DETAILS")
                 Spacer(modifier = Modifier.height(8.dp))
                 ExpressInputCard(

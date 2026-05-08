@@ -12,32 +12,36 @@
 8. API versioning with prefix
 9. GDPR and PDPA compliance with data export and account deletion
 10. Deep linking for tracking and referrals
+11. MVP regular-only immediate booking contract
+12. MVP broadcast dispatch to all eligible nearby drivers (no batching)
+13. Customer cancellation fee after driver assignment grace window
+14. Driver-only SOS baseline
+15. Driver document expiry reminders and auto-offline enforcement
+16. Wait-time charges after pickup arrival grace period
+17. Toll and parking pass-through with proof and admin approval
 
 ## DECIDED NOT TO IMPLEMENT FOR MVP
 
 1. Multi stop deliveries (one pickup, one dropoff only)
 2. Advanced admin analytics (basic counts only for now)
 3. Subscription or loyalty program
+4. Scheduled bookings
+5. Pooling and priority booking modes
+6. Batched dispatch
+7. Surge pricing
+8. Driver incentives and quests
+9. Driver penalty system
+10. Item insurance upsell and claims workflow
+11. Customer SOS panic flow
+12. Automated chat moderation
 
 ## OPEN ITEMS (DECISION NEEDED)
 
-1. Cancellation fees policy and who receives the fee
-2. SOS panic button behavior (direct 999 vs platform ops middleman)
-3. Batched dispatch parameters (batch size and wait time)
-4. Surge pricing (manual toggle vs auto algorithm vs none)
-5. Scheduled booking dispatch timing
-6. Driver background checks (provider selection and cost)
-7. Item insurance and claims workflow
-8. Driver incentives and quests
-9. Driver penalty system
-10. Chat content moderation
-11. Driver document expiry tracking
-12. Wait time charges
-13. Toll and parking fee pass through
-14. Promo code targeting
-15. Retention loops
-16. Post delivery tipping
-17. Per user rate limiting
+1. Driver background checks (provider selection and cost)
+2. Promo code targeting
+3. Retention loops
+4. Post delivery tipping
+5. Per user rate limiting
 
 ## ALREADY IMPLEMENTED
 
@@ -51,3 +55,4 @@
 
 1. Inline wallet top up at checkout with bottom sheet on 402 error
 2. Backend 402 error enriched with currentBalance, amountDue, shortfall
+3. MVP launch policy backend: regular-only compatibility, cancellation fee split, wait-time charge, toll/parking approval workflow, driver SOS response metadata, document expiry gating

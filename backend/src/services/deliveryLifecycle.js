@@ -13,6 +13,11 @@ const {
   isSettlementEligible,
   creditDriverEarning,
 } = require('./bookingLifecycle');
+const { computePickupWaitCharge } = require('./bookingPolicy');
+const {
+  creditDriverAdjustmentTx,
+  debitBookingAdjustmentTx,
+} = require('./walletLedger');
 const {
   generateDeliveryOtp,
   deliveryOtpWindow,
@@ -279,9 +284,13 @@ async function updateStatusCommand({ booking, actor, command, toStatus, location
   }
 
   const updated = await prisma.$transaction(async (tx) => {
+    const updateData = { status: toStatus };
+    if (toStatus === 'DRIVER_ARRIVED') {
+      updateData.driverArrivedAt = new Date();
+    }
     const changed = await tx.booking.update({
       where: { id: booking.id },
-      data: { status: toStatus },
+      data: updateData,
       include: bookingInclude,
     });
     await recordAudit(tx, {
@@ -565,7 +574,7 @@ async function cancelBeforePickup({ booking, actor, locationEvidence }) {
   const updated = await prisma.$transaction(async (tx) => {
     const changed = await tx.booking.update({
       where: { id: booking.id },
-      data: { status: 'SEARCHING_DRIVER', driverId: null },
+      data: { status: 'SEARCHING_DRIVER', driverId: null, driverAssignedAt: null, driverArrivedAt: null },
       include: bookingInclude,
     });
     await recordAudit(tx, {
@@ -655,19 +664,51 @@ async function executeLifecycleCommand({ bookingId, actor, driver, command, payl
           throw lifecycleError('Invalid OTP', 400, 'PICKUP_OTP_INVALID');
         }
         resetOtpFailures(booking.id, actor.actorId, normalizedCommand);
+        const now = new Date();
+        const waitCharge = computePickupWaitCharge({
+          arrivedAt: booking.driverArrivedAt,
+          pickedUpAt: now,
+        });
         const updated = await prisma.$transaction(async (tx) => {
           const changed = await tx.booking.update({
             where: { id: booking.id },
-            data: { status: 'PICKUP_DONE', otp: '' },
+            data: {
+              status: 'PICKUP_DONE',
+              otp: '',
+              waitTimeMinutes: waitCharge.waitTimeMinutes,
+              waitTimeCharge: waitCharge.waitTimeCharge,
+            },
             include: bookingInclude,
           });
+          if (waitCharge.waitTimeCharge > 0) {
+            await debitBookingAdjustmentTx(
+              tx,
+              booking.userId,
+              booking.id,
+              waitCharge.waitTimeCharge,
+              'Pickup wait-time charge'
+            );
+            if (booking.driverId) {
+              await creditDriverAdjustmentTx(
+                tx,
+                booking.driverId,
+                booking.id,
+                waitCharge.waitTimeCharge,
+                'Pickup wait-time compensation'
+              );
+            }
+          }
           await recordAudit(tx, {
             actor: { actorId: actor.actorId, actorType: actor.actorType },
             action: 'BOOKING_STATUS_CHANGED',
             entityType: 'Booking',
             entityId: booking.id,
             oldValue: { status: booking.status },
-            newValue: { status: 'PICKUP_DONE' },
+            newValue: {
+              status: 'PICKUP_DONE',
+              waitTimeMinutes: waitCharge.waitTimeMinutes,
+              waitTimeCharge: waitCharge.waitTimeCharge,
+            },
           });
           await createLifecycleEvent(tx, {
             bookingId: booking.id,

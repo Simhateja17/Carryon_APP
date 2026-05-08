@@ -48,9 +48,7 @@ fun RequestForRideScreen(
     receiverName: String = "",
     receiverPhone: String = "",
     receiverEmail: String = "",
-    deliveryMode: String = "Regular",
     offloading: Boolean = false,
-    scheduledTime: String? = null,
     onContinue: (bookingId: String, amount: Double, paymentMethod: String) -> Unit,
     onBack: () -> Unit
 ) {
@@ -104,7 +102,7 @@ fun RequestForRideScreen(
     var topUpStatus by remember { mutableStateOf<String?>(null) }
 
     // Backend quote is the only fare authority. The app geocodes only to provide coordinates.
-    LaunchedEffect(pickupAddress, deliveryAddress, offloading, vehicleTypeApi, deliveryMode) {
+    LaunchedEffect(pickupAddress, deliveryAddress, offloading, vehicleTypeApi) {
         bookingAttemptKey = null
         if (pickupAddress.isBlank() || deliveryAddress.isBlank()) {
             estimatedPrice = 0.0
@@ -142,7 +140,6 @@ fun RequestForRideScreen(
                     contactEmail = receiverEmail
                 ),
                 vehicleType = vehicleTypeApi,
-                deliveryMode = deliveryMode,
                 offloading = offloading
             )
             val quoteResult = BookingApi.quoteBooking(quoteRequest)
@@ -228,13 +225,11 @@ fun RequestForRideScreen(
                                 ),
                                 vehicleType = vehicleTypeApi,
                                 paymentMethod = paymentMethodApi,
-                                scheduledTime = scheduledTime,
                                 senderName = senderName,
                                 senderPhone = senderPhone,
                                 receiverName = receiverName,
                                 receiverPhone = receiverPhone,
                                 receiverEmail = receiverEmail,
-                                deliveryMode = deliveryMode,
                                 offloading = offloading
                             )
                             val idempotencyKey = bookingAttemptKey ?: newUuid().also { bookingAttemptKey = it }
@@ -401,7 +396,7 @@ fun RequestForRideScreen(
                         Text(vehicleDisplayName, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            deliveryMode,
+                            "Regular delivery",
                             fontSize = 12.sp, color = PrimaryBlue
                         )
                         if (distanceKm > 0) {
@@ -558,13 +553,11 @@ fun RequestForRideScreen(
                                         ),
                                         vehicleType = vehicleTypeApi,
                                         paymentMethod = paymentMethodApi,
-                                        scheduledTime = scheduledTime,
                                         senderName = senderName,
                                         senderPhone = senderPhone,
                                         receiverName = receiverName,
                                         receiverPhone = receiverPhone,
                                         receiverEmail = receiverEmail,
-                                        deliveryMode = deliveryMode,
                                         offloading = offloading
                                     )
                                     val idempotencyKey = bookingAttemptKey ?: newUuid().also { bookingAttemptKey = it }

@@ -176,9 +176,7 @@ sealed class AppScreen {
         val receiverName: String = "",
         val receiverPhone: String = "",
         val receiverEmail: String = "",
-        val deliveryMode: String = "Regular",
         val offloading: Boolean = false,
-        val scheduledTime: String? = null,
         val fromHome: Boolean = false
     ) : AppScreen()
     data object Settings : AppScreen()
@@ -768,7 +766,7 @@ fun App() {
                     vehicleType = screen.vehicleType,
                     pickup = screen.pickup,
                     delivery = screen.delivery,
-                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, receiverEmail, deliveryMode, offloading, scheduledTime ->
+                    onContinue = { vt, pickup, delivery, senderName, senderPhone, receiverName, receiverPhone, receiverEmail, offloading ->
                         currentScreen = AppScreen.RequestForRide(
                             vt,
                             pickup,
@@ -778,9 +776,7 @@ fun App() {
                             receiverName,
                             receiverPhone,
                             receiverEmail,
-                            deliveryMode,
                             offloading,
-                            scheduledTime
                         )
                     },
                     onBack = {
@@ -806,9 +802,7 @@ fun App() {
                     receiverName = screen.receiverName,
                     receiverPhone = screen.receiverPhone,
                     receiverEmail = screen.receiverEmail,
-                    deliveryMode = screen.deliveryMode,
                     offloading = screen.offloading,
-                    scheduledTime = screen.scheduledTime,
                     onContinue = { bookingId, amount, paymentMethod ->
                         if (paymentMethod == "wallet") {
                             currentScreen = AppScreen.SearchingDriver(bookingId, amount)
