@@ -46,11 +46,6 @@ import com.company.carryon.ui.screens.booking.SenderReceiverScreen
 import com.company.carryon.ui.screens.booking.PaymentScreen
 import com.company.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.company.carryon.ui.screens.booking.SearchingDriverScreen
-import com.company.carryon.ui.screens.booking.DeliveryScheduledScreen
-import com.company.carryon.ui.screens.booking.ScheduledOrderDetailsScreen
-import com.company.carryon.ui.screens.booking.ModifyScheduleScreen
-import com.company.carryon.ui.screens.booking.CancelDeliveryScreen
-import com.company.carryon.ui.screens.booking.CancellationUnavailableScreen
 import com.company.carryon.ui.screens.tracking.DriverApproachingScreen
 import com.company.carryon.ui.screens.home.SelectAddressScreen
 import com.company.carryon.ui.screens.booking.DetailsScreen
@@ -154,11 +149,6 @@ sealed class AppScreen {
     ) : AppScreen()
     data class PaymentSuccess(val bookingId: String, val amount: Double = 0.0) : AppScreen()
     data class SearchingDriver(val bookingId: String, val amount: Double = 0.0) : AppScreen()
-    data class DeliveryScheduled(val bookingId: String = "") : AppScreen()
-    data class ScheduledOrderDetails(val bookingId: String = "") : AppScreen()
-    data class ModifySchedule(val bookingId: String = "") : AppScreen()
-    data class CancelDelivery(val bookingId: String = "") : AppScreen()
-    data class CancellationUnavailable(val bookingId: String = "") : AppScreen()
     data class DriverApproaching(val bookingId: String) : AppScreen()
     data class SelectAddress(val pickup: String = "", val delivery: String = "", val vehicleType: String = "") : AppScreen()
     data class Details(
@@ -294,10 +284,6 @@ fun App() {
         currentScreen !is AppScreen.Otp &&
         currentScreen !is AppScreen.PaymentSuccess &&
         currentScreen !is AppScreen.SearchingDriver &&
-        currentScreen !is AppScreen.DeliveryScheduled &&
-        currentScreen !is AppScreen.ModifySchedule &&
-        currentScreen !is AppScreen.CancelDelivery &&
-        currentScreen !is AppScreen.CancellationUnavailable &&
         currentScreen !is AppScreen.DriverApproaching &&
         currentScreen !is AppScreen.Support &&
         currentScreen !is AppScreen.SupportChat &&
@@ -322,8 +308,7 @@ fun App() {
         is AppScreen.Orders, is AppScreen.History, is AppScreen.TrackShipment, is AppScreen.TrackOrder,
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
-        is AppScreen.BookingPayment, is AppScreen.SearchingDriver, is AppScreen.DeliveryScheduled,
-        is AppScreen.ScheduledOrderDetails, is AppScreen.ModifySchedule,
+        is AppScreen.BookingPayment, is AppScreen.SearchingDriver,
         is AppScreen.DriverApproaching -> 1
         is AppScreen.Wallet, is AppScreen.Invoice, is AppScreen.InvoiceHub -> 2
         is AppScreen.AddMoney -> 2
@@ -645,56 +630,7 @@ fun App() {
                     bookingId = screen.bookingId,
                     amount = screen.amount,
                     onDriverFound = { currentScreen = AppScreen.DriverApproaching(screen.bookingId) },
-                    onScheduled = { currentScreen = AppScreen.DeliveryScheduled(screen.bookingId) },
                     onCancel = { currentScreen = AppScreen.Orders }
-                )
-            }
-            is AppScreen.DeliveryScheduled -> {
-                DeliveryScheduledScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.Orders },
-                    onViewOrder = {
-                        currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId)
-                    },
-                    onModifySchedule = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
-                    onCancelDelivery = { currentScreen = AppScreen.Orders }
-                )
-            }
-            is AppScreen.ScheduledOrderDetails -> {
-                ScheduledOrderDetailsScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.DeliveryScheduled(screen.bookingId) },
-                    onModifySchedule = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
-                    onCancelDelivery = { currentScreen = AppScreen.Orders }
-                )
-            }
-            is AppScreen.ModifySchedule -> {
-                ModifyScheduleScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
-                    onUpdateSchedule = { currentScreen = AppScreen.ScheduledOrderDetails(screen.bookingId) },
-                    onCancelDelivery = { currentScreen = AppScreen.CancelDelivery(screen.bookingId) }
-                )
-            }
-            is AppScreen.CancelDelivery -> {
-                CancelDeliveryScreen(
-                    onBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
-                    onConfirmCancel = {
-                        currentScreen = if (isCancellationAllowed(screen.bookingId)) {
-                            AppScreen.Orders
-                        } else {
-                            AppScreen.CancellationUnavailable(screen.bookingId)
-                        }
-                    },
-                    onKeepBooking = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) }
-                )
-            }
-            is AppScreen.CancellationUnavailable -> {
-                CancellationUnavailableScreen(
-                    bookingId = screen.bookingId,
-                    onBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) },
-                    onChatSupport = { currentScreen = AppScreen.Support },
-                    onGoBack = { currentScreen = AppScreen.ModifySchedule(screen.bookingId) }
                 )
             }
             is AppScreen.DriverApproaching -> {
@@ -1058,15 +994,4 @@ private fun AppBottomBar(
             }
         }
     }
-}
-
-private fun isCancellationAllowed(bookingId: String): Boolean {
-    if (bookingId.isBlank()) return true
-    val lowered = bookingId.lowercase()
-    return !(
-        lowered.contains("arrived") ||
-            lowered.contains("reached") ||
-            lowered.contains("picked") ||
-            lowered.contains("no_cancel")
-        )
 }

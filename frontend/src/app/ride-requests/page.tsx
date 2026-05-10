@@ -22,9 +22,47 @@ const colorMap: Record<ColorClass, { border: string; header: string; row: string
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
+interface GoogleMapsLatLng {
+  lat(): number;
+  lng(): number;
+}
+
+interface GoogleMapsMarker {
+  setPosition(position: { lat: number; lng: number }): void;
+}
+
+interface GoogleMapsPlace {
+  formatted_address?: string;
+  geometry?: { location?: GoogleMapsLatLng };
+}
+
+interface GoogleMapsAutocomplete {
+  addListener(event: string, handler: () => void): void;
+  getPlace(): GoogleMapsPlace;
+}
+
+interface GoogleMapsMap {
+  panTo(position: { lat: number; lng: number }): void;
+  addListener(event: string, handler: (e: GoogleMapsMouseEvent) => void): void;
+}
+
+interface GoogleMapsMouseEvent {
+  latLng?: GoogleMapsLatLng;
+}
+
+interface GoogleMapsNamespace {
+  maps: {
+    Map: new (el: HTMLElement, opts: Record<string, unknown>) => GoogleMapsMap;
+    Marker: new (opts: Record<string, unknown>) => GoogleMapsMarker;
+    places: {
+      Autocomplete: new (input: HTMLInputElement, opts: Record<string, unknown>) => GoogleMapsAutocomplete;
+    };
+  };
+}
+
 declare global {
   interface Window {
-    google?: any;
+    google?: GoogleMapsNamespace;
   }
 }
 
@@ -32,9 +70,9 @@ export default function RideRequestsPage() {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const fromInputRef = useRef<HTMLInputElement | null>(null);
   const toInputRef = useRef<HTMLInputElement | null>(null);
-  const mapRef = useRef<any>(null);
-  const markersRef = useRef<{ from?: any; to?: any }>({});
-  const autocompleteRef = useRef<{ from?: any; to?: any }>({});
+  const mapRef = useRef<GoogleMapsMap | null>(null);
+  const markersRef = useRef<{ from?: GoogleMapsMarker; to?: GoogleMapsMarker }>({});
+  const autocompleteRef = useRef<{ from?: GoogleMapsAutocomplete; to?: GoogleMapsAutocomplete }>({});
   const activePinRef = useRef<"from" | "to">("from");
 
   const [fromAddress, setFromAddress] = useState("");
@@ -126,7 +164,7 @@ export default function RideRequestsPage() {
       mapTypeControl: false,
     });
 
-    mapRef.current.addListener("click", (event: any) => {
+    mapRef.current.addListener("click", (event: GoogleMapsMouseEvent) => {
       const lat = event?.latLng?.lat?.();
       const lng = event?.latLng?.lng?.();
       if (typeof lat !== "number" || typeof lng !== "number") return;

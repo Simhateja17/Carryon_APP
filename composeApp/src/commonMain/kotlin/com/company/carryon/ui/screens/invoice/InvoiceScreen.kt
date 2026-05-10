@@ -161,6 +161,13 @@ fun InvoiceScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 PriceRow(strings.subtotal, "RM ${detail.invoice.subtotal.formatDecimal(2)}")
+                                detail.adjustments.forEach { adjustment ->
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    PriceRow(
+                                        adjustment.invoiceLabel(),
+                                        "RM ${adjustment.amount.formatDecimal(2)}"
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 PriceRow("SST (${(detail.invoice.taxRate * 100).toInt()}%)", "RM ${detail.invoice.tax.formatDecimal(2)}")
 
@@ -227,5 +234,14 @@ private fun PriceRow(label: String, value: String, color: Color = TextPrimary) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, fontSize = 14.sp, color = TextSecondary)
         Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = color)
+    }
+}
+
+private fun com.company.carryon.data.model.InvoiceAdjustment.invoiceLabel(): String {
+    return description.ifBlank {
+        when (type) {
+            "PICKUP_WAIT_TIME" -> "Pickup wait-time charge (included)"
+            else -> "${type.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }} (included)"
+        }
     }
 }

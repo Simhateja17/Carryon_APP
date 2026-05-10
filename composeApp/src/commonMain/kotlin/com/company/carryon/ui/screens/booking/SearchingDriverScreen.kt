@@ -33,6 +33,7 @@ import com.company.carryon.ui.components.MapMarker
 import com.company.carryon.ui.components.MapViewComposable
 import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.ui.theme.*
+import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -46,7 +47,6 @@ fun SearchingDriverScreen(
     bookingId: String,
     amount: Double,
     onDriverFound: () -> Unit,
-    onScheduled: () -> Unit,
     onCancel: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -56,6 +56,7 @@ fun SearchingDriverScreen(
     var booking by remember { mutableStateOf<Booking?>(null) }
     var routeGeometry by remember { mutableStateOf(emptyList<LatLng>()) }
     var bookingError by remember { mutableStateOf<String?>(null) }
+    var showCancelDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(bookingId) {
         if (bookingId.isBlank()) return@LaunchedEffect
@@ -128,6 +129,7 @@ fun SearchingDriverScreen(
     val currentBooking = booking
     val estimatedPriceText = "RM ${((currentBooking?.estimatedPrice ?: amount).takeIf { it > 0.0 } ?: 150.0).roundToInt()}"
     val vehicleLabel = currentBooking?.vehicleType?.toDisplayVehicleLabel().orEmpty().ifBlank { "Vehicle" }
+    val cancellationFee = currentBooking?.vehicleType.cancellationFeeForVehicle()
     val vehicleIconRes = currentBooking?.vehicleType.toVehicleIconResource()
     val pickupAddressText = currentBooking?.pickupAddress?.address.orEmpty().ifBlank { "Loading pickup..." }
     val dropoffAddressText = currentBooking?.deliveryAddress?.address.orEmpty().ifBlank { "Loading drop-off..." }
@@ -145,6 +147,43 @@ fun SearchingDriverScreen(
                 add(MapMarker("dropoff", it.latitude, it.longitude, "Drop-off", MarkerColor.GREEN))
             }
         }
+    }
+
+    if (showCancelDialog) {
+        AlertDialog(
+            onDismissRequest = { showCancelDialog = false },
+            title = { Text("Cancel request?") },
+            text = {
+                Text(
+                    "If a driver has already been assigned for more than 3 minutes, a cancellation fee of up to RM ${cancellationFee.formatDecimal(2)} applies. The rest is refunded to your wallet."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCancelDialog = false
+                        if (bookingId.isNotBlank() && !isCancelling) {
+                            isCancelling = true
+                            scope.launch {
+                                BookingApi.cancelBooking(bookingId)
+                                hasNavigated = true
+                                onCancel()
+                            }
+                        } else {
+                            hasNavigated = true
+                            onCancel()
+                        }
+                    }
+                ) {
+                    Text("Cancel request", color = ErrorRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showCancelDialog = false }) {
+                    Text("Keep searching")
+                }
+            }
+        )
     }
     val centerLat = remember(currentBooking) {
         when {
@@ -348,19 +387,7 @@ fun SearchingDriverScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(Color(0xFFEAF2FF), RoundedCornerShape(18.dp))
-                                .clickable {
-                                    if (bookingId.isNotBlank() && !isCancelling) {
-                                        isCancelling = true
-                                        scope.launch {
-                                            BookingApi.cancelBooking(bookingId)
-                                            hasNavigated = true
-                                            onCancel()
-                                        }
-                                    } else {
-                                        hasNavigated = true
-                                        onCancel()
-                                    }
-                                }
+                                .clickable { showCancelDialog = true }
                                 .padding(vertical = 14.dp),
                             contentAlignment = Alignment.Center
                         ) {
@@ -397,6 +424,14 @@ private fun String.toDisplayVehicleLabel(): String {
         else -> replace('_', ' ').lowercase().split(' ').joinToString(" ") { part ->
             part.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         }
+    }
+}
+
+private fun String?.cancellationFeeForVehicle(): Double {
+    return when (this?.trim()?.uppercase()) {
+        "PICKUP", "VAN_7FT", "VAN_9FT" -> 5.0
+        "LORRY_10FT", "LORRY_14FT", "LORRY_17FT" -> 8.0
+        else -> 3.0
     }
 }
 

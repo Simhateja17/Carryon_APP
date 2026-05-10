@@ -30,6 +30,8 @@ import com.company.carryon.ui.theme.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.datetime.Instant
+import kotlin.time.Clock
 import kotlin.math.ceil
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +58,29 @@ fun DriverApproachingScreen(
     var etaMinutes by remember { mutableStateOf(0) }
     var driverId by remember { mutableStateOf("") }
     var pickupDoneHandled by remember { mutableStateOf(false) }
+    var nowMillis by remember { mutableStateOf(Clock.System.now().toEpochMilliseconds()) }
+    var localArrivalStartedAtMillis by remember(bookingId) { mutableStateOf<Long?>(null) }
+
+    val currentBookingForTimer = booking
+    val isDriverArrivedForTimer = currentBookingForTimer?.status == BookingStatus.DRIVER_ARRIVED
+    val arrivedAtMillis = currentBookingForTimer?.driverArrivedAt.parseIsoMillisOrNull()
+        ?: localArrivalStartedAtMillis
+
+    LaunchedEffect(isDriverArrivedForTimer) {
+        if (isDriverArrivedForTimer && localArrivalStartedAtMillis == null) {
+            localArrivalStartedAtMillis = Clock.System.now().toEpochMilliseconds()
+        } else if (!isDriverArrivedForTimer) {
+            localArrivalStartedAtMillis = null
+        }
+    }
+
+    LaunchedEffect(isDriverArrivedForTimer, arrivedAtMillis) {
+        if (!isDriverArrivedForTimer || arrivedAtMillis == null) return@LaunchedEffect
+        while (currentCoroutineContext().isActive) {
+            nowMillis = Clock.System.now().toEpochMilliseconds()
+            delay(1000L)
+        }
+    }
 
     // Load booking data
     LaunchedEffect(bookingId) {
@@ -201,6 +226,7 @@ fun DriverApproachingScreen(
             booking != null -> {
                 val currentBooking = booking!!
                 val isDriverArrived = currentBooking.status == BookingStatus.DRIVER_ARRIVED
+                val waitSeconds = arrivedAtMillis?.let { elapsedSecondsSince(it, nowMillis) } ?: 0L
 
                 Column(
                     modifier = Modifier
@@ -272,13 +298,14 @@ fun DriverApproachingScreen(
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        if (etaMinutes > 0) "$etaMinutes" else "--",
-                                        fontSize = 24.sp,
+                                        if (isDriverArrived) formatWaitCounter(waitSeconds)
+                                        else if (etaMinutes > 0) "$etaMinutes" else "--",
+                                        fontSize = if (isDriverArrived) 22.sp else 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White
                                     )
                                     Text(
-                                        strings.mins,
+                                        if (isDriverArrived) strings.waiting else strings.mins,
                                         fontSize = 12.sp,
                                         color = Color.White
                                     )
@@ -294,6 +321,14 @@ fun DriverApproachingScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
+                                if (isDriverArrived) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        strings.waitTimerStarted,
+                                        fontSize = 13.sp,
+                                        color = Color.White.copy(alpha = 0.85f)
+                                    )
+                                }
                                 currentBooking.driver?.let { driver ->
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
@@ -375,4 +410,19 @@ private fun estimateMinutesFromDistance(distanceKm: Double): Int {
     if (distanceKm <= 0.0) return 0
     // Fallback ETA for cases where backend route duration is unavailable.
     return ceil((distanceKm / 30.0) * 60.0).toInt().coerceAtLeast(1)
+}
+
+private fun String?.parseIsoMillisOrNull(): Long? {
+    if (isNullOrBlank()) return null
+    return runCatching { Instant.parse(this).toEpochMilliseconds() }.getOrNull()
+}
+
+private fun elapsedSecondsSince(startMillis: Long, nowMillis: Long): Long {
+    return ((nowMillis - startMillis) / 1000L).coerceAtLeast(0L)
+}
+
+private fun formatWaitCounter(totalSeconds: Long): String {
+    val minutes = totalSeconds / 60L
+    val seconds = totalSeconds % 60L
+    return "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
 }

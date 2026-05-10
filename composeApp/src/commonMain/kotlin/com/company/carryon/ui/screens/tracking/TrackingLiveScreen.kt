@@ -1,6 +1,5 @@
 package com.company.carryon.ui.screens.tracking
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,17 +10,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.MapViewComposable
-import com.company.carryon.ui.components.MapMarker
-import com.company.carryon.ui.components.MarkerColor
 import com.company.carryon.data.model.LatLng
 import com.company.carryon.data.model.MapConfig
 import com.company.carryon.data.model.RouteResult
@@ -124,6 +118,13 @@ fun TrackingLiveScreen(
                 trackingStale = false
                 consecutiveFailures = 0
             },
+            onInitialLocation = { location ->
+                if (location.latitude != 0.0 && location.longitude != 0.0) {
+                    driverLat = location.latitude
+                    driverLng = location.longitude
+                    gpsHistory.add(LatLng(location.latitude, location.longitude))
+                }
+            },
             onLocation = { location ->
                 driverLat = location.latitude
                 driverLng = location.longitude
@@ -138,8 +139,10 @@ fun TrackingLiveScreen(
     }
 
     // Poll driver position every 8 seconds (only if we have a driver)
-    LaunchedEffect(driverId, deliveryLat, deliveryLng) {
-        if (driverId.isBlank() || deliveryLat == 0.0) return@LaunchedEffect
+    LaunchedEffect(driverId, booking?.status, deliveryLat, deliveryLng) {
+        val currentBooking = booking ?: return@LaunchedEffect
+        val display = buildLiveTrackingDisplay(currentBooking, driverLat, driverLng)
+        if (driverId.isBlank() || !shouldRouteDriverToTarget(driverLat, driverLng, display.activeTarget)) return@LaunchedEffect
         
         while (true) {
             if (!liveTrackingConnected) {
@@ -172,9 +175,17 @@ fun TrackingLiveScreen(
                 }
             }
 
-            // Recalculate route from driver to delivery
-            if (driverLat != 0.0 && deliveryLat != 0.0) {
-                LocationApi.calculateRoute(driverLat, driverLng, deliveryLat, deliveryLng).onSuccess { route ->
+            val latestBooking = booking ?: currentBooking
+            val latestDisplay = buildLiveTrackingDisplay(latestBooking, driverLat, driverLng)
+
+            // Recalculate route from the driver's GPS point to the active lifecycle target.
+            if (shouldRouteDriverToTarget(driverLat, driverLng, latestDisplay.activeTarget)) {
+                LocationApi.calculateRoute(
+                    driverLat,
+                    driverLng,
+                    latestDisplay.activeTarget.lat,
+                    latestDisplay.activeTarget.lng
+                ).onSuccess { route ->
                     routeResult = route
                     etaMinutes = if (route.duration > 0) route.duration else estimateMinutesFromDistance(route.distance)
                 }
@@ -188,6 +199,17 @@ fun TrackingLiveScreen(
     LaunchedEffect(bookingId) {
         while (true) {
             delay(15000) // Every 15 seconds
+            BookingApi.getBooking(bookingId).onSuccess { response ->
+                response.data?.let { refreshedBooking ->
+                    booking = refreshedBooking
+                    refreshedBooking.driver?.let { driver ->
+                        if (driver.currentLatitude != 0.0 && driver.currentLongitude != 0.0) {
+                            driverLat = driver.currentLatitude
+                            driverLng = driver.currentLongitude
+                        }
+                    }
+                }
+            }
             BookingApi.getEta(bookingId).onSuccess { response ->
                 response.data?.let { eta ->
                     if (eta.etaMinutes > 0) {
@@ -195,17 +217,6 @@ fun TrackingLiveScreen(
                     }
                 }
             }
-        }
-    }
-
-    val markers = remember(driverLat, driverLng, deliveryLat, deliveryLng) {
-        if (driverLat == 0.0 && deliveryLat == 0.0) {
-            emptyList()
-        } else {
-            listOfNotNull(
-                if (driverLat != 0.0) MapMarker("driver", driverLat, driverLng, "Driver", MarkerColor.BLUE) else null,
-                if (deliveryLat != 0.0) MapMarker("delivery", deliveryLat, deliveryLng, "Delivery", MarkerColor.GREEN) else null
-            )
         }
     }
 
@@ -269,6 +280,7 @@ fun TrackingLiveScreen(
             }
             booking != null -> {
                 val currentBooking = booking!!
+                val trackingDisplay = buildLiveTrackingDisplay(currentBooking, driverLat, driverLng)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -323,7 +335,7 @@ fun TrackingLiveScreen(
                     // Interactive Map — fills remaining space
                     Box(modifier = Modifier.weight(1f)) {
                         // Use snapped path if available, otherwise fall back to route geometry
-                        val displayPath = snappedPath.ifEmpty { routeResult?.geometry }
+                        val displayPath = routeResult?.geometry?.ifEmpty { snappedPath } ?: snappedPath
                         val centerLat = if (driverLat != 0.0) driverLat else deliveryLat
                         val centerLng = if (driverLng != 0.0) driverLng else deliveryLng
                         
@@ -333,7 +345,7 @@ fun TrackingLiveScreen(
                             centerLat = centerLat,
                             centerLng = centerLng,
                             zoom = 13.0,
-                            markers = markers,
+                            markers = trackingDisplay.markers,
                             routeGeometry = displayPath
                         )
                     }
@@ -381,17 +393,14 @@ fun TrackingLiveScreen(
 
                             Column {
                                 Text(
-                                    strings.outForDelivery,
+                                    trackingDisplay.title,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF90CAF9)
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    if (currentBooking.driver != null) 
-                                        "${currentBooking.driver?.name ?: ""} ${strings.deliveryPartnerDriving}"
-                                    else 
-                                        strings.deliveryPartnerDriving,
+                                    trackingDisplay.subtitle,
                                     fontSize = 13.sp,
                                     color = Color.White,
                                     lineHeight = 19.sp

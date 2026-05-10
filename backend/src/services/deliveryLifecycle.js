@@ -15,6 +15,10 @@ const {
 } = require('./bookingLifecycle');
 const { computePickupWaitCharge } = require('./bookingPolicy');
 const {
+  invoiceAmountsForBookingWithAdjustments,
+  upsertPickupWaitTimeAdjustmentTx,
+} = require('./bookingAdjustments');
+const {
   creditDriverAdjustmentTx,
   debitBookingAdjustmentTx,
 } = require('./walletLedger');
@@ -540,10 +544,7 @@ async function completeDelivery({ booking, actor, payload, locationEvidence }) {
   try {
     const existingInvoice = await prisma.invoice.findUnique({ where: { bookingId: updated.id } });
     if (!existingInvoice) {
-      const price = updated.finalPrice || updated.estimatedPrice || 0;
-      const taxRate = 0.05;
-      const subtotal = Math.round((price / (1 + taxRate)) * 100) / 100;
-      const tax = Math.round((price - subtotal) * 100) / 100;
+      const { amounts } = await invoiceAmountsForBookingWithAdjustments(prisma, updated);
       const now2 = new Date();
       const invoiceNumber = `CO-${now2.getFullYear()}${String(now2.getMonth() + 1).padStart(2, '0')}${String(now2.getDate()).padStart(2, '0')}-${Math.floor(Math.random() * 9000 + 1000)}`;
       await prisma.invoice.create({
@@ -551,11 +552,11 @@ async function completeDelivery({ booking, actor, payload, locationEvidence }) {
           bookingId: updated.id,
           userId: updated.userId,
           invoiceNumber,
-          subtotal,
-          tax,
+          subtotal: amounts.subtotal,
+          tax: amounts.tax,
           discount: updated.discountAmount || 0,
-          total: price,
-          taxRate,
+          total: amounts.total,
+          taxRate: amounts.taxRate,
           currency: 'MYR',
         },
       });
@@ -681,6 +682,11 @@ async function executeLifecycleCommand({ bookingId, actor, driver, command, payl
             include: bookingInclude,
           });
           if (waitCharge.waitTimeCharge > 0) {
+            await upsertPickupWaitTimeAdjustmentTx(tx, {
+              bookingId: booking.id,
+              waitTimeMinutes: waitCharge.waitTimeMinutes,
+              waitTimeCharge: waitCharge.waitTimeCharge,
+            });
             await debitBookingAdjustmentTx(
               tx,
               booking.userId,

@@ -83,7 +83,7 @@ router.post('/', async (req, res, next) => {
       receiverEmail, deliveryMode, offloading, notes
     } = parseBody(bookingCreateSchema, req.body);
 
-    console.log('[booking] POST /api/bookings — userId:', req.user.userId, 'vehicleType:', vehicleType, 'paymentMethod:', paymentMethod || 'CASH', 'pickup:', pickupAddress?.address, 'delivery:', deliveryAddress?.address);
+    console.log('[booking] POST /api/bookings — userId:', req.user.userId, 'vehicleType:', vehicleType, 'paymentMethod:', paymentMethod || 'CASH');
 
     const idempotencyKey = idempotencyKeyFromRequest(req);
     if (!validateIdempotencyKey(idempotencyKey)) {
@@ -331,56 +331,11 @@ router.post('/:id/verify-delivery', async (req, res, next) => {
 });
 
 // PUT /api/bookings/:id/status
+// This endpoint is disabled for customers. All status changes must go through
+// dedicated endpoints: POST /bookings/:id/cancel for cancellation,
+// driver endpoints for operational statuses.
 router.put('/:id/status', async (req, res, next) => {
-  try {
-    const { status, eta } = parseBody(bookingStatusSchema, req.body);
-    console.log('[booking] PUT status — userId:', req.user.userId, 'bookingId:', req.params.id, 'newStatus:', status);
-
-    const validStatuses = [
-      'PENDING', 'SEARCHING_DRIVER', 'DRIVER_ASSIGNED', 'DRIVER_ARRIVED',
-      'PICKUP_DONE', 'IN_TRANSIT', 'ARRIVED_AT_DROP',
-    ];
-    if (!validStatuses.includes(status)) {
-      return next(new AppError('Invalid status', 400));
-    }
-
-    const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
-    if (!booking) return next(new AppError('Booking not found', 404));
-    if (booking.userId !== req.user.userId) return next(new AppError('Not authorized', 403));
-
-    if (!canTransition(booking.status, status)) {
-      return next(new AppError(`Cannot transition from ${booking.status} to ${status}`, 400));
-    }
-
-    const updateData = { status };
-    if (eta !== undefined) {
-      updateData.eta = eta;
-    }
-
-    const updatedBooking = await prisma.$transaction(async (tx) => {
-      const updated = await tx.booking.update({
-        where: { id: req.params.id },
-        data: updateData,
-        include: bookingIncludes,
-      });
-      await recordAudit(tx, {
-        actor: { actorId: req.user.userId, actorType: 'USER' },
-        action: 'BOOKING_STATUS_CHANGED',
-        entityType: 'Booking',
-        entityId: req.params.id,
-        oldValue: { status: booking.status, paymentStatus: booking.paymentStatus },
-        newValue: { status: updated.status, paymentStatus: updated.paymentStatus },
-      });
-      return updated;
-    });
-    console.log('[booking] Status updated — bookingId:', req.params.id, booking.status, '→', updatedBooking.status);
-
-    await notifyUserBookingEvent(updatedBooking, updatedBooking.status);
-
-    res.json({ success: true, data: updatedBooking });
-  } catch (err) {
-    next(err);
-  }
+  return next(new AppError('Invalid status', 400));
 });
 
 // GET /api/bookings/:id/eta

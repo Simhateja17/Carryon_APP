@@ -1,6 +1,5 @@
 package com.company.carryon.ui.screens.orders
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,7 +25,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
@@ -51,11 +49,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -69,7 +65,6 @@ import carryon.composeapp.generated.resources.rectangle_2544
 import carryon.composeapp.generated.resources.ellipse_4
 import carryon.composeapp.generated.resources.icon_help
 import carryon.composeapp.generated.resources.icon_spark
-import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.icon_profile
 import carryon.composeapp.generated.resources.vector_truck
 import com.company.carryon.data.model.Booking
@@ -116,7 +111,6 @@ private fun Booking.toOrderItem() = OrderItem(
 private enum class OrdersTab(val label: String) {
     ALL("All"),
     ONGOING("Ongoing"),
-    SCHEDULED("Scheduled"),
     COMPLETED("Completed"),
     CANCELLED("Cancelled")
 }
@@ -173,10 +167,6 @@ fun OrdersScreen(
             BookingStatus.IN_TRANSIT,
             BookingStatus.ARRIVED_AT_DROP
         )
-    }
-
-    val scheduledOrders = orders.filter {
-        it.status == BookingStatus.PENDING || it.status == BookingStatus.SEARCHING_DRIVER
     }
 
     val completedFromApi = orders.filter { it.status == BookingStatus.DELIVERED }
@@ -269,7 +259,6 @@ fun OrdersScreen(
         }
 
         val showOngoing = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.ONGOING
-        val showScheduled = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.SCHEDULED
         val showCompleted = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.COMPLETED
         val showCancelled = selectedTab == OrdersTab.ALL || selectedTab == OrdersTab.CANCELLED
 
@@ -284,22 +273,6 @@ fun OrdersScreen(
             } else {
                 EmptyOrdersState("No ongoing deliveries")
                 Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
-
-        if (showScheduled) {
-            if (scheduledOrders.isEmpty()) {
-                EmptyOrdersState("No scheduled deliveries")
-                Spacer(modifier = Modifier.height(12.dp))
-            } else {
-                scheduledOrders.forEach { scheduled ->
-                    ScheduledOrderCard(
-                        order = scheduled,
-                        onModify = { onOrderClick(scheduled.id) },
-                        onCancel = { onOrderClick(scheduled.id) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
             }
         }
 
@@ -381,7 +354,6 @@ private fun CompletedOrdersScreen(
     completedCards: List<CompletedOrderPreview>,
     onViewDetails: (String) -> Unit,
     onRepeat: (String) -> Unit,
-    onScheduledClick: () -> Unit,
     onActiveClick: () -> Unit,
     onBack: () -> Unit = {}
 ) {
@@ -415,7 +387,7 @@ private fun CompletedOrdersScreen(
             )
         }
 
-        // 3-tab header: Scheduled | Active | Completed (selected)
+        // 2-tab header: Active | Completed (selected)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -423,20 +395,6 @@ private fun CompletedOrdersScreen(
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(999.dp))
-                    .background(Color.Transparent)
-                    .clickable { onScheduledClick() }
-            ) {
-                Text(
-                    text = "Scheduled",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-                    color = Color(0xFF111827),
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp
-                )
-            }
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
@@ -505,8 +463,7 @@ private fun OngoingDeliveriesScreen(
     ongoingOrders: List<OrderItem>,
     onBack: () -> Unit,
     onOrderClick: (String) -> Unit,
-    onHistoryClick: () -> Unit,
-    onDraftsClick: () -> Unit
+    onHistoryClick: () -> Unit
 ) {
     val cards = ongoingOrders.take(2).mapIndexed { idx, order ->
         OngoingDeliveryPreview(
@@ -571,13 +528,6 @@ private fun OngoingDeliveriesScreen(
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
-            Text(
-                text = "Scheduled",
-                color = Color(0xFF94A3B8),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.clickable { onDraftsClick() }
-            )
             Text(
                 text = "Active",
                 color = Color(0xFF64748B),
@@ -895,170 +845,6 @@ private fun OngoingOrderCard(order: OrderItem, canTrack: Boolean, onTrack: () ->
                 ) {
                     Text("Track Order", color = Color.White, fontWeight = FontWeight.Medium)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ScheduledOrderCard(
-    order: OrderItem,
-    onModify: () -> Unit,
-    onCancel: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(OrderCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F0FA)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "ORDER ID",
-                        color = Color(0xFF64748B),
-                        fontSize = OrderCardLabelFontSize,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 0.8.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = formatOrderDisplayId(order.id, order.orderCode),
-                        color = Color(0xFF0F172A),
-                        fontSize = OrderCardHeadingFontSize,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                StatusPill(text = "AWAITING DRIVER", color = PrimaryBlue)
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = Color.White,
-                shadowElevation = 0.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "PICKUP SCHEDULED",
-                            color = Color(0xFF64748B),
-                            fontSize = OrderCardLabelFontSize,
-                            fontWeight = FontWeight.Normal,
-                            letterSpacing = 0.6.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = order.date.ifBlank { "Pending schedule" },
-                            color = Color(0xFF0F172A),
-                            fontSize = OrderCardValueFontSize,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Box(
-                    modifier = Modifier
-                        .width(28.dp)
-                        .height(120.dp)
-                ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val cx = size.width / 2f
-                        val dash = PathEffect.dashPathEffect(floatArrayOf(7f, 7f), 0f)
-                        drawLine(
-                            color = Color(0xFF6B9BD4).copy(alpha = 0.55f),
-                            start = Offset(cx, 10.dp.toPx()),
-                            end = Offset(cx, size.height - 10.dp.toPx()),
-                            strokeWidth = 2.dp.toPx(),
-                            pathEffect = dash
-                        )
-                    }
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(PrimaryBlue, CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(Color(0xFF9EC5EB), CircleShape)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "PICKUP",
-                        color = Color(0xFF64748B),
-                            fontSize = OrderCardLabelFontSize,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 0.6.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = order.pickup,
-                        color = Color(0xFF0F172A),
-                            fontSize = OrderCardSubValueFontSize,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "DROP-OFF",
-                        color = Color(0xFF64748B),
-                            fontSize = OrderCardLabelFontSize,
-                        fontWeight = FontWeight.Normal,
-                        letterSpacing = 0.6.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = order.delivery,
-                        color = Color(0xFF0F172A),
-                            fontSize = OrderCardSubValueFontSize,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onModify,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
-                    contentPadding = PaddingValues(vertical = 10.dp)
-                ) {
-                    Text("Modify", color = Color.White, fontWeight = FontWeight.Medium)
-                }
-                OutlinedActionButton(modifier = Modifier.weight(1f), text = "Cancel", onClick = onCancel)
             }
         }
     }

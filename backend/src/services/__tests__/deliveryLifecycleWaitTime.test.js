@@ -51,6 +51,15 @@ describe('deliveryLifecycle wait-time charging', () => {
       walletTransaction: {
         create: jest.fn().mockResolvedValue({ id: 'wallet-tx-1' }),
       },
+      bookingAdjustment: {
+        upsert: jest.fn().mockResolvedValue({
+          id: 'adjustment-1',
+          bookingId: 'booking-1',
+          type: 'PICKUP_WAIT_TIME',
+          amount: 1.5,
+          status: 'APPLIED',
+        }),
+      },
       driverWallet: {
         findUnique: jest.fn().mockResolvedValue({ id: 'driver-wallet-1', balance: 0 }),
         update: jest.fn().mockResolvedValue({ id: 'driver-wallet-1' }),
@@ -87,6 +96,24 @@ describe('deliveryLifecycle wait-time charging', () => {
       data: expect.objectContaining({
         amount: expect.any(Number),
         description: 'Pickup wait-time charge',
+      }),
+    });
+    expect(tx.bookingAdjustment.upsert).toHaveBeenCalledWith({
+      where: {
+        bookingId_type: {
+          bookingId: 'booking-1',
+          type: 'PICKUP_WAIT_TIME',
+        },
+      },
+      create: expect.objectContaining({
+        bookingId: 'booking-1',
+        type: 'PICKUP_WAIT_TIME',
+        amount: expect.any(Number),
+        status: 'APPLIED',
+      }),
+      update: expect.objectContaining({
+        amount: expect.any(Number),
+        status: 'APPLIED',
       }),
     });
     expect(tx.driverWalletTransaction.create).toHaveBeenCalledWith({

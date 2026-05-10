@@ -72,8 +72,14 @@ data class Booking(
     val deliveryAddress: Address = Address(),
     val vehicleType: String = "",
     val scheduledTime: String? = null,
+    val driverArrivedAt: String? = null,
     val estimatedPrice: Double = 0.0,
     val finalPrice: Double = 0.0,
+    val cancellationFee: Double = 0.0,
+    val cancellationDriverShare: Double = 0.0,
+    val cancellationPlatformShare: Double = 0.0,
+    val waitTimeMinutes: Int = 0,
+    val waitTimeCharge: Double = 0.0,
     val distance: Double = 0.0,
     val duration: Int = 0,
     val status: BookingStatus = BookingStatus.PENDING,
@@ -484,9 +490,21 @@ data class Invoice(
 @Serializable
 data class InvoiceDetail(
     val invoice: Invoice = Invoice(),
+    val adjustments: List<InvoiceAdjustment> = emptyList(),
     val booking: InvoiceBooking = InvoiceBooking(),
     val customer: InvoiceCustomer = InvoiceCustomer(),
     val company: InvoiceCompany = InvoiceCompany()
+)
+
+@Serializable
+data class InvoiceAdjustment(
+    val id: String = "",
+    val bookingId: String = "",
+    val type: String = "",
+    val amount: Double = 0.0,
+    val description: String = "",
+    val status: String = "",
+    val createdAt: String = ""
 )
 
 @Serializable

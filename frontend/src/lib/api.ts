@@ -328,3 +328,46 @@ export async function updateDriverVerification(
     }
   );
 }
+
+// ── Admin Extra Charge Review ───────────────────────────────
+
+export interface BookingExtraChargeRecord {
+  id: string;
+  bookingId: string;
+  driverId: string;
+  type: "TOLL" | "PARKING";
+  amount: number;
+  proofUrl: string;
+  note: string | null;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  createdAt: string;
+  reviewedAt: string | null;
+  booking?: {
+    id: string;
+    orderCode: string | null;
+    status: string;
+    pickupAddress?: { address?: string; label?: string };
+    deliveryAddress?: { address?: string; label?: string };
+  };
+  driver?: { id: string; name: string; phone: string };
+}
+
+export async function getExtraCharges(status: "PENDING" | "APPROVED" | "REJECTED" | "ALL" = "PENDING") {
+  return apiFetch<{ success: boolean; data: BookingExtraChargeRecord[] }>(
+    `/api/admin/extra-charges?status=${status}`
+  );
+}
+
+export async function reviewExtraCharge(
+  id: string,
+  decision: "APPROVED" | "REJECTED",
+  reason?: string
+) {
+  return apiFetch<{ success: boolean; data: BookingExtraChargeRecord }>(
+    `/api/admin/extra-charges/${id}/review`,
+    {
+      method: "POST",
+      body: JSON.stringify({ decision, reason }),
+    }
+  );
+}

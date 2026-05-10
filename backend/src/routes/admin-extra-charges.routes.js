@@ -6,6 +6,7 @@ const {
   creditDriverAdjustmentTx,
   debitBookingAdjustmentTx,
 } = require('../services/walletLedger');
+const { getSignedUrl } = require('../lib/supabase');
 
 const router = Router();
 
@@ -30,7 +31,25 @@ router.get('/', async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    res.json({ success: true, data: charges });
+
+    // Generate signed URLs for object paths
+    const chargesWithUrls = await Promise.all(
+      charges.map(async (charge) => {
+        let proofUrl = charge.proofUrl;
+        // If proofUrl is an object path (not an HTTP URL), generate a signed URL
+        if (proofUrl && !proofUrl.startsWith('http')) {
+          try {
+            proofUrl = await getSignedUrl(proofUrl);
+          } catch (error) {
+            console.error('Failed to generate signed URL:', error);
+            proofUrl = null;
+          }
+        }
+        return { ...charge, proofUrl };
+      })
+    );
+
+    res.json({ success: true, data: chargesWithUrls });
   } catch (err) {
     next(err);
   }

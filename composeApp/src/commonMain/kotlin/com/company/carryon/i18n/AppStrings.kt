@@ -467,6 +467,8 @@ interface AppStrings {
     // ── Driver Approaching Screen ──
     val driverOnTheWayStatus: String get() = "Driver is on the way"
     val driverArrivedStatus: String get() = "Driver has arrived!"
+    val waiting: String get() = "waiting"
+    val waitTimerStarted: String get() = "Waiting time started"
     val shareOtpWithDriver: String get() = "Share this code with your driver"
     val yourDeliveryCode: String get() = "Your Delivery Code"
     val packagePickedUpTracking: String get() = "Package picked up! Tracking delivery..."

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifyAdminSession } from "@/lib/adminSession";
 
 const PRODUCTION_URL = "https://api.carryon.my";
 
@@ -14,6 +15,15 @@ async function proxyAdminRequest(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
 ) {
+  // Verify admin session before proxying any request
+  const isAdmin = await verifyAdminSession();
+  if (!isAdmin) {
+    return NextResponse.json(
+      { success: false, message: "Unauthorized: admin login required" },
+      { status: 401 }
+    );
+  }
+
   const adminKey = process.env.ADMIN_API_KEY;
   if (!adminKey) {
     return NextResponse.json(

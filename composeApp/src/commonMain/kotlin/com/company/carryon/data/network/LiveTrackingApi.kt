@@ -29,6 +29,7 @@ object LiveTrackingApi {
     suspend fun subscribeToBooking(
         bookingId: String,
         onConnected: () -> Unit = {},
+        onInitialLocation: (LiveDriverLocation) -> Unit = {},
         onLocation: (LiveDriverLocation) -> Unit
     ): Result<Unit> = runCatching {
         val token = AuthStateManager.getValidAccessToken()
@@ -39,7 +40,21 @@ object LiveTrackingApi {
                 if (frame !is Frame.Text) continue
                 val payload = json.parseToJsonElement(frame.readText()).jsonObject
                 when (payload["type"]?.jsonPrimitive?.content) {
-                    "connected" -> onConnected()
+                    "connected" -> {
+                        onConnected()
+                        payload["driverLocation"]?.jsonObject?.let { driverLocation ->
+                            val latitude = driverLocation["latitude"]?.jsonPrimitive?.doubleOrNull
+                            val longitude = driverLocation["longitude"]?.jsonPrimitive?.doubleOrNull
+                            if (latitude != null && longitude != null) {
+                                onInitialLocation(
+                                    LiveDriverLocation(
+                                        latitude = latitude,
+                                        longitude = longitude
+                                    )
+                                )
+                            }
+                        }
+                    }
                     "driver_location" -> {
                         val latitude = payload["latitude"]?.jsonPrimitive?.doubleOrNull
                         val longitude = payload["longitude"]?.jsonPrimitive?.doubleOrNull

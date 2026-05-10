@@ -188,7 +188,7 @@ describe('MVP policy routes', () => {
 
     const response = await invokeRoute(require('../driver-jobs.routes'), 'POST', '/:id/extra-charges', {
       params: { id: 'booking-1' },
-      body: { type: 'toll', amount: 2.5, proofUrl: 'https://example.com/receipt.jpg' },
+      body: { type: 'toll', amount: 2.5, proofPath: 'extra-charge-proofs/driver-1/booking-1_1234567890.jpg' },
     });
 
     expect(response.status).toBe(201);
@@ -198,7 +198,7 @@ describe('MVP policy routes', () => {
         driverId: 'driver-1',
         type: 'TOLL',
         amount: 2.5,
-        proofUrl: 'https://example.com/receipt.jpg',
+        proofUrl: 'extra-charge-proofs/driver-1/booking-1_1234567890.jpg',
       }),
     });
   });
@@ -270,5 +270,59 @@ describe('MVP policy routes', () => {
         priority: 'URGENT',
       }),
     });
+  });
+
+  test('extra-charge submit rejects public URLs', async () => {
+    const response = await invokeRoute(require('../driver-jobs.routes'), 'POST', '/:id/extra-charges', {
+      params: { id: 'booking-1' },
+      body: { type: 'toll', amount: 2.5, proofPath: 'https://evil.com/fake.jpg' },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toMatch(/public url/i);
+  });
+
+  test('extra-charge submit rejects proof path for another driver', async () => {
+    const response = await invokeRoute(require('../driver-jobs.routes'), 'POST', '/:id/extra-charges', {
+      params: { id: 'booking-1' },
+      body: { type: 'toll', amount: 2.5, proofPath: 'extra-charge-proofs/driver-999/booking-1_123.jpg' },
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toMatch(/must belong to your driver/i);
+  });
+
+  test('extra-charge submit accepts canonical proof path', async () => {
+    prisma.booking.findUnique.mockResolvedValue({
+      id: 'booking-1',
+      driverId: 'driver-1',
+      status: 'IN_TRANSIT',
+    });
+    prisma.bookingExtraCharge.create.mockResolvedValue({
+      id: 'charge-2',
+      bookingId: 'booking-1',
+      driverId: 'driver-1',
+      type: 'PARKING',
+      amount: 5,
+      status: 'PENDING',
+    });
+
+    const response = await invokeRoute(require('../driver-jobs.routes'), 'POST', '/:id/extra-charges', {
+      params: { id: 'booking-1' },
+      body: { type: 'parking', amount: 5, proofPath: 'extra-charge-proofs/driver-1/booking-1_1234567890.jpg' },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.success).toBe(true);
+  });
+
+  test('extra-charge submit rejects old-format path without bucket prefix', async () => {
+    const response = await invokeRoute(require('../driver-jobs.routes'), 'POST', '/:id/extra-charges', {
+      params: { id: 'booking-1' },
+      body: { type: 'toll', amount: 2.5, proofPath: 'extra-charges/driver-1/booking-1_123.jpg' },
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.body.message).toMatch(/must belong to your driver/i);
   });
 });

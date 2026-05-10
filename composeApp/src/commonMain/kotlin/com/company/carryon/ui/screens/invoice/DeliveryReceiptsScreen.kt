@@ -391,6 +391,10 @@ private fun DetailedReceiptCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             LineAmountRow("Subtotal", "RM ${invoice.subtotal.formatDecimal(2)}")
+            detail.adjustments.forEach { adjustment ->
+                Spacer(modifier = Modifier.height(12.dp))
+                LineAmountRow(adjustment.receiptLabel(), "RM ${adjustment.amount.formatDecimal(2)}")
+            }
             Spacer(modifier = Modifier.height(12.dp))
             LineAmountRow("Tax", "RM ${invoice.tax.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(12.dp))
@@ -425,4 +429,13 @@ private fun formatReceiptDate(value: String): String {
         val month = dateTime.month.name.lowercase().replaceFirstChar { it.titlecase() }
         "$month ${dateTime.dayOfMonth}, ${dateTime.year}"
     }.getOrDefault(value)
+}
+
+private fun com.company.carryon.data.model.InvoiceAdjustment.receiptLabel(): String {
+    return description.ifBlank {
+        when (type) {
+            "PICKUP_WAIT_TIME" -> "Pickup wait-time charge (included)"
+            else -> "${type.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }} (included)"
+        }
+    }
 }

@@ -261,12 +261,34 @@ async function applyReferralBonus(tx, referrerId, refereeId, referralCode) {
 // ── Wallet payment for existing booking ─────────────────────
 
 async function payBookingFromWallet(tx, userId, booking) {
+  // Guard: reject if already paid
+  if (booking.paymentStatus === 'COMPLETED') {
+    const err = new Error('Booking is already paid');
+    err.statusCode = 409;
+    throw err;
+  }
+
   const amount = booking.estimatedPrice - booking.discountAmount;
 
   const wallet = await tx.wallet.findUnique({ where: { userId } });
   if (!wallet || wallet.balance < amount) {
     const err = new Error('Insufficient wallet balance');
     err.statusCode = 400;
+    throw err;
+  }
+
+  // Conditional update: only move from unpaid to paid
+  const updateResult = await tx.booking.updateMany({
+    where: {
+      id: booking.id,
+      paymentStatus: { not: 'COMPLETED' },
+    },
+    data: { paymentMethod: 'WALLET', paymentStatus: 'COMPLETED', finalPrice: amount },
+  });
+
+  if (updateResult.count === 0) {
+    const err = new Error('Booking is already paid');
+    err.statusCode = 409;
     throw err;
   }
 
@@ -289,10 +311,6 @@ async function payBookingFromWallet(tx, userId, booking) {
     entityType: 'Booking',
     entityId: booking.id,
     newValue: { walletId: wallet.id, amount: -amount },
-  });
-  await tx.booking.update({
-    where: { id: booking.id },
-    data: { paymentMethod: 'WALLET', paymentStatus: 'COMPLETED', finalPrice: amount },
   });
 
   return tx.wallet.findUnique({ where: { id: wallet.id } });
