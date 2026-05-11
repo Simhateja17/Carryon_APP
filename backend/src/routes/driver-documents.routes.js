@@ -5,6 +5,8 @@ const { authenticateDriver, requireDriver } = require('../middleware/driverAuth'
 const { AppError } = require('../middleware/errorHandler');
 const { uploadToSupabase } = require('../lib/supabase');
 const { validateImageMagicBytes } = require('../lib/imageValidation');
+const { isDriverDocumentPathForDriver } = require('../lib/driverDocumentPaths');
+const { VALID_DOCUMENT_TYPES, uploadDriverDocument } = require('../services/driverDocumentUpload');
 
 const router = Router();
 router.use(authenticateDriver, requireDriver);
@@ -20,31 +22,6 @@ const upload = multer({
     }
   },
 });
-
-const VALID_DOCUMENT_TYPES = new Set([
-  'DRIVERS_LICENSE',
-  'DRIVERS_LICENSE_BACK',
-  'GDL',
-  'VEHICLE_REGISTRATION',
-  'ROAD_TAX',
-  'PUSPAKOM',
-  'APAD_PERMIT',
-  'VEHICLE_PHOTO_FRONT',
-  'VEHICLE_PHOTO_BACK',
-  'VEHICLE_PHOTO_LEFT',
-  'VEHICLE_PHOTO_RIGHT',
-  'VEHICLE_PHOTO_INTERIOR',
-  'BANK_STATEMENT',
-  'POLICE_CLEARANCE',
-  'INSURANCE',
-  'PROFILE_PHOTO',
-  'ID_PROOF',
-  'MYKAD_FRONT',
-  'MYKAD_BACK',
-  'SELFIE',
-  'PASSPORT',
-  'WORK_PERMIT_PLKS',
-]);
 
 // POST /api/driver/documents — upload a document
 // Supports two modes:
@@ -72,31 +49,23 @@ router.post('/', upload.single('image'), async (req, res, next) => {
         return next(new AppError('Public URLs are not accepted. Submit the storage object path only.', 400));
       }
 
-      // Validate object path belongs to this driver — canonical format:
-      // driver-documents/<driverId>/<documentType>_<timestamp>.<ext>
-      const allowedPrefix = `driver-documents/${req.driver.id}/`;
-      if (!rawPath.startsWith(allowedPrefix)) {
+      // Validate object path belongs to this driver.
+      // Canonical format: driver-documents/<driverId>/<documentType>_<timestamp>.<ext>
+      // Legacy app builds may send: driver-documents/drivers/<driverId>/<documentType>_<timestamp>.<ext>
+      if (!isDriverDocumentPathForDriver(rawPath, req.driver.id)) {
         return next(new AppError('Document path must belong to your driver storage', 403));
       }
       imageUrl = rawPath;
     } else {
       // Mode 1: Multipart form upload
-      if (!req.file) return next(new AppError('No image file provided', 400));
-      type = req.body.type;
-      if (!type) return next(new AppError('Document type is required', 400));
-
-      const detected = validateImageMagicBytes(req.file);
-      if (!detected) return next(new AppError('File is not a valid image', 400));
-
-      const ext = detected.ext;
-      const fileName = `${req.driver.id}/${type}_${Date.now()}.${ext}`;
-
-      try {
-        imageUrl = await uploadToSupabase('driver-documents', req.file, fileName, { upsert: true });
-      } catch (error) {
-        console.error('[driver-documents] upload failed for driverId:', req.driver.id);
-        return next(new AppError('Failed to upload document', 500));
-      }
+      const document = await uploadDriverDocument({
+        driverId: req.driver.id,
+        file: req.file,
+        type: req.body.type,
+        expiryDate: req.body.expiryDate || null,
+      });
+      console.log('[driver-documents] document upserted — driverId:', req.driver.id, 'type:', document.type, 'status:', document.status);
+      return res.status(201).json({ success: true, data: document });
     }
 
     if (!VALID_DOCUMENT_TYPES.has(type)) {
