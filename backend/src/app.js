@@ -118,6 +118,7 @@ mountVersionedRoute(app, '/invoices', require('./routes/invoice.routes'));
 
 // Driver routes
 mountVersionedRoute(app, '/driver/auth', require('./routes/driver-auth.routes'));
+mountVersionedRoute(app, '/driver/onboarding', require('./routes/driver-onboarding.routes'));
 mountVersionedRoute(app, '/driver/profile', require('./routes/driver-profile.routes'));
 mountVersionedRoute(app, '/driver/documents', require('./routes/driver-documents.routes'));
 mountVersionedRoute(app, '/driver/upload', require('./routes/driver-upload.routes'));
@@ -139,6 +140,8 @@ mountVersionedRoute(app, '/admin/command-center', require('./routes/admin-comman
 mountVersionedRoute(app, '/admin/maps', require('./routes/admin-maps.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/pricing', require('./routes/admin-pricing.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/settings', require('./routes/admin-settings.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/bookings', require('./routes/admin-bookings.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/customers', require('./routes/admin-customers.routes'), adminAuth);
 console.log('[app] All routes mounted');
 
 // Error handling

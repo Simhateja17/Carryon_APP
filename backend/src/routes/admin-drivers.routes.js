@@ -2,6 +2,18 @@ const { Router } = require('express');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../middleware/errorHandler');
 const { recordAudit } = require('../services/auditLog');
+const {
+  DRIVER_DETAIL_INCLUDE,
+  DRIVER_REVIEW_INCLUDE,
+  PII_FIELDS,
+  detailProjection,
+  driverListProjection,
+  listDriverReviewCandidates,
+  signDriverDocuments,
+} = require('../services/adminDriverReview');
+const {
+  updateDriverVerificationDecision,
+} = require('../services/adminDriverVerification');
 
 const router = Router();
 
@@ -10,42 +22,26 @@ router.get('/', async (req, res, next) => {
   try {
     console.log('[admin-drivers] GET /drivers — fetching all drivers');
     const drivers = await prisma.driver.findMany({
-      include: {
-        documents: { select: { id: true, type: true, status: true } },
-        vehicle: { select: { id: true, type: true, make: true, model: true } },
-        pushDevices: {
-          where: { notificationsEnabled: true },
-          select: { id: true },
-          take: 1,
-        },
-      },
+      include: DRIVER_REVIEW_INCLUDE,
       orderBy: { createdAt: 'desc' },
     });
 
     console.log('[admin-drivers] GET /drivers — returned', drivers.length, 'drivers');
     res.json({
       success: true,
-      data: drivers.map((d) => ({
-        id: d.id,
-        name: d.name,
-        email: d.email,
-        phone: d.phone,
-        photo: d.photo,
-        isOnline: d.isOnline,
-        isVerified: d.isVerified,
-        verificationStatus: d.verificationStatus,
-        rating: d.rating,
-        totalTrips: d.totalTrips,
-        emergencyContact: d.emergencyContact,
-        createdAt: d.createdAt,
-        documentsCount: d.documents.length,
-        documentsApproved: d.documents.filter((doc) => doc.status === 'APPROVED').length,
-        hasFcmToken: d.pushDevices.length > 0,
-        hasVehicle: !!d.vehicle,
-        vehicleSummary: d.vehicle
-          ? `${d.vehicle.type} — ${d.vehicle.make} ${d.vehicle.model}`
-          : null,
-      })),
+      data: drivers.map(driverListProjection),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/admin/drivers/onboarding-queue — drivers that need verification review
+router.get('/onboarding-queue', async (req, res, next) => {
+  try {
+    res.json({
+      success: true,
+      data: await listDriverReviewCandidates({ db: prisma }),
     });
   } catch (err) {
     next(err);
@@ -58,31 +54,54 @@ router.get('/:id', async (req, res, next) => {
     console.log('[admin-drivers] GET driver detail — driverId:', req.params.id);
     const driver = await prisma.driver.findUnique({
       where: { id: req.params.id },
-      include: {
-        documents: { orderBy: { uploadedAt: 'desc' } },
-        vehicle: true,
-      },
+      include: DRIVER_DETAIL_INCLUDE,
     });
 
     if (!driver) {
       return next(new AppError('Driver not found', 404));
     }
 
-    // Replace stored object paths with short-lived signed URLs for admin preview
-    const { getSignedUrl } = require('../lib/supabase');
-    if (driver.documents) {
-      for (const doc of driver.documents) {
-        if (doc.imageUrl && !doc.imageUrl.startsWith('http')) {
-          try {
-            doc.imageUrl = await getSignedUrl(doc.imageUrl, 3600);
-          } catch (_) {
-            // Keep original path if signing fails
-          }
-        }
-      }
+    await signDriverDocuments(driver);
+
+    res.json({ success: true, data: detailProjection(driver) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/admin/drivers/:id/pii/reveal — reveal one sensitive field with audit trail
+router.post('/:id/pii/reveal', async (req, res, next) => {
+  try {
+    const { field, reason } = req.body || {};
+    if (!PII_FIELDS.has(field)) {
+      return next(new AppError('Unsupported sensitive field', 400));
+    }
+    if (typeof reason !== 'string' || reason.trim().length < 3) {
+      return next(new AppError('A reveal reason is required', 400));
     }
 
-    res.json({ success: true, data: driver });
+    const driver = await prisma.driver.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, [field]: true },
+    });
+    if (!driver) return next(new AppError('Driver not found', 404));
+
+    await recordAudit(prisma, {
+      actor: req.adminActor,
+      action: 'DRIVER_PII_REVEALED',
+      entityType: 'Driver',
+      entityId: req.params.id,
+      newValue: { field, reason: reason.trim().slice(0, 160) },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        field,
+        value: driver[field] || '',
+        expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -139,42 +158,12 @@ router.put('/:id/documents/:docId/review', async (req, res, next) => {
 // PUT /api/admin/drivers/:id/verify — update driver verification status
 router.put('/:id/verify', async (req, res, next) => {
   try {
-    const { verificationStatus } = req.body;
-    console.log('[admin-drivers] PUT verify — driverId:', req.params.id, 'verificationStatus:', verificationStatus);
-    const validStatuses = ['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED'];
-
-    if (!verificationStatus || !validStatuses.includes(verificationStatus)) {
-      return next(
-        new AppError(`verificationStatus must be one of: ${validStatuses.join(', ')}`, 400)
-      );
-    }
-
-    const driver = await prisma.driver.findUnique({
-      where: { id: req.params.id },
-    });
-
-    if (!driver) {
-      return next(new AppError('Driver not found', 404));
-    }
-
-    const updated = await prisma.$transaction(async (tx) => {
-      const changed = await tx.driver.update({
-        where: { id: req.params.id },
-        data: {
-          verificationStatus,
-          isVerified: verificationStatus === 'APPROVED',
-        },
-        include: { documents: true, vehicle: true },
-      });
-      await recordAudit(tx, {
-        actor: req.adminActor,
-        action: 'DRIVER_VERIFICATION_CHANGED',
-        entityType: 'Driver',
-        entityId: req.params.id,
-        oldValue: { verificationStatus: driver.verificationStatus, isVerified: driver.isVerified },
-        newValue: { verificationStatus, isVerified: verificationStatus === 'APPROVED' },
-      });
-      return changed;
+    console.log('[admin-drivers] PUT verify — driverId:', req.params.id, 'verificationStatus:', req.body?.verificationStatus);
+    const updated = await updateDriverVerificationDecision({
+      db: prisma,
+      driverId: req.params.id,
+      body: req.body,
+      actor: req.adminActor,
     });
     console.log('[admin-drivers] verify — driverId:', req.params.id, 'verificationStatus →', updated.verificationStatus, 'isVerified:', updated.isVerified);
 
