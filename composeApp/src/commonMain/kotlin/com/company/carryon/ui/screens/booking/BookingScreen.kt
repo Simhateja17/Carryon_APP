@@ -33,9 +33,12 @@ import com.company.carryon.data.model.IsolineResult
 import com.company.carryon.data.model.MapConfig
 import com.company.carryon.data.model.RouteResult
 import com.company.carryon.data.model.LatLng
+import com.company.carryon.data.model.ServiceArea
 import com.company.carryon.data.network.LocationApi
+import com.company.carryon.util.ServiceAreaCache
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Vehicle
+import kotlin.math.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,6 +77,10 @@ fun BookingScreen(
     var selectedVehicle by remember { mutableStateOf<VehicleOption?>(null) }
     var paymentType by remember { mutableStateOf("CarryOn Wallet") }
     var paidBy by remember { mutableStateOf("Me") }
+
+    // Service area state
+    var serviceAreas by remember { mutableStateOf<List<ServiceArea>>(emptyList()) }
+    var outsideServiceArea by remember { mutableStateOf(false) }
 
     // Map & route state
     var mapConfig by remember { mutableStateOf(MapConfig()) }
@@ -126,11 +133,12 @@ fun BookingScreen(
         isLoadingVehicles = false
     }
 
-    // Load map config, geocode addresses, calculate route + isoline
+    // Load map config, service areas, geocode addresses
     LaunchedEffect(Unit) {
         LocationApi.getMapConfig().onSuccess { config ->
             mapConfig = config
         }
+        serviceAreas = ServiceAreaCache.getServiceAreas()
 
         // Geocode pickup address if coordinates not provided
         if (currentPickupLat == 0.0 && pickupAddress.isNotBlank()) {
@@ -152,10 +160,17 @@ fun BookingScreen(
         }
     }
 
+    // Check service area when coordinates change
+    LaunchedEffect(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng, serviceAreas) {
+        if (currentPickupLat == 0.0 || currentDeliveryLat == 0.0) return@LaunchedEffect
+        outsideServiceArea = !ServiceAreaCache.isInServiceArea(currentPickupLat, currentPickupLng) ||
+            !ServiceAreaCache.isInServiceArea(currentDeliveryLat, currentDeliveryLng)
+    }
+
     // Calculate route when coordinates are ready
     LaunchedEffect(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng, vehicles) {
         if (currentPickupLat == 0.0 || currentDeliveryLat == 0.0 || vehicles.isEmpty()) return@LaunchedEffect
-        
+
         isLoadingRoute = true
         LocationApi.calculateRoute(currentPickupLat, currentPickupLng, currentDeliveryLat, currentDeliveryLng).onSuccess { route ->
             routeResult = route
@@ -408,16 +423,42 @@ fun BookingScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                if (outsideServiceArea) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "CarryOn is not yet available in this area",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF92400E),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "We're expanding soon! Stay tuned.",
+                                fontSize = 12.sp,
+                                color = Color(0xFFB45309),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
                 Button(
-                    onClick = { 
+                    onClick = {
                         selectedVehicle?.let { vehicle ->
                             onConfirmBooking(vehicle.name, vehicle.priceValue, "WALLET")
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(52.dp),
                     shape = RoundedCornerShape(26.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                    enabled = selectedVehicle != null && selectedVehicle!!.priceValue > 0
+                    colors = ButtonDefaults.buttonColors(containerColor = if (outsideServiceArea) Color.Gray else PrimaryBlue),
+                    enabled = selectedVehicle != null && selectedVehicle!!.priceValue > 0 && !outsideServiceArea
                 ) { Text("Next", fontSize = 16.sp, fontWeight = FontWeight.SemiBold) }
 
                 Spacer(modifier = Modifier.height(24.dp))

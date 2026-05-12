@@ -271,6 +271,15 @@ data class UpdatePositionRequest(
     val longitude: Double
 )
 
+@Serializable
+data class ServiceArea(
+    val id: String = "",
+    val name: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val radiusKm: Double = 0.0
+)
+
 // Google Maps Platform v2 models
 
 @Serializable

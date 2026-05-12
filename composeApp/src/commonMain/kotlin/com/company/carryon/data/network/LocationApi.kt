@@ -1,6 +1,7 @@
 package com.company.carryon.data.network
 
 import com.company.carryon.data.model.ApiResponse
+import com.company.carryon.data.model.ServiceArea
 import com.company.carryon.data.model.AutocompleteResult
 import com.company.carryon.data.model.CalculateRouteRequest
 import com.company.carryon.data.model.DevicePosition
@@ -130,5 +131,11 @@ object LocationApi {
             parameter("height", height)
         }.body<ApiResponse<StaticMapResponse>>()
         response.data?.url ?: ""
+    }
+
+    suspend fun getServiceAreas(): Result<List<ServiceArea>> = runCatching {
+        val response = client.get("/api/location/service-areas")
+            .body<ApiResponse<List<ServiceArea>>>()
+        response.data ?: emptyList()
     }
 }
