@@ -142,6 +142,7 @@ mountVersionedRoute(app, '/admin/pricing', require('./routes/admin-pricing.route
 mountVersionedRoute(app, '/admin/settings', require('./routes/admin-settings.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/bookings', require('./routes/admin-bookings.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/customers', require('./routes/admin-customers.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/revenue', require('./routes/admin-revenue.routes'), adminAuth);
 console.log('[app] All routes mounted');
 
 // Error handling
