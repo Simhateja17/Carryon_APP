@@ -16,12 +16,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -100,7 +99,9 @@ fun AddMoneyScreen(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             color = Color(0xFF0F172A),
             fontSize = 34.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
@@ -133,9 +134,9 @@ fun AddMoneyScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("RM", color = Color(0xFF8BB1E7), fontSize = 36.sp, fontWeight = FontWeight.SemiBold)
+                Text("RM", color = Color(0xFF8BB1E7), fontSize = 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(amount.toString(), color = PrimaryBlue, fontSize = 46.sp, fontWeight = FontWeight.SemiBold)
+                Text(amount.toString(), color = PrimaryBlue, fontSize = 46.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -146,66 +147,22 @@ fun AddMoneyScreen(
             ) {
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ RM 100",
+                    amount = 100,
                     selected = amount == 100,
                     onClick = { amount = 100 }
                 )
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ RM 500",
+                    amount = 500,
                     selected = amount == 500,
                     onClick = { amount = 500 }
                 )
                 QuickAmountButton(
                     modifier = Modifier.weight(1f),
-                    label = "+ RM 1000",
+                    amount = 1000,
                     selected = amount == 1000,
                     onClick = { amount = 1000 }
                 )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0x33A6D2F3), RoundedCornerShape(26.dp))
-                .padding(16.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Payment Method", color = Color(0xFF111827), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                Text("CHANGE", color = PrimaryBlue, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFEFF2F7), RoundedCornerShape(16.dp))
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(Color(0xFFDDEAFE), RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AccountBalance,
-                        contentDescription = "Bank",
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Maybank Debit Card", color = Color(0xFF111827), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Ending in •••• 4290", color = Color(0xFF5B6380), fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                }
-                Text("›", color = Color(0xFF5B6380), fontSize = 26.sp)
             }
         }
 
@@ -248,7 +205,8 @@ fun AddMoneyScreen(
                     statusMessage = "Complete payment in Stripe."
                     val result = StripePaymentLauncher.presentWalletTopUp(
                         clientSecret = intent.clientSecret,
-                        publishableKey = config.publishableKey
+                        publishableKey = config.publishableKey,
+                        customPaymentMethods = config.customPaymentMethods
                     )
                     statusMessage = when (result) {
                         StripePaymentResult.COMPLETED -> "Payment completed. Wallet balance will update once confirmed."
@@ -287,19 +245,25 @@ fun AddMoneyScreen(
 @Composable
 private fun QuickAmountButton(
     modifier: Modifier = Modifier,
-    label: String,
+    amount: Int,
     selected: Boolean,
     onClick: () -> Unit
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(50.dp),
+        modifier = modifier.height(64.dp),
         shape = RoundedCornerShape(14.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = if (selected) PrimaryBlue else Color(0xFFF8FAFD),
             contentColor = if (selected) Color.White else Color(0xFF111827)
         )
     ) {
-        Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "+ RM $amount",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            textAlign = TextAlign.Center
+        )
     }
 }

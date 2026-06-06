@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -400,7 +401,7 @@ private fun DeliveryTimelineItem(icon: String, label: String, location: String, 
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
-            Text(location.ifBlank { "—" }, fontSize = 12.sp, color = TextSecondary)
+            Text(location.ifBlank { "—" }, fontSize = 12.sp, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(date, fontSize = 12.sp, fontWeight = FontWeight.Medium, color = TextPrimary)

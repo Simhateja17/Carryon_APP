@@ -168,7 +168,8 @@ data class ApiResponse<T>(
 @Serializable
 data class OtpSendRequest(
     val email: String,
-    val mode: String = "login"
+    val mode: String = "login",
+    val phone: String = ""
 )
 
 @Serializable
@@ -176,13 +177,15 @@ data class OtpVerifyRequest(
     val email: String,
     val otp: String,
     val mode: String = "login",
-    val name: String = ""
+    val name: String = "",
+    val phone: String = ""
 )
 
 @Serializable
 data class OtpResponse(
     val success: Boolean,
-    val message: String
+    val message: String,
+    val maskedPhone: String = ""
 )
 
 @Serializable
@@ -491,7 +494,7 @@ data class Invoice(
     val tax: Double = 0.0,
     val discount: Double = 0.0,
     val total: Double = 0.0,
-    val taxRate: Double = 0.05,
+    val taxRate: Double = 0.06,
     val currency: String = "MYR",
     val issuedAt: String = ""
 )

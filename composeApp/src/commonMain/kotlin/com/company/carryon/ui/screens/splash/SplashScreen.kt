@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.unit.dp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.carryon_logo
@@ -51,7 +52,7 @@ fun SplashScreen(
         Image(
             painter = painterResource(Res.drawable.carryon_logo),
             contentDescription = "CarryOn Logo",
-            modifier = Modifier.size(360.dp),
+            modifier = Modifier.fillMaxWidth(0.7f).aspectRatio(1f),
             contentScale = ContentScale.Fit
         )
     }

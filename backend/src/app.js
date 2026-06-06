@@ -31,7 +31,14 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', {
 }));
 app.use('/api/v1/stripe/webhook', express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
 app.use('/api/stripe/webhook', legacyApiHeaders, express.raw({ type: 'application/json' }), require('./routes/stripe-webhook.routes'));
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json({
+  limit: '100kb',
+  verify: (req, _res, buf) => {
+    if (req.originalUrl?.includes('/auth/hooks/send-sms')) {
+      req.rawBody = Buffer.from(buf);
+    }
+  },
+}));
 
 // Rate limiting
 const authLimiter = rateLimit({
@@ -58,6 +65,8 @@ const locationLimiter = rateLimit({
 mountVersionedMiddleware(app, '/auth/send-otp', authLimiter);
 mountVersionedMiddleware(app, '/auth/verify-otp', authLimiter);
 mountVersionedMiddleware(app, '/auth/refresh', authLimiter);
+mountVersionedMiddleware(app, '/driver/auth/send-otp', authLimiter);
+mountVersionedMiddleware(app, '/driver/auth/verify-otp', authLimiter);
 mountVersionedMiddleware(app, '/wallet/topup', walletLimiter);
 mountVersionedMiddleware(app, '/wallet/pay', walletLimiter);
 mountVersionedMiddleware(app, '/location', locationLimiter);
@@ -90,6 +99,7 @@ app.get('/health/storage', adminAuth, async (req, res) => {
 // Routes
 console.log('[app] Mounting routes...');
 mountVersionedRoute(app, '/auth', require('./routes/auth.routes'));
+mountVersionedRoute(app, '/auth/hooks', require('./routes/auth-hooks.routes'));
 mountVersionedRoute(app, '/users', require('./routes/user.routes'));
 mountVersionedRoute(app, '/addresses', require('./routes/address.routes'));
 mountVersionedRoute(app, '/bookings', require('./routes/booking.routes'));
@@ -101,7 +111,6 @@ mountVersionedRoute(app, '/chat', require('./routes/chat.routes'));
 mountVersionedRoute(app, '/wallet', require('./routes/wallet.routes'));
 mountVersionedRoute(app, '/payments', require('./routes/payment.routes'));
 mountVersionedRoute(app, '/support', require('./routes/support.routes'));
-mountVersionedRoute(app, '/support', require('./routes/support-ai.routes'));
 mountVersionedRoute(app, '/ratings', require('./routes/rating.routes'));
 mountVersionedRoute(app, '/invoices', require('./routes/invoice.routes'));
 
@@ -127,11 +136,15 @@ mountVersionedRoute(app, '/admin/drivers', require('./routes/admin-drivers.route
 mountVersionedRoute(app, '/admin/extra-charges', require('./routes/admin-extra-charges.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/command-center', require('./routes/admin-command-center.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/maps', require('./routes/admin-maps.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/safety-fraud', require('./routes/admin-safety-fraud.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/pricing', require('./routes/admin-pricing.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/settings', require('./routes/admin-settings.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/bookings', require('./routes/admin-bookings.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/customers', require('./routes/admin-customers.routes'), adminAuth);
 mountVersionedRoute(app, '/admin/revenue', require('./routes/admin-revenue.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/analytics', require('./routes/admin-analytics.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/support', require('./routes/admin-support.routes'), adminAuth);
+mountVersionedRoute(app, '/admin/users', require('./routes/admin-users.routes'), adminAuth);
 console.log('[app] All routes mounted');
 
 // Error handling

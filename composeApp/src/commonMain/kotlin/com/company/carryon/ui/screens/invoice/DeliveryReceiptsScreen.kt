@@ -66,7 +66,6 @@ fun DeliveryReceiptsScreen(
         InvoiceApi.getInvoices()
             .onSuccess { response ->
                 invoices = response.data.orEmpty()
-                selectedBookingId = invoices.firstOrNull()?.bookingId
             }
             .onFailure { e ->
                 println("[DeliveryReceipts] Failed to load invoices: ${e.message}")
@@ -115,34 +114,36 @@ fun DeliveryReceiptsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             invoices.forEach { invoice ->
+                val isSelected = invoice.bookingId == selectedBookingId
                 ReceiptRow(
                     orderId = invoice.invoiceNumber.ifBlank { invoice.bookingId },
                     subtitle = invoice.issuedAt.takeIf { it.isNotBlank() }?.let(::formatReceiptDate) ?: "Invoice date unavailable",
                     amount = "RM ${invoice.total.formatDecimal(2)}",
-                    selected = invoice.bookingId == selectedBookingId,
+                    selected = isSelected,
                     onClick = { selectedBookingId = invoice.bookingId }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            selectedDetail?.let { detail ->
-                DetailedReceiptCard(
-                    detail = detail,
-                    isDownloading = isDownloadingReceipt,
-                    onDownload = {
-                        val bookingId = selectedBookingId ?: return@DetailedReceiptCard
-                        scope.launch {
-                            isDownloadingReceipt = true
-                            InvoiceApi.getReceiptDownloadUrl(bookingId)
-                                .onSuccess { response ->
-                                    val url = response.data?.url
-                                    if (!url.isNullOrBlank()) uriHandler.openUri(url)
+                if (isSelected) {
+                    selectedDetail?.let { detail ->
+                        DetailedReceiptCard(
+                            detail = detail,
+                            isDownloading = isDownloadingReceipt,
+                            onDownload = {
+                                val bookingId = selectedBookingId ?: return@DetailedReceiptCard
+                                scope.launch {
+                                    isDownloadingReceipt = true
+                                    InvoiceApi.getReceiptDownloadUrl(bookingId)
+                                        .onSuccess { response ->
+                                            val url = response.data?.url
+                                            if (!url.isNullOrBlank()) uriHandler.openUri(url)
+                                        }
+                                    isDownloadingReceipt = false
                                 }
-                            isDownloadingReceipt = false
-                        }
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                }
             }
 
             if (invoices.isEmpty()) {
@@ -396,7 +397,7 @@ private fun DetailedReceiptCard(
                 LineAmountRow(adjustment.receiptLabel(), "RM ${adjustment.amount.formatDecimal(2)}")
             }
             Spacer(modifier = Modifier.height(12.dp))
-            LineAmountRow("Tax", "RM ${invoice.tax.formatDecimal(2)}")
+            LineAmountRow("SST (${(invoice.taxRate * 100).toInt()}%)", "RM ${invoice.tax.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(12.dp))
             LineAmountRow("Discount", "RM ${invoice.discount.formatDecimal(2)}")
             Spacer(modifier = Modifier.height(16.dp))

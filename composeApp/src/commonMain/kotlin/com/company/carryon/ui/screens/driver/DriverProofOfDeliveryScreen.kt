@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.DeliveryJob
@@ -52,8 +52,6 @@ import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import kotlinx.coroutines.launch
 
-private const val RecipientOtpLength = 6
-
 @Composable
 fun DriverProofOfDeliveryScreen(
     jobId: String,
@@ -65,10 +63,8 @@ fun DriverProofOfDeliveryScreen(
 
     var job by remember { mutableStateOf<DeliveryJob?>(null) }
     var isLoading by remember { mutableStateOf(true) }
-    var isRequestingOtp by remember { mutableStateOf(false) }
     var isUploadingPhoto by remember { mutableStateOf(false) }
     var isSubmitting by remember { mutableStateOf(false) }
-    var otpCode by remember { mutableStateOf("") }
     var recipientName by remember { mutableStateOf("") }
     var capturedBytes by remember { mutableStateOf<ByteArray?>(null) }
     var uploadedPhotoUrl by remember { mutableStateOf<String?>(null) }
@@ -130,7 +126,7 @@ fun DriverProofOfDeliveryScreen(
     }
     val displayOrderId = job?.displayOrderId?.ifBlank { job?.id } ?: jobId
     val earningsLabel = job?.estimatedEarnings?.takeIf { it > 0 }?.let { "EST. RM${it.toInt()}" } ?: ""
-    val canSubmit = otpCode.length == RecipientOtpLength && uploadedPhotoUrl != null && !isUploadingPhoto && !isSubmitting
+    val canSubmit = uploadedPhotoUrl != null && !isUploadingPhoto && !isSubmitting
 
     Box(
         modifier = Modifier
@@ -198,9 +194,9 @@ fun DriverProofOfDeliveryScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     Text("ORDER ID", color = TextSecondary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("#$displayOrderId", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                    Text("#$displayOrderId", color = PrimaryBlue, fontWeight = FontWeight.Bold, fontSize = 24.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text("Proof of Drop-off", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 34.sp)
+                    Text("Proof of Drop-off", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 34.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Box(
@@ -274,39 +270,6 @@ fun DriverProofOfDeliveryScreen(
                         fontSize = 13.sp
                     )
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                isRequestingOtp = true
-                                DriverJobsApi.requestDeliveryOtp(jobId)
-                                    .onSuccess {
-                                        showMessage("Recipient OTP requested")
-                                    }
-                                    .onFailure { error ->
-                                        showMessage(error.message ?: "Failed to request recipient OTP")
-                                    }
-                                isRequestingOtp = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                    ) {
-                        Text(if (isRequestingOtp) "Requesting OTP..." else "Request Recipient OTP")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = otpCode,
-                        onValueChange = { value ->
-                            otpCode = value.filter(Char::isDigit).take(RecipientOtpLength)
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Recipient OTP") },
-                        supportingText = { Text("Enter the $RecipientOtpLength-digit OTP from the recipient") },
-                        keyboardOptions = KeyboardOptions.Default
-                    )
-
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedTextField(
                         value = recipientName,
@@ -322,7 +285,7 @@ fun DriverProofOfDeliveryScreen(
                                 isSubmitting = true
                                 DriverJobsApi.submitProof(
                                     jobId = jobId,
-                                    otpCode = otpCode,
+                                    otpCode = "",
                                     photoUrl = uploadedPhotoUrl,
                                     recipientName = recipientName.ifBlank { null }
                                 ).onSuccess { response ->

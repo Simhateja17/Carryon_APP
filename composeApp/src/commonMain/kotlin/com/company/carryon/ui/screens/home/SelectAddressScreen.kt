@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -30,6 +31,7 @@ import carryon.composeapp.generated.resources.icon_timer
 import carryon.composeapp.generated.resources.bike
 import carryon.composeapp.generated.resources.car_4_seater
 import carryon.composeapp.generated.resources.mini_van
+import carryon.composeapp.generated.resources.pickup
 import carryon.composeapp.generated.resources.truck
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.DrawableResource
@@ -98,25 +100,44 @@ fun SelectAddressScreen(
     fun loadVehicles() {
         scope.launch {
             isLoadingVehicles = true
+            fun normalizeVehicleKey(value: String): String = value
+                .trim()
+                .lowercase()
+                .replace('_', ' ')
+                .replace('-', ' ')
+                .replace(Regex("\\s+"), " ")
+
+            fun canonicalVehicleKey(iconName: String, name: String, type: String): String {
+                val candidates = listOf(iconName, name, type)
+                    .map(::normalizeVehicleKey)
+                    .filter { it.isNotBlank() }
+                return when {
+                    candidates.any { it in setOf("2 wheeler", "bike", "two wheeler", "motorcycle", "scooter") } -> "bike"
+                    candidates.any { it in setOf("car", "auto", "sedan", "car 4 seat", "car 4 seater") } -> "car"
+                    candidates.any { it in setOf("pickup", "4x4 pickup", "4x4", "pick up") } -> "pickup"
+                    candidates.any { it in setOf("van", "van 7ft", "van7ft", "mini van", "mini truck", "minitruck") } -> "van 7ft"
+                    candidates.any { it in setOf("van 9ft", "van9ft") } -> "van 9ft"
+                    candidates.any { it in setOf("lorry 10ft", "small lorry 10ft", "truck", "lorry 10") } -> "small lorry 10ft"
+                    candidates.any { it in setOf("lorry 14ft", "medium lorry 14ft", "lorry 14") } -> "medium lorry 14ft"
+                    candidates.any { it in setOf("lorry 17ft", "large lorry 17ft", "lorry 17") } -> "large lorry 17ft"
+                    else -> candidates.firstOrNull().orEmpty()
+                }
+            }
+
             val iconMap = mapOf(
-                "2 wheeler" to Res.drawable.bike,
                 "bike" to Res.drawable.bike,
                 "car" to Res.drawable.car_4_seater,
-                "auto" to Res.drawable.car_4_seater,
-                "4x4 pickup" to Res.drawable.truck,
+                "pickup" to Res.drawable.pickup,
                 "van 7ft" to Res.drawable.mini_van,
                 "van 9ft" to Res.drawable.mini_van,
                 "small lorry 10ft" to Res.drawable.truck,
                 "medium lorry 14ft" to Res.drawable.truck,
                 "large lorry 17ft" to Res.drawable.truck,
-                "mini truck" to Res.drawable.mini_van,
-                "minitruck" to Res.drawable.mini_van,
-                "truck" to Res.drawable.truck
             )
             val defaultVehicles = listOf(
-                VehicleChoice(Res.drawable.bike, "2 Wheeler", "RM 0.90/km", "Ideal for groceries, food, documents, small parcels", "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"),
+                VehicleChoice(Res.drawable.bike, "Motorcycle", "RM 0.90/km", "Ideal for groceries, food, documents, small parcels", "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"),
                 VehicleChoice(Res.drawable.car_4_seater, "Car", "RM 1.17/km", "Ideal for groceries, food, flowers, parcels, fragile goods", "0.5 x 0.5 x 0.5 Meter · Up to 40 kg"),
-                VehicleChoice(Res.drawable.truck, "4x4 Pickup", "RM 3.40/km", "Small boxes, small furniture, bicycle", "1.2 x 0.9 x 0.9 Meter · Up to 250 kg"),
+                VehicleChoice(Res.drawable.pickup, "4x4 Pickup", "RM 3.40/km", "Small boxes, small furniture, bicycle", "1.2 x 0.9 x 0.9 Meter · Up to 250 kg"),
                 VehicleChoice(Res.drawable.mini_van, "Van 7ft", "RM 5.40/km", "Vanette / GranMax sized loads", "1.7 x 1 x 1.2 Meter · Up to 500 kg"),
                 VehicleChoice(Res.drawable.mini_van, "Van 9ft", "RM 6.40/km", "Hiace sized loads", "2.7 x 1.3 x 1.2 Meter · Up to 800 kg"),
                 VehicleChoice(Res.drawable.truck, "Small Lorry 10ft", "RM 8.23/km", "Medium household or office move", "3.0 x 1.5 x 1.7 Meter · Up to 1000 kg"),
@@ -126,19 +147,21 @@ fun SelectAddressScreen(
             BookingApi.getVehicles()
                 .onSuccess { response ->
                     vehicleOptions = response.data.orEmpty().map { vehicle ->
-                        val key = vehicle.type.lowercase()
+                        val key = canonicalVehicleKey(
+                            iconName = vehicle.iconName,
+                            name = vehicle.name,
+                            type = vehicle.type
+                        )
                         val displayName = when (key) {
-                            "2 wheeler", "bike" -> "2 Wheeler"
-                            "car", "auto" -> "Car"
-                            "4x4 pickup" -> "4x4 Pickup"
+                            "bike" -> "Motorcycle"
+                            "car" -> "Car"
+                            "pickup" -> "4x4 Pickup"
                             "van 7ft" -> "Van 7ft"
                             "van 9ft" -> "Van 9ft"
                             "small lorry 10ft" -> "Small Lorry 10ft"
                             "medium lorry 14ft" -> "Medium Lorry 14ft"
                             "large lorry 17ft" -> "Large Lorry 17ft"
-                            "mini truck", "minitruck" -> "Van 7ft"
-                            "truck" -> "Small Lorry 10ft"
-                            else -> vehicle.type
+                            else -> vehicle.name.ifBlank { vehicle.type }
                         }
                         VehicleChoice(
                             iconRes = iconMap[key] ?: Res.drawable.car_4_seater,
@@ -146,7 +169,7 @@ fun SelectAddressScreen(
                             price = "RM ${vehicle.pricePerKm.formatDecimal(2)}/km",
                             description = vehicle.description.ifBlank { "Suitable for everyday parcel delivery" },
                             specs = when (displayName) {
-                                "2 Wheeler" -> "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"
+                                "Motorcycle" -> "0.3 x 0.3 x 0.3 Meter · Up to 10 kg"
                                 "Car" -> "0.5 x 0.5 x 0.5 Meter · Up to 40 kg"
                                 "4x4 Pickup" -> "1.2 x 0.9 x 0.9 Meter · Up to 250 kg"
                                 "Van 7ft" -> "1.7 x 1 x 1.2 Meter · Up to 500 kg"
@@ -534,7 +557,7 @@ private fun VehicleTypeCard(
             }
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(vehicle.name, color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                Text(vehicle.name, color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(vehicle.description, color = TextSecondary, fontSize = 14.sp, lineHeight = 19.sp)
                 Spacer(modifier = Modifier.height(5.dp))

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
@@ -75,7 +76,9 @@ fun LanguageSettingsScreen(
                     text = strings.language,
                     color = Color.Black,
                     fontSize = 44.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = strings.languageSettingsDescription,
@@ -165,7 +168,7 @@ private fun LanguageItemCard(
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            Text(text = title, color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(text = subtitle, color = Color.Black, fontSize = 14.sp)
         }
 

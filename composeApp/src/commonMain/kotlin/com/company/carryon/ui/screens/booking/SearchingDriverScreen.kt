@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -256,12 +257,12 @@ fun SearchingDriverScreen(
             Spacer(modifier = Modifier.height(44.dp))
 
             Box(
-                modifier = Modifier.size(130.dp),
+                modifier = Modifier.size(100.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
-                        .size(122.dp)
+                        .size(92.dp)
                         .scale(pulseRadius)
                         .background(Color.White, RoundedCornerShape(61.dp))
                         .border(3.dp, Color(0xFF2F66E7), RoundedCornerShape(61.dp)),
@@ -342,7 +343,7 @@ fun SearchingDriverScreen(
 
                     Text("PICKUP", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(pickupAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                    Text(pickupAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -352,7 +353,7 @@ fun SearchingDriverScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text("DROP OFF", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(dropoffAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+                            Text(dropoffAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Box(

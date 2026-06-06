@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.ScreenHorizontalPadding
@@ -106,7 +107,7 @@ fun PaymentScreen(
             Spacer(modifier = Modifier.height(16.dp))
             Text("Amount", color = Color(0xFF6B7280), fontSize = 14.sp)
             Spacer(modifier = Modifier.height(6.dp))
-            Text("RM $totalAmount", color = PrimaryBlue, fontSize = 36.sp, fontWeight = FontWeight.Bold)
+            Text("RM $totalAmount", color = PrimaryBlue, fontSize = 36.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
             Spacer(modifier = Modifier.height(22.dp))
 

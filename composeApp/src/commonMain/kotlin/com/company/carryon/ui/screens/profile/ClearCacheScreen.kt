@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.components.CarryOnHeader
@@ -104,7 +105,9 @@ private fun StorageOverviewCard() {
                 text = "245",
                 color = PrimaryBlue,
                 fontSize = 48.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -112,6 +115,8 @@ private fun StorageOverviewCard() {
                 color = Color(0x992F80ED),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
         }
@@ -173,7 +178,7 @@ private fun FootprintItem(title: String, value: String) {
             Text(title, color = Color.Black, fontSize = 16.sp)
         }
         Spacer(modifier = Modifier.height(4.dp))
-        Text(value, color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.Medium)
+        Text(value, color = PrimaryBlue, fontSize = 22.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -190,7 +195,9 @@ private fun OptimizedCleaningCard() {
             color = Color.Black,
             fontSize = 24.sp,
             lineHeight = 30.sp,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -265,7 +272,8 @@ private fun UtilityRow(icon: String, title: String) {
         Text(
             text = "›",
             color = Color.Black,
-            fontSize = 24.sp
+            fontSize = 24.sp,
+            maxLines = 1
         )
     }
 }

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.AuthApi
@@ -26,12 +26,10 @@ import kotlinx.coroutines.launch
 fun RegisterScreen(
     phone: String,
     onRegisterSuccess: () -> Unit,
-    onNavigateToOtp: (email: String, name: String) -> Unit = { _, _ -> }
+    onNavigateToOtp: (phone: String, name: String) -> Unit = { _, _ -> }
 ) {
     var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    var phoneNumber by remember(phone) { mutableStateOf(phone) }
 
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -54,8 +52,8 @@ fun RegisterScreen(
 
             // Welcome Text
             Row {
-                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             }
 
@@ -87,14 +85,14 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Email Address
-            Text(strings.emailAddress, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            // Phone Number
+            Text(strings.phoneNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                placeholder = { Text(strings.enterYourPhone, color = Color.LightGray) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -108,52 +106,13 @@ fun RegisterScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password
-            Text(strings.password, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text(strings.password, color = Color.LightGray) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryBlue,
-                    unfocusedBorderColor = Color(0xFFE8E8E8),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color(0xFFF8F8F8),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                )
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Confirm Password
-            Text(strings.confirmPassword, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                placeholder = { Text(strings.confirmPasswordPlaceholder, color = Color.LightGray) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryBlue,
-                    unfocusedBorderColor = Color(0xFFE8E8E8),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color(0xFFF8F8F8),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                )
+            Text(
+                text = strings.otpHint,
+                fontSize = 13.sp,
+                color = TextSecondary,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -171,15 +130,15 @@ fun RegisterScreen(
             // Sign Up Button
             Button(
                 onClick = {
-                    if (name.isNotBlank() && email.isNotBlank()) {
+                    if (name.isNotBlank() && phoneNumber.isNotBlank()) {
                         isLoading = true
                         errorMessage = null
                         scope.launch {
                             try {
-                                AuthApi.sendOtp(email, mode = "signup").fold(
+                                AuthApi.sendOtp(mode = "signup", phone = phoneNumber).fold(
                                     onSuccess = {
                                         isLoading = false
-                                        onNavigateToOtp(email, name)
+                                        onNavigateToOtp(phoneNumber, name)
                                     },
                                     onFailure = { e ->
                                         isLoading = false

@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.AuthStateManager
@@ -27,9 +28,10 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtpScreen(
-    email: String,
+    phoneNumber: String,
     mode: String = "login",
     name: String = "",
+    phone: String = "",
     onVerifySuccess: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -40,13 +42,14 @@ fun OtpScreen(
     var canResend by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
+    val otpPhone = phone.ifBlank { phoneNumber }
 
     fun verifyOtp() {
         if (otpValue.length == 6) {
             isLoading = true
             errorMessage = null
             scope.launch {
-                AuthApi.verifyOtp(email, otpValue, mode, name).fold(
+                AuthApi.verifyOtp(otp = otpValue, mode = mode, name = name, phone = otpPhone).fold(
                     onSuccess = { authResponse ->
                         AuthStateManager.onOtpAuthenticated(authResponse)
                         onVerifySuccess()
@@ -117,7 +120,9 @@ fun OtpScreen(
                 text = strings.enterTheCode,
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextPrimary
+                color = TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -132,7 +137,7 @@ fun OtpScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = email,
+                text = otpPhone,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
@@ -154,7 +159,7 @@ fun OtpScreen(
                 ),
                 decorationBox = {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         repeat(6) { index ->
@@ -189,7 +194,8 @@ fun OtpScreen(
                                     text = char?.toString() ?: "",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
+                                    color = TextPrimary,
+                                    maxLines = 1
                                 )
                             }
                         }
@@ -228,7 +234,7 @@ fun OtpScreen(
                         fontSize = 14.sp,
                         modifier = Modifier.clickable {
                             scope.launch {
-                                AuthApi.sendOtp(email, mode).fold(
+                                AuthApi.sendOtp(mode = mode, phone = otpPhone).fold(
                                     onSuccess = {
                                         resendTimer = 30
                                         canResend = false

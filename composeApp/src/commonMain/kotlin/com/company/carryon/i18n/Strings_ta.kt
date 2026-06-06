@@ -51,6 +51,8 @@ object TaStrings : AppStrings {
     override val enterYourName = "உங்கள் பெயரை உள்ளிடவும்"
     override val confirmPassword = "கடவுச்சொல்லை உறுதிப்படுத்தவும்"
     override val confirmPasswordPlaceholder = "கடவுச்சொல்லை உறுதிப்படுத்தவும்"
+    override val sendVerificationCode = "சரிபார்ப்பு குறியீட்டை அனுப்பு"
+    override val otpHint = "உங்கள் தொலைபேசி எண்ணுக்கு சரிபார்ப்பு குறியீடு அனுப்பப்படும்"
     override val failedToSendCode = "சரிபார்ப்பு குறியீடு அனுப்ப முடியவில்லை"
 
     // ── OTP Screen ──
@@ -161,7 +163,7 @@ object TaStrings : AppStrings {
     override val selectPickupLocation = "பிக்அப் இடத்தைத் தேர்வு செய்"
     override val selectDeliveryLocation = "டெலிவரி இடத்தைத் தேர்வு செய்"
     override val fairPrice = "நியாயமான விலை"
-    override val taxPercent = "வரி (5%)"
+    override val taxPercent = "வரி (6%)"
     override val reviews = "மதிப்புரைகள்"
 
     // ── Track Shipment Screen ──
@@ -304,7 +306,12 @@ object TaStrings : AppStrings {
     override val changePhoto = "புகைப்படத்தை மாற்று"
     override val fullName = "முழு பெயர்"
     override val phoneNumber = "தொலைபேசி எண்"
+    override val enterYourPhone = "உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்"
     override val phoneCannotBeChanged = "தொலைபேசி எண்ணை மாற்ற முடியாது"
+    override val phoneNumberRequired = "தொலைபேசி எண் தேவை"
+    override val phoneNumberRequiredMessage = "உங்கள் சுயவிவர அமைப்புகளில் தொலைபேசி எண்ணைச் சேர்க்கவும். டெலிவரியின் போது ஓட்டுநர்கள் உங்களைத் தொடர்பு கொள்ள இது தேவை."
+    override val goToProfile = "சுயவிவரத்திற்குச் செல்"
+    override val later = "பிறகு"
     override val saveChanges = "மாற்றங்களைச் சேமி"
     override val success = "வெற்றி"
     override val profileUpdatedSuccessfully = "உங்கள் சுயவிவரம் வெற்றிகரமாகப் புதுப்பிக்கப்பட்டது."
@@ -474,4 +481,13 @@ object TaStrings : AppStrings {
     override val enterDeliveryOtp = "டெலிவரி OTP உள்ளிடவும்"
     override val deliveryVerified = "டெலிவரி வெற்றிகரமாக சரிபார்க்கப்பட்டது!"
     override val viewInvoice = "விலைப்பட்டியல் காண்க"
+
+    // ── Delivery Complete Screen ──
+    override val deliveryCompleteTitle = "டெலிவரி முடிந்தது!"
+    override val orderDeliveredMessage: (String) -> String = { "ஆர்டர் #$it டெலிவரி செய்யப்பட்டது." }
+    override val amountPaid = "செலுத்திய தொகை"
+    override val time = "நேரம்"
+    override val distanceLabel = "தூரம்"
+    override val backToHome = "முகப்புக்குச் செல்"
+    override val viewReceipt = "ரசீதைக் காண்க"
 }

@@ -13,17 +13,17 @@ import io.ktor.http.*
 object AuthApi {
     private val client get() = HttpClientFactory.publicClient
 
-    suspend fun sendOtp(email: String, mode: String = "login"): Result<OtpResponse> = runCatching {
+    suspend fun sendOtp(email: String = "", mode: String = "login", phone: String = ""): Result<OtpResponse> = runCatching {
         client.post("/api/auth/send-otp") {
             contentType(ContentType.Application.Json)
-            setBody(OtpSendRequest(email = email, mode = mode))
+            setBody(OtpSendRequest(email = email, mode = mode, phone = phone))
         }.body<OtpResponse>()
     }
 
-    suspend fun verifyOtp(email: String, otp: String, mode: String = "login", name: String = ""): Result<AuthResponse> = runCatching {
+    suspend fun verifyOtp(email: String = "", otp: String, mode: String = "login", name: String = "", phone: String = ""): Result<AuthResponse> = runCatching {
         client.post("/api/auth/verify-otp") {
             contentType(ContentType.Application.Json)
-            setBody(OtpVerifyRequest(email = email, otp = otp, mode = mode, name = name))
+            setBody(OtpVerifyRequest(email = email, otp = otp, mode = mode, name = name, phone = phone))
         }.body<AuthResponse>()
     }
 

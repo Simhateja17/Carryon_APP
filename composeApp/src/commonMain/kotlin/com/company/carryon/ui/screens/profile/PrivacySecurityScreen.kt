@@ -26,14 +26,21 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.company.carryon.data.network.AuthStateManager
+import com.company.carryon.data.network.UserApi
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,11 +58,16 @@ import com.company.carryon.ui.theme.PrimaryBlue
 fun PrivacySecurityScreen(
     onBack: () -> Unit,
     onChangePassword: () -> Unit,
-    onLoggedInDevices: () -> Unit
+    onLoggedInDevices: () -> Unit,
+    onDeleteAccount: () -> Unit = {}
 ) {
     val strings = LocalStrings.current
+    val scope = rememberCoroutineScope()
     var locationEnabled by remember { mutableStateOf(true) }
     var notificationsEnabled by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeletingAccount by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = Color(0xFFF5F6F8)
@@ -138,6 +150,7 @@ fun PrivacySecurityScreen(
                         .fillMaxWidth()
                         .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
                         .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+                        .clickable { showDeleteDialog = true }
                         .padding(vertical = 17.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -163,6 +176,52 @@ fun PrivacySecurityScreen(
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { if (!isDeletingAccount) showDeleteDialog = false },
+                    title = { Text(strings.deleteAccount) },
+                    text = {
+                        if (isDeletingAccount) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(deleteError ?: strings.deleteAccountWarning)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    isDeletingAccount = true
+                                    deleteError = null
+                                    UserApi.deleteAccount()
+                                        .onSuccess {
+                                            AuthStateManager.logout()
+                                            showDeleteDialog = false
+                                            isDeletingAccount = false
+                                            onDeleteAccount()
+                                        }
+                                        .onFailure { e ->
+                                            isDeletingAccount = false
+                                            deleteError = e.message ?: "Failed to delete account"
+                                        }
+                                }
+                            },
+                            enabled = !isDeletingAccount
+                        ) {
+                            Text(strings.deleteAccount, color = Color.Red)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteDialog = false },
+                            enabled = !isDeletingAccount
+                        ) {
+                            Text(strings.cancel)
+                        }
+                    }
+                )
             }
 
             Row(

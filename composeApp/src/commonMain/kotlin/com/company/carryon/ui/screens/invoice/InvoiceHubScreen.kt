@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
@@ -169,7 +170,7 @@ fun InvoiceHubScreen(
                 ) {
                     Text("Invoice Total", color = Color(0xFF334155), fontSize = 10.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF3A7BC8), fontSize = 26.sp, fontWeight = FontWeight.SemiBold)
+                    Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF3A7BC8), fontSize = 26.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
@@ -186,7 +187,9 @@ fun InvoiceHubScreen(
                                 latestInvoice?.issuedAt?.let(::formatInvoiceDateShort) ?: "No data",
                                 color = Color.White,
                                 fontSize = 24.sp,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -253,7 +256,9 @@ fun InvoiceHubScreen(
                         color = Color(0xFF3A7BC8),
                         fontSize = 28.sp,
                         lineHeight = 30.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         if (invoices.isEmpty()) "Your completed invoice history will appear here."
@@ -265,7 +270,7 @@ fun InvoiceHubScreen(
                     Text("Total Amount", color = Color(0xFF334155), fontSize = 10.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.SemiBold)
+                            Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (downloadError != null) {
                                 Text(downloadError!!, color = Color(0xFFEF4444), fontSize = 10.sp)
                             }
@@ -424,7 +429,7 @@ private fun InvoiceHistoryRow(item: InvoiceItem, onDownload: () -> Unit) {
             Text(item.title, color = Color(0xFF334155), fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(item.subtitle, color = Color(0xFF64748B), fontSize = 10.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(item.amount, color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
+            Text(item.amount, color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Text(
             text = "⇩",

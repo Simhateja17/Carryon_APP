@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -120,7 +121,7 @@ fun DriverRatingScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = driverName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = driverName, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier.border(1.dp, StarYellow, RoundedCornerShape(4.dp)).padding(horizontal = 6.dp, vertical = 2.dp)

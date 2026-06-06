@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -95,7 +96,7 @@ fun AddPaymentMethodScreen(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text("Add New\nPayment Method", color = Color(0xFF0F172A), fontSize = 38.sp, lineHeight = 40.sp, fontWeight = FontWeight.SemiBold)
+        Text("Add New\nPayment Method", color = Color(0xFF0F172A), fontSize = 38.sp, lineHeight = 40.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             "Choose your preferred way to fund your logistics operations. All transactions are encrypted.",

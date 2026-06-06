@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -40,18 +41,15 @@ fun SenderReceiverScreen(
     var overallTrack by remember { mutableStateOf("") }
     var receiverName by remember { mutableStateOf("") }
     var recipientContact by remember { mutableStateOf("") }
-    var recipientEmail by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     
     // Validation error states
     var senderNameError by remember { mutableStateOf(false) }
     var receiverNameError by remember { mutableStateOf(false) }
     var recipientContactError by remember { mutableStateOf(false) }
-    var recipientEmailError by remember { mutableStateOf(false) }
     var hasAttemptedSubmit by remember { mutableStateOf(false) }
     
     val strings = LocalStrings.current
-    fun isValidEmail(value: String): Boolean = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(value.trim())
 
     Scaffold(
         topBar = {
@@ -78,7 +76,7 @@ fun SenderReceiverScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(strings.requestForRide, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(strings.requestForRide, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(20.dp))
 
             // Location type toggle (Current Location / Office)
@@ -135,18 +133,6 @@ fun SenderReceiverScreen(
                 recipientContact = contact.phone
             }
             Spacer(modifier = Modifier.height(14.dp))
-            BookingInputField(
-                label = "Recipient Email (OTP)",
-                value = recipientEmail,
-                placeholder = "e.g. receiver@example.com",
-                onValueChange = {
-                    recipientEmail = it
-                    if (hasAttemptedSubmit) recipientEmailError = !isValidEmail(it)
-                },
-                isError = recipientEmailError,
-                errorMessage = "Valid recipient email is required for delivery OTP"
-            )
-            Spacer(modifier = Modifier.height(14.dp))
             BookingInputField(label = strings.address, value = address, placeholder = "e.g. Jalan Bukit Bintang, KL", onValueChange = { address = it })
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -158,16 +144,15 @@ fun SenderReceiverScreen(
                     senderNameError = senderName.isBlank()
                     receiverNameError = receiverName.isBlank()
                     recipientContactError = recipientContact.isBlank() || recipientContact.filter { it.isDigit() }.length < 9
-                    recipientEmailError = !isValidEmail(recipientEmail)
                     
                     // Only proceed if all required fields are filled
-                    if (!senderNameError && !receiverNameError && !recipientContactError && !recipientEmailError) {
+                    if (!senderNameError && !receiverNameError && !recipientContactError) {
                         onNext(
                             senderName,
                             recipientContact,
                             receiverName,
                             recipientContact,
-                            recipientEmail.trim(),
+                            "",
                             request
                         )
                     }

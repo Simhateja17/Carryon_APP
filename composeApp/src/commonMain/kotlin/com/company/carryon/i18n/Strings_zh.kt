@@ -51,6 +51,8 @@ object ZhStrings : AppStrings {
     override val enterYourName = "输入您的姓名"
     override val confirmPassword = "确认密码"
     override val confirmPasswordPlaceholder = "确认密码"
+    override val sendVerificationCode = "发送验证码"
+    override val otpHint = "我们将向您的电话号码发送验证码"
     override val failedToSendCode = "验证码发送失败"
 
     // ── OTP Screen ──
@@ -161,7 +163,7 @@ object ZhStrings : AppStrings {
     override val selectPickupLocation = "选择取件地点"
     override val selectDeliveryLocation = "选择配送地点"
     override val fairPrice = "合理价格"
-    override val taxPercent = "税 (5%)"
+    override val taxPercent = "税 (6%)"
     override val reviews = "评价"
 
     // ── Track Shipment Screen ──
@@ -304,7 +306,12 @@ object ZhStrings : AppStrings {
     override val changePhoto = "更换照片"
     override val fullName = "全名"
     override val phoneNumber = "电话号码"
+    override val enterYourPhone = "输入您的电话号码"
     override val phoneCannotBeChanged = "电话号码无法更改"
+    override val phoneNumberRequired = "需要电话号码"
+    override val phoneNumberRequiredMessage = "请在个人资料设置中添加您的电话号码。司机在配送过程中需要联系您。"
+    override val goToProfile = "前往个人资料"
+    override val later = "稍后"
     override val saveChanges = "保存更改"
     override val success = "成功"
     override val profileUpdatedSuccessfully = "您的个人资料已成功更新。"
@@ -474,4 +481,13 @@ object ZhStrings : AppStrings {
     override val enterDeliveryOtp = "输入配送 OTP"
     override val deliveryVerified = "配送验证成功！"
     override val viewInvoice = "查看发票"
+
+    // ── Delivery Complete Screen ──
+    override val deliveryCompleteTitle = "配送完成！"
+    override val orderDeliveredMessage: (String) -> String = { "订单 #$it 已送达。" }
+    override val amountPaid = "已付金额"
+    override val time = "时间"
+    override val distanceLabel = "距离"
+    override val backToHome = "返回首页"
+    override val viewReceipt = "查看收据"
 }

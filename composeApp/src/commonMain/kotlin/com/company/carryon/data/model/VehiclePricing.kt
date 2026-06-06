@@ -21,7 +21,7 @@ object VehiclePricing {
 
     // Offloading add-on fee per booking (RM)
     const val OFFLOADING_FEE = 30.0
-    const val TAX_RATE = 0.05
+    const val TAX_RATE = 0.06
 
     fun ratePerKm(vehicleType: String, deliveryMode: String): Double {
         val r = rates[vehicleType] ?: rates["Car"]!!

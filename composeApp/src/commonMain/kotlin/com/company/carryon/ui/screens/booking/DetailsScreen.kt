@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.network.UserApi
@@ -103,7 +104,6 @@ fun DetailsScreen(
     var instructions by rememberSaveable { mutableStateOf("") }
     var receiverName by rememberSaveable { mutableStateOf("") }
     var receiverPhone by rememberSaveable { mutableStateOf("") }
-    var receiverEmail by rememberSaveable { mutableStateOf("") }
     var showValidationError by rememberSaveable { mutableStateOf(false) }
 
     var senderName by rememberSaveable { mutableStateOf("") }
@@ -117,14 +117,10 @@ fun DetailsScreen(
     val selectedTimeSlot = RegularTimeSlots.firstOrNull { it.label == timeSlot } ?: defaultSchedule.slot
     val normalizedReceiverName = receiverName.trim()
     val normalizedPhoneDigits = receiverPhone.filter { it.isDigit() }
-    val parsedWeight = parcelWeight.toDoubleOrNull()
-    val requiresWeight = true
-    val hasValidWeight = !requiresWeight || (parsedWeight != null && parsedWeight > 0.0)
     val hasValidParcelType = parcelType.isNotBlank()
     val hasValidReceiverName = normalizedReceiverName.isNotBlank()
     val hasValidReceiverPhone = normalizedPhoneDigits.length >= 8
-    val hasValidReceiverEmail = isValidRecipientEmail(receiverEmail)
-    val canContinue = hasValidWeight && hasValidParcelType && hasValidReceiverName && hasValidReceiverPhone && hasValidReceiverEmail
+    val canContinue = hasValidParcelType && hasValidReceiverName && hasValidReceiverPhone
     val vehicleLabel = vehicleType.ifBlank { "Standard Delivery" }
     val vehicleEmoji = vehicleType.toVehicleEmoji()
 
@@ -170,7 +166,7 @@ fun DetailsScreen(
                 shadowElevation = 10.dp,
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
             ) {
-                Box(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 28.dp)) {
+                Column(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -198,7 +194,7 @@ fun DetailsScreen(
                                     senderPhone,
                                     receiverName,
                                     receiverPhone,
-                                    receiverEmail.trim(),
+                                    "",
                                     offloading
                                 )
                             },
@@ -223,10 +219,8 @@ fun DetailsScreen(
                     }
                     if (showValidationError && !canContinue) {
                         val message = when {
-                            !hasValidWeight -> "Enter parcel weight greater than 0 kg."
                             !hasValidReceiverName -> "Enter receiver name."
                             !hasValidReceiverPhone -> "Enter a valid receiver phone number."
-                            !hasValidReceiverEmail -> "Enter a valid recipient email for delivery OTP."
                             !hasValidParcelType -> "Select parcel type."
                             else -> "Fill all required details to continue."
                         }
@@ -500,26 +494,7 @@ fun DetailsScreen(
             } else {
                 SectionCard(title = "PARCEL DETAILS", icon = "◈") {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            SmallLabel("WEIGHT (KG)")
-                            OutlinedTextField(
-                                value = parcelWeight,
-                                onValueChange = { parcelWeight = it },
-                                singleLine = true,
-                                shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = Color.Transparent,
-                                    unfocusedBorderColor = Color.Transparent,
-                                    focusedContainerColor = Color.White,
-                                    unfocusedContainerColor = Color.White,
-                                    focusedTextColor = Color.Black,
-                                    unfocusedTextColor = Color.Black
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
                             SmallLabel("PARCEL TYPE")
                             ExposedDropdownMenuBox(
                                 expanded = parcelDropdownExpanded,
@@ -622,24 +597,6 @@ fun DetailsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = receiverEmail,
-                        onValueChange = { receiverEmail = it },
-                        placeholder = { Text("Recipient Email for OTP", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium) },
-                        singleLine = true,
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Email),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
                     ContactPickerButton { contact ->
                         receiverName = contact.name
                         receiverPhone = contact.phone
@@ -727,14 +684,17 @@ fun DetailsScreen(
                                         color = Color.White,
                                         fontSize = 10.sp,
                                         letterSpacing = 1.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        fontWeight = FontWeight.SemiBold,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
 
                             Spacer(modifier = Modifier.height(16.dp))
                             Text("Delivery Mode", color = Color(0xFFDBEAFE), fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                            Text(deliveryMode, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                            Text(deliveryMode, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, lineHeight = 24.sp, maxLines = 1)
                         }
 
                         Column(horizontalAlignment = Alignment.End) {
@@ -748,10 +708,11 @@ fun DetailsScreen(
                             Text(
                                 "RM ${rate.formatDecimal(2)}/km",
                                 color = Color.White,
-                                fontSize = 22.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 letterSpacing = (-0.5).sp,
-                                lineHeight = 30.sp
+                                lineHeight = 24.sp,
+                                maxLines = 1
                             )
                             if (offloading) {
                                 Text(
@@ -778,10 +739,6 @@ private fun String.toVehicleEmoji(): String {
         "4x4 pickup", "pickup", "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "lorry_10ft", "lorry_14ft", "lorry_17ft", "truck", "open truck" -> "🚚"
         else -> "🚚"
     }
-}
-
-private fun isValidRecipientEmail(value: String): Boolean {
-    return Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$").matches(value.trim())
 }
 
 private data class TimeSlotOption(

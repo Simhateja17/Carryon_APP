@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -38,6 +39,29 @@ fun SupportScreen(
     onBack: () -> Unit,
     onTicketClick: (String) -> Unit
 ) {
+    var selectedFaq by remember { mutableStateOf<Pair<String, String>?>(null) }
+
+    selectedFaq?.let { faq ->
+        AlertDialog(
+            onDismissRequest = { selectedFaq = null },
+            confirmButton = {
+                TextButton(onClick = { selectedFaq = null }) {
+                    Text("Got it", color = PrimaryBlue)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    selectedFaq = null
+                    onTicketClick("chat")
+                }) {
+                    Text("Need more help", color = PrimaryBlue)
+                }
+            },
+            title = { Text(faq.first, fontWeight = FontWeight.SemiBold) },
+            text = { Text(faq.second, fontSize = 14.sp, lineHeight = 21.sp) }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,7 +76,7 @@ fun SupportScreen(
         )
 
         Spacer(modifier = Modifier.height(20.dp))
-        Text("Quick Support", color = Color(0xFF0F172A), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+        Text("Quick Support", color = Color(0xFF0F172A), fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -80,7 +104,7 @@ fun SupportScreen(
                 .background(Color(0xFFDCE6F1), RoundedCornerShape(26.dp))
                 .padding(16.dp)
         ) {
-            Text("Need help with an order?", color = Color(0xFF111827), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+            Text("Need help with an order?", color = Color(0xFF111827), fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Select a recent shipment to report delays or damage.",
@@ -106,17 +130,31 @@ fun SupportScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("FAQs", color = Color(0xFF0F172A), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-            Text("See All", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text("FAQs", color = Color(0xFF0F172A), fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(
+                "See All",
+                color = PrimaryBlue,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable {
+                    selectedFaq = "Support FAQs" to "You can track orders from Orders or the live tracking screen, change delivery details before pickup, and review delivery charges before confirming a booking. For anything account-specific, raise a support ticket."
+                }
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        FaqRow("How do I track my order?", onClick = { onTicketClick("faq_track") })
+        FaqRow("How do I track my order?", onClick = {
+            selectedFaq = "How do I track my order?" to "Open Orders, select the shipment, then use Track Shipment to see the latest status, driver assignment, ETA, pickup, and drop-off progress."
+        })
         Spacer(modifier = Modifier.height(10.dp))
-        FaqRow("How to change delivery address?", onClick = { onTicketClick("faq_address") })
+        FaqRow("How to change delivery address?", onClick = {
+            selectedFaq = "How to change delivery address?" to "Delivery address changes are safest before pickup. If the driver has not picked up the package yet, raise a support ticket and select the related order so the team can review the change."
+        })
         Spacer(modifier = Modifier.height(10.dp))
-        FaqRow("What are the delivery charges?", onClick = { onTicketClick("faq_charges") })
+        FaqRow("What are the delivery charges?", onClick = {
+            selectedFaq = "What are the delivery charges?" to "Charges are based on vehicle type, distance, wait time, offloading needs, promos, and any approved adjustments. The final price is shown before confirmation and in your receipt."
+        })
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -126,7 +164,7 @@ fun SupportScreen(
             shape = RoundedCornerShape(999.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
         ) {
-            Text("  Report an Issue", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text("  Report an Issue", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -189,7 +227,7 @@ private fun QuickSupportCard(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        Text(title, color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(title, color = Color(0xFF111827), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(subtitle, color = Color(0xFF1F2937), fontSize = 16.sp)
     }
 }
@@ -207,7 +245,7 @@ private fun FaqRow(question: String, onClick: () -> Unit) {
     ) {
         Text("•", color = PrimaryBlue, fontSize = 26.sp)
         Spacer(modifier = Modifier.width(8.dp))
-        Text(question, color = Color(0xFF111827), fontSize = 18.sp, modifier = Modifier.weight(1f))
+        Text(question, color = Color(0xFF111827), fontSize = 18.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text("›", color = Color(0xFF111827), fontSize = 28.sp)
     }
 }

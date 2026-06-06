@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.*
@@ -56,22 +57,18 @@ fun RequestForRideScreen(
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
-    val vehicleTypeApi = when (vehicleType) {
-        "2 Wheeler"        -> "BIKE"
-        "Car"              -> "CAR"
-        "4x4 Pickup"       -> "PICKUP"
-        "Van 7ft"          -> "VAN_7FT"
-        "Van 9ft"          -> "VAN_9FT"
-        "Small Lorry 10ft" -> "LORRY_10FT"
-        "Medium Lorry 14ft"-> "LORRY_14FT"
-        "Large Lorry 17ft" -> "LORRY_17FT"
-        // Legacy
-        "Bike"             -> "BIKE"
-        "Car (2-Seat)"     -> "CAR"
-        "Car (4-Seat)"     -> "CAR"
-        "Mini Van"         -> "VAN_7FT"
-        "Truck", "Open Truck" -> "PICKUP"
-        else               -> "CAR"
+    val normalizedVehicleType = vehicleType.trim().lowercase().replace('_', ' ').replace('-', ' ')
+
+    val vehicleTypeApi = when (normalizedVehicleType) {
+        "motorcycle", "2 wheeler", "bike", "two wheeler" -> "BIKE"
+        "car", "car (2 seat)", "car (2-seat)", "car (4 seat)", "car (4-seat)", "auto" -> "CAR"
+        "4x4 pickup", "pickup", "truck", "open truck" -> "PICKUP"
+        "van 7ft", "mini van", "mini truck", "minitruck" -> "VAN_7FT"
+        "van 9ft" -> "VAN_9FT"
+        "small lorry 10ft", "lorry 10ft" -> "LORRY_10FT"
+        "medium lorry 14ft", "lorry 14ft" -> "LORRY_14FT"
+        "large lorry 17ft", "lorry 17ft" -> "LORRY_17FT"
+        else -> "CAR"
     }
 
     val basePrice = 0.0
@@ -169,21 +166,14 @@ fun RequestForRideScreen(
         isCalculating = false
     }
 
-    val vehicleImageRes = when (vehicleType) {
-        "2 Wheeler"                         -> Res.drawable.bike
-        "Car"                               -> Res.drawable.car_4_seater
-        "4x4 Pickup"                        -> Res.drawable.truck
-        "Van 7ft", "Van 9ft"               -> Res.drawable.mini_van
-        "Small Lorry 10ft",
-        "Medium Lorry 14ft",
-        "Large Lorry 17ft"                  -> Res.drawable.truck
-        // Legacy names kept for compatibility
-        "Bike"                              -> Res.drawable.bike
-        "Car (2-Seat)"                      -> Res.drawable.car_two_seater
-        "Car (4-Seat)"                      -> Res.drawable.car_4_seater
-        "Mini Van"                          -> Res.drawable.mini_van
-        "Truck", "Open Truck"              -> Res.drawable.truck
-        else                               -> Res.drawable.car_mustang
+    val vehicleImageRes = when (normalizedVehicleType) {
+        "motorcycle", "2 wheeler", "bike", "two wheeler" -> Res.drawable.bike
+        "car", "car (2 seat)", "car (2-seat)" -> Res.drawable.car_two_seater
+        "car (4 seat)", "car (4-seat)", "auto" -> Res.drawable.car_4_seater
+        "4x4 pickup", "pickup", "truck", "open truck" -> Res.drawable.truck
+        "van 7ft", "van 9ft", "mini van", "mini truck", "minitruck" -> Res.drawable.mini_van
+        "small lorry 10ft", "medium lorry 14ft", "large lorry 17ft", "lorry 10ft", "lorry 14ft", "lorry 17ft" -> Res.drawable.truck
+        else -> Res.drawable.car_4_seater
     }
     val vehicleDisplayName = vehicleType.ifBlank { "Vehicle" }
     val subtotal = estimatedPrice + offloadingFee
@@ -319,7 +309,7 @@ fun RequestForRideScreen(
                     color = Color.Black,
                     modifier = Modifier.clickable { onBack() }.padding(end = 8.dp)
                 )
-                Text(strings.requestForRide, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                Text(strings.requestForRide, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -426,25 +416,6 @@ fun RequestForRideScreen(
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = PrimaryBlue, strokeWidth = 2.dp)
             } else {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(strings.fairPrice, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM ${estimatedPrice.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                }
-                if (offloading) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Offloading", fontSize = 14.sp, color = TextSecondary)
-                        Text("RM ${offloadingFee.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(strings.taxPercent, fontSize = 14.sp, color = TextSecondary)
-                    Text("RM ${taxAmount.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider(color = Color(0xFFE0E0E0))
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(strings.totalAmount, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                     Text("RM ${totalAmount.formatDecimal(2)}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
                 }
@@ -457,7 +428,6 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             PaymentMethodRow(
-                iconRes = Res.drawable.payment_paypal,
                 title = "CarryOn Wallet",
                 subtitle = "Top up with Stripe before dispatch",
                 isSelected = selectedPayment == "wallet"
@@ -483,7 +453,9 @@ fun RequestForRideScreen(
                     "Insufficient Wallet Balance",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -528,7 +500,8 @@ fun RequestForRideScreen(
                             topUpStatus = "Complete payment in Stripe..."
                             val result = StripePaymentLauncher.presentWalletTopUp(
                                 clientSecret = intent.clientSecret,
-                                publishableKey = config.publishableKey
+                                publishableKey = config.publishableKey,
+                                customPaymentMethods = config.customPaymentMethods
                             )
 
                             when (result) {
@@ -623,7 +596,6 @@ fun RequestForRideScreen(
 
 @Composable
 private fun PaymentMethodRow(
-    iconRes: org.jetbrains.compose.resources.DrawableResource,
     title: String,
     subtitle: String,
     isSelected: Boolean,
@@ -639,13 +611,6 @@ private fun PaymentMethodRow(
             .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(iconRes),
-            contentDescription = title,
-            modifier = Modifier.size(42.dp),
-            contentScale = ContentScale.Fit
-        )
-        Spacer(modifier = Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
             if (subtitle.isNotEmpty()) {

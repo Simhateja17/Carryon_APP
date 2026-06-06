@@ -89,11 +89,11 @@ android {
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.company.carryon"
+        applicationId = "com.company.carryon_malaysia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 7
+        versionName = "1.0.2"
 
         val localProperties = Properties().apply {
             val file = rootProject.file("local.properties")
@@ -106,9 +106,19 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    signingConfigs {
+        create("release") {
+            storeFile = file("/Users/teja/carryon-release.jks")
+            storePassword = "carryon"
+            keyAlias = "carryon"
+            keyPassword = "carryon"
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

@@ -79,6 +79,7 @@ import com.company.carryon.ui.theme.BackgroundLight
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatDecimal
+import com.company.carryon.util.ServiceAreaCache
 import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
@@ -119,6 +120,7 @@ fun HomeScreen(
     var deliveryLng by remember { mutableStateOf<Double?>(null) }
     var estimatedRouteMinutes by remember { mutableStateOf<Int?>(null) }
     var showLanguageModal by remember { mutableStateOf(false) }
+    var showPhoneModal by remember { mutableStateOf(false) }
 
     var userName by remember { mutableStateOf<String?>(null) }
     var activeBooking by remember { mutableStateOf<Booking?>(null) }
@@ -136,6 +138,7 @@ fun HomeScreen(
     var pickupSearchJob by remember { mutableStateOf<Job?>(null) }
     var deliverySearchJob by remember { mutableStateOf<Job?>(null) }
     var showDeliveryRequiredError by remember { mutableStateOf(false) }
+    var isInServiceArea by remember { mutableStateOf<Boolean?>(null) }
 
     fun proceedToBooking() {
         if (deliveryLocation.isBlank() || !deliveryLocationRecognized) {
@@ -153,6 +156,9 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         UserApi.getProfile().onSuccess { profile ->
             userName = profile.name.ifBlank { null }
+            if (profile.phone.isBlank()) {
+                showPhoneModal = true
+            }
         }
 
         BookingApi.getBookings().onSuccess { response ->
@@ -192,6 +198,9 @@ fun HomeScreen(
                     }
                 }
                 isGettingLocation = false
+            }
+            scope.launch {
+                isInServiceArea = ServiceAreaCache.isInServiceArea(lat, lng)
             }
         },
         onDenied = { isGettingLocation = false }
@@ -283,6 +292,42 @@ fun HomeScreen(
         )
     }
 
+    if (showPhoneModal) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {},
+            title = {
+                Text(
+                    strings.phoneNumberRequired,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+            },
+            text = {
+                Text(
+                    strings.phoneNumberRequiredMessage,
+                    fontSize = 14.sp,
+                    color = Color(0xFF666666)
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPhoneModal = false
+                        onNavigateToProfile()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+                ) {
+                    Text(strings.goToProfile)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPhoneModal = false }) {
+                    Text(strings.later, color = Color(0xFF666666))
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -315,7 +360,9 @@ fun HomeScreen(
                     text = strings.helloUser(userName ?: "—"),
                     color = TextPrimary,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -380,6 +427,23 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(18.dp))
 
         Text(strings.sendAPackage, color = TextPrimary, fontSize = 28.sp, fontWeight = FontWeight.SemiBold, lineHeight = 30.sp)
+
+        if (isInServiceArea == false) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFFFFF3E0),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "CarryOn is not available in your city yet. We're expanding soon!",
+                    color = Color(0xFFE65100),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -562,11 +626,15 @@ fun HomeScreen(
 
         Button(
             onClick = { proceedToBooking() },
+            enabled = isInServiceArea != false,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PrimaryBlue,
+                disabledContainerColor = Color(0xFFBBCFEA)
+            )
         ) {
             Text(strings.next, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }

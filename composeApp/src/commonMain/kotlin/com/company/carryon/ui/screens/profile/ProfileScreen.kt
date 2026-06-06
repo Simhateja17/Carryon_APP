@@ -21,10 +21,16 @@ import androidx.compose.material.icons.outlined.PersonOutline
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.runtime.*
+import com.company.carryon.data.network.AuthStateManager
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +46,7 @@ import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.UserApi
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
+import androidx.compose.ui.text.style.TextOverflow
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
@@ -59,9 +66,11 @@ fun ProfileScreen(
     onNavigateToWallet: () -> Unit = {},
     onNavigateToPromo: () -> Unit = {},
     onLogout: () -> Unit,
+    onDeleteAccount: () -> Unit = {},
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val scope = rememberCoroutineScope()
     var userName by remember { mutableStateOf("—") }
     var userPhone by remember { mutableStateOf("—") }
     var isLoading by remember { mutableStateOf(true) }
@@ -69,6 +78,9 @@ fun ProfileScreen(
     var totalShipments by remember { mutableStateOf(0) }
     var userRating by remember { mutableStateOf(0.0) }
     var statsError by remember { mutableStateOf<String?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var isDeletingAccount by remember { mutableStateOf(false) }
+    var deleteError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         UserApi.getProfile()
@@ -147,7 +159,9 @@ fun ProfileScreen(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
                 color = Color(0xFF111827),
                 fontSize = 44.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = if (isLoading) strings.loading else userPhone,
@@ -226,6 +240,74 @@ fun ProfileScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0x1AE53935), RoundedCornerShape(18.dp))
+                    .clickable { showDeleteDialog = true }
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.DeleteOutline,
+                        contentDescription = strings.deleteAccount,
+                        tint = Color(0xFFE53935),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(strings.deleteAccount, color = Color(0xFFE53935), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { if (!isDeletingAccount) showDeleteDialog = false },
+                    title = { Text(strings.deleteAccount) },
+                    text = {
+                        if (isDeletingAccount) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(deleteError ?: strings.deleteAccountWarning)
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    isDeletingAccount = true
+                                    deleteError = null
+                                    UserApi.deleteAccount()
+                                        .onSuccess {
+                                            AuthStateManager.logout()
+                                            showDeleteDialog = false
+                                            isDeletingAccount = false
+                                            onDeleteAccount()
+                                        }
+                                        .onFailure { e ->
+                                            isDeletingAccount = false
+                                            deleteError = e.message ?: "Failed to delete account"
+                                        }
+                                }
+                            },
+                            enabled = !isDeletingAccount
+                        ) {
+                            Text(strings.deleteAccount, color = Color(0xFFE53935))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteDialog = false },
+                            enabled = !isDeletingAccount
+                        ) {
+                            Text(strings.cancel)
+                        }
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 "CARRYON V.2.4.0",
@@ -272,7 +354,7 @@ private fun StatCard(
                 modifier = Modifier.size(20.dp),
             )
         }
-        Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp)
+        Text(value, color = Color.Black, fontSize = 24.sp, fontWeight = FontWeight.Medium, lineHeight = 32.sp, maxLines = 1)
         Text(
             label,
             color = Color.Black,

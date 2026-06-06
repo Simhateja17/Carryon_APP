@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.InvoiceDetail
@@ -87,7 +88,7 @@ fun InvoiceScreen(
                             Column(modifier = Modifier.padding(20.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Column {
-                                        Text("CarryOn", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+                                        Text("CarryOn", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         Text(detail.company.name, fontSize = 12.sp, color = TextSecondary)
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
@@ -181,12 +182,14 @@ fun InvoiceScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(strings.totalAmount, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                                    Text(strings.totalAmount, fontSize = 18.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(
                                         "${detail.invoice.currency} ${detail.invoice.total.formatDecimal(2)}",
                                         fontSize = 18.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = PrimaryBlue
+                                        color = PrimaryBlue,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }

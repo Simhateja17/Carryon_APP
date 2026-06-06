@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.components.CarryOnHeader
@@ -121,7 +122,7 @@ fun ReportIssueScreen(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Tracking Number", fontSize = 12.sp, color = Color.Black)
-                    Text("#CR-2094", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium)
+                    Text("#CR-2094", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Box(
                     modifier = Modifier

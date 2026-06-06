@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.ChatMessage
 import com.company.carryon.data.network.ChatApi
 import com.company.carryon.data.network.RealtimeChatService
+import com.company.carryon.ui.components.rememberRealtimeMessaging
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
@@ -34,50 +35,23 @@ fun ChatScreen(
 ) {
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
-    var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }
     var messageText by remember { mutableStateOf("") }
     var quickMessages by remember { mutableStateOf<List<String>>(emptyList()) }
     var showQuickMessages by remember { mutableStateOf(false) }
-    val listState = rememberLazyListState()
 
-    // Load messages and subscribe to realtime updates
+    val messaging = rememberRealtimeMessaging(
+        entityId = bookingId,
+        signalFlow = RealtimeChatService.newMessageSignal,
+        startListening = { id, s -> RealtimeChatService.startListening(id, s) },
+        stopListening = { RealtimeChatService.stopListening() },
+        load = { ChatApi.getMessages(it).getOrNull()?.data ?: emptyList() },
+    )
+    val messages = messaging.items
+    val listState = messaging.listState
+
     LaunchedEffect(bookingId) {
-        // Load quick messages
         ChatApi.getQuickMessages(bookingId).onSuccess { resp ->
             quickMessages = resp.data ?: emptyList()
-        }
-
-        // Initial message load
-        ChatApi.getMessages(bookingId).onSuccess { resp ->
-            messages = resp.data ?: emptyList()
-        }
-
-        // Subscribe to realtime updates via Supabase WebSocket
-        RealtimeChatService.startListening(bookingId, this)
-    }
-
-    // Refresh messages when realtime signal arrives
-    LaunchedEffect(bookingId) {
-        RealtimeChatService.newMessageSignal.collect { signalBookingId ->
-            if (signalBookingId == bookingId) {
-                ChatApi.getMessages(bookingId).onSuccess { resp ->
-                    messages = resp.data ?: emptyList()
-                }
-            }
-        }
-    }
-
-    // Clean up realtime subscription when leaving
-    DisposableEffect(bookingId) {
-        onDispose {
-            scope.launch { RealtimeChatService.stopListening() }
-        }
-    }
-
-    // Scroll to bottom when messages change
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
         }
     }
 
@@ -165,7 +139,7 @@ fun ChatScreen(
                                 scope.launch {
                                     ChatApi.sendMessage(bookingId, msg).onSuccess { resp ->
                                         resp.data?.let { newMsg ->
-                                            messages = messages + newMsg
+                                            messaging.setItems(messages + newMsg)
                                         }
                                     }
                                 }

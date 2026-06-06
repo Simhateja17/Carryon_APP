@@ -51,6 +51,8 @@ object MsStrings : AppStrings {
     override val enterYourName = "Masukkan nama anda"
     override val confirmPassword = "Sahkan Kata Laluan"
     override val confirmPasswordPlaceholder = "Sahkan kata laluan"
+    override val sendVerificationCode = "Hantar Kod Pengesahan"
+    override val otpHint = "Kami akan menghantar kod pengesahan ke nombor telefon anda"
     override val failedToSendCode = "Gagal menghantar kod pengesahan"
 
     // ── OTP Screen ──
@@ -161,7 +163,7 @@ object MsStrings : AppStrings {
     override val selectPickupLocation = "Pilih lokasi pengambilan"
     override val selectDeliveryLocation = "Pilih lokasi penghantaran"
     override val fairPrice = "Harga Berpatutan"
-    override val taxPercent = "Cukai (5%)"
+    override val taxPercent = "Cukai (6%)"
     override val reviews = "ulasan"
 
     // ── Track Shipment Screen ──
@@ -304,7 +306,12 @@ object MsStrings : AppStrings {
     override val changePhoto = "Tukar Foto"
     override val fullName = "Nama Penuh"
     override val phoneNumber = "Nombor Telefon"
+    override val enterYourPhone = "Masukkan nombor telefon anda"
     override val phoneCannotBeChanged = "Nombor telefon tidak boleh ditukar"
+    override val phoneNumberRequired = "Nombor Telefon Diperlukan"
+    override val phoneNumberRequiredMessage = "Sila tambah nombor telefon anda dalam tetapan profil. Ini diperlukan supaya pemandu boleh menghubungi anda semasa penghantaran."
+    override val goToProfile = "Pergi ke Profil"
+    override val later = "Nanti"
     override val saveChanges = "Simpan Perubahan"
     override val success = "Berjaya"
     override val profileUpdatedSuccessfully = "Profil anda telah berjaya dikemas kini."
@@ -474,4 +481,13 @@ object MsStrings : AppStrings {
     override val enterDeliveryOtp = "Masukkan OTP penghantaran"
     override val deliveryVerified = "Penghantaran berjaya disahkan!"
     override val viewInvoice = "Lihat Invois"
+
+    // ── Delivery Complete Screen ──
+    override val deliveryCompleteTitle = "Penghantaran Selesai!"
+    override val orderDeliveredMessage: (String) -> String = { "Pesanan #$it telah dihantar." }
+    override val amountPaid = "JUMLAH DIBAYAR"
+    override val time = "MASA"
+    override val distanceLabel = "JARAK"
+    override val backToHome = "Kembali ke Laman Utama"
+    override val viewReceipt = "Lihat Resit"
 }

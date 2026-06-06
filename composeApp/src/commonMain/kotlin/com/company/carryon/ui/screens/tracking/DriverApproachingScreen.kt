@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Booking
@@ -31,6 +31,8 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.datetime.Instant
+import androidx.compose.ui.platform.LocalUriHandler
+import com.company.carryon.util.telUriFor
 import kotlin.time.Clock
 import kotlin.math.ceil
 
@@ -42,6 +44,7 @@ fun DriverApproachingScreen(
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val uriHandler = LocalUriHandler.current
 
     // Booking state
     var booking by remember { mutableStateOf<Booking?>(null) }
@@ -252,7 +255,9 @@ fun DriverApproachingScreen(
                             if (isDriverArrived) strings.driverArrivedStatus else strings.driverOnTheWayStatus,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -342,59 +347,43 @@ fun DriverApproachingScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // OTP Card
+                        // Driver contact card
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8E1))
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF4FE))
                         ) {
-                            Column(
-                                modifier = Modifier.padding(20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(18.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = strings.yourDeliveryCode,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextSecondary
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                // Large OTP display
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val otp = currentBooking.otp
-                                    otp.forEach { digit ->
-                                        Box(
-                                            modifier = Modifier
-                                                .size(52.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(PrimaryBlue),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = digit.toString(),
-                                                fontSize = 28.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            )
-                                        }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = if (isDriverArrived) "Driver is ready for pickup" else "Driver contact",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = currentBooking.driver?.name?.takeIf { it.isNotBlank() } ?: "Assigned driver",
+                                        fontSize = 13.sp,
+                                        color = TextSecondary
+                                    )
+                                    currentBooking.driver?.phone?.takeIf { it.isNotBlank() }?.let { phone ->
+                                        Text(phone, fontSize = 13.sp, color = TextSecondary)
                                     }
                                 }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = if (isDriverArrived)
-                                        strings.shareOtpWithDriver
-                                    else
-                                        strings.shareOtpWithDriver,
-                                    fontSize = 13.sp,
-                                    color = TextSecondary,
-                                    textAlign = TextAlign.Center
-                                )
+                                val telUri = telUriFor(currentBooking.driver?.phone)
+                                Button(
+                                    onClick = { telUri?.let(uriHandler::openUri) },
+                                    enabled = telUri != null,
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                                    shape = RoundedCornerShape(999.dp)
+                                ) {
+                                    Text("Call", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
                             }
                         }
 

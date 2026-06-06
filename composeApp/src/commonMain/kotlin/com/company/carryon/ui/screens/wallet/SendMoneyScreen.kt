@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.WalletTransaction
@@ -97,14 +98,14 @@ fun SendMoneyScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         Text("TRANSACTION PORTAL", color = Color(0xFF2F5EA8), fontSize = 10.sp, letterSpacing = 1.sp)
-        Text("Send money to", color = Color(0xFF0F172A), fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
-        Text("anywhere.", color = PrimaryBlue, fontSize = 50.sp, fontWeight = FontWeight.SemiBold)
+        Text("Send money to", color = Color(0xFF0F172A), fontSize = 50.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text("anywhere.", color = PrimaryBlue, fontSize = 50.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         CardBlock {
-            Text("Wallet Balance", color = Color(0xFF111827), fontSize = 22.sp)
-            Text("RM ${walletBalance.formatDecimal(2)}", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp)
+            Text("Wallet Balance", color = Color(0xFF111827), fontSize = 22.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("RM ${walletBalance.formatDecimal(2)}", color = Color(0xFF111827), fontWeight = FontWeight.Bold, fontSize = 44.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(8.dp))
             Box(
                 modifier = Modifier
@@ -194,7 +195,7 @@ fun SendMoneyScreen(
             Column {
                 Text("", color = Color.White, fontSize = 22.sp)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Secure Transfer", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
+                Text("Secure Transfer", color = Color.White, fontSize = 32.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "Your funds are protected by 256-bit encryption and real-time fraud monitoring.",
@@ -319,12 +320,14 @@ private fun SummaryRow(
     large: Boolean = false
 ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(left, color = Color(0xFF334155), fontSize = if (large) 18.sp else 14.sp)
+        Text(left, color = Color(0xFF334155), fontSize = if (large) 18.sp else 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
             right,
             color = rightColor,
             fontSize = if (large) 34.sp else 14.sp,
-            fontWeight = if (bold || large) FontWeight.Bold else FontWeight.Medium
+            fontWeight = if (bold || large) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

@@ -51,6 +51,8 @@ interface AppStrings {
     val enterYourName: String get() = "Enter your name"
     val confirmPassword: String get() = "Confirm Password"
     val confirmPasswordPlaceholder: String get() = "Confirm password"
+    val sendVerificationCode: String get() = "Send Verification Code"
+    val otpHint: String get() = "We'll send a verification code to your phone number"
     val failedToSendCode: String get() = "Failed to send verification code"
 
     // ── OTP Screen ──
@@ -161,7 +163,7 @@ interface AppStrings {
     val selectPickupLocation: String get() = "Select pickup location"
     val selectDeliveryLocation: String get() = "Select delivery location"
     val fairPrice: String get() = "Fair Price"
-    val taxPercent: String get() = "Tax (5%)"
+    val taxPercent: String get() = "Tax (6%)"
     val reviews: String get() = "reviews"
 
     // ── Track Shipment Screen ──
@@ -304,7 +306,12 @@ interface AppStrings {
     val changePhoto: String get() = "Change Photo"
     val fullName: String get() = "Full Name"
     val phoneNumber: String get() = "Phone Number"
+    val enterYourPhone: String get() = "Enter your phone number"
     val phoneCannotBeChanged: String get() = "Phone number cannot be changed"
+    val phoneNumberRequired: String get() = "Phone Number Required"
+    val phoneNumberRequiredMessage: String get() = "Please add your phone number in your profile settings. This is needed so drivers can contact you during deliveries."
+    val goToProfile: String get() = "Go to Profile"
+    val later: String get() = "Later"
     val saveChanges: String get() = "Save Changes"
     val success: String get() = "Success"
     val profileUpdatedSuccessfully: String get() = "Your profile has been updated successfully."
@@ -478,4 +485,13 @@ interface AppStrings {
     val enterDeliveryOtp: String get() = "Enter delivery OTP"
     val deliveryVerified: String get() = "Delivery verified successfully!"
     val viewInvoice: String get() = "View Invoice"
+
+    // ── Delivery Complete Screen ──
+    val deliveryCompleteTitle: String get() = "Delivery Complete!"
+    val orderDeliveredMessage: (String) -> String get() = { "Order #$it has been delivered." }
+    val amountPaid: String get() = "AMOUNT PAID"
+    val time: String get() = "TIME"
+    val distanceLabel: String get() = "DISTANCE"
+    val backToHome: String get() = "Back to Home"
+    val viewReceipt: String get() = "View Receipt"
 }

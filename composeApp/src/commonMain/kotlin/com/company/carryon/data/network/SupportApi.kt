@@ -16,6 +16,19 @@ private data class AiChatRequest(val message: String, val history: List<AiChatMe
 data class AiChatResponse(val reply: String)
 
 @Serializable
+data class SupportIssueOption(
+    val id: String = "",
+    val label: String = "",
+    val category: String = "",
+    val priority: String = "MEDIUM",
+    val requiresBooking: Boolean = false,
+    val requiresDetails: Boolean = false,
+    val allowsAttachments: Boolean = false,
+    val emergency: Boolean = false,
+    val children: List<SupportIssueOption> = emptyList()
+)
+
+@Serializable
 private data class CreateTicketRequest(
     val subject: String,
     val category: String = "OTHER",
@@ -26,6 +39,15 @@ private data class CreateTicketRequest(
 
 @Serializable
 private data class ReplyRequest(val message: String, val imageUrl: String? = null)
+
+@Serializable
+private data class IntakeTicketRequest(
+    val issueId: String,
+    val bookingId: String? = null,
+    val details: String = "",
+    val answers: Map<String, String> = emptyMap(),
+    val displayPath: List<String> = emptyList()
+)
 
 object SupportApi {
     private val client get() = HttpClientFactory.client
@@ -58,17 +80,20 @@ object SupportApi {
         }.body()
     }
 
-    suspend fun closeTicket(ticketId: String): Result<ApiResponse<SupportTicket>> = runCatching {
-        client.post("/api/support/tickets/$ticketId/close").body()
+    suspend fun getIntakeOptions(): Result<ApiResponse<List<SupportIssueOption>>> = runCatching {
+        client.get("/api/support/intake/options").body()
     }
 
-    suspend fun sendAiMessage(
-        message: String,
-        history: List<AiChatMessage>
-    ): Result<ApiResponse<AiChatResponse>> = runCatching {
-        client.post("/api/support/ai-chat") {
+    suspend fun createIntakeTicket(
+        issueId: String,
+        bookingId: String? = null,
+        details: String = "",
+        answers: Map<String, String> = emptyMap(),
+        displayPath: List<String> = emptyList()
+    ): Result<ApiResponse<SupportTicket>> = runCatching {
+        client.post("/api/support/intake/tickets") {
             contentType(ContentType.Application.Json)
-            setBody(AiChatRequest(message, history))
+            setBody(IntakeTicketRequest(issueId, bookingId, details, answers, displayPath))
         }.body()
     }
 }

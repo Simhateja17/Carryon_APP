@@ -1,8 +1,6 @@
 package com.company.carryon.ui.screens.auth
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,80 +11,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.sign_in_google
-import carryon.composeapp.generated.resources.sign_in_apple
-import carryon.composeapp.generated.resources.sign_in_facebook
-import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.AuthApi
-import com.company.carryon.data.network.AuthStateManager
-import com.company.carryon.data.network.SupabaseConfig
-import com.company.carryon.getPlatform
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
-import io.github.jan.supabase.compose.auth.composeAuth
-import io.github.jan.supabase.compose.auth.composable.NativeSignInResult
-import io.github.jan.supabase.compose.auth.composable.rememberSignInWithGoogle
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     onNavigateToOtp: (String) -> Unit,
-    onNavigateToRegister: () -> Unit = {},
-    onGoogleSignInSuccess: () -> Unit = {}
+    onNavigateToRegister: () -> Unit = {}
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
-
-    // Listen for session changes (handles iOS OAuth callback)
-    LaunchedEffect(Unit) {
-        SupabaseConfig.client.auth.sessionStatus.collect { status ->
-            if (status is io.github.jan.supabase.auth.status.SessionStatus.Authenticated) {
-                val session = SupabaseConfig.client.auth.currentSessionOrNull()
-                if (session != null) {
-                    AuthStateManager.onSupabaseAuthenticated(session.accessToken)
-                    onGoogleSignInSuccess()
-                }
-            }
-        }
-    }
-
-    // Google Sign-In via Supabase ComposeAuth (Android native)
-    val googleSignInAction = SupabaseConfig.client.composeAuth.rememberSignInWithGoogle(
-        onResult = { result ->
-            when (result) {
-                is NativeSignInResult.Success -> {
-                    scope.launch {
-                        val session = SupabaseConfig.client.auth.currentSessionOrNull()
-                        if (session != null) {
-                            AuthStateManager.onSupabaseAuthenticated(session.accessToken)
-                            onGoogleSignInSuccess()
-                        }
-                    }
-                }
-                is NativeSignInResult.Error -> {
-                    errorMessage = result.message
-                }
-                is NativeSignInResult.ClosedByUser -> { /* user cancelled */ }
-                is NativeSignInResult.NetworkError -> {
-                    errorMessage = "Network error. Please check your connection."
-                }
-            }
-        }
-    )
 
     Box(
         modifier = Modifier
@@ -104,25 +49,25 @@ fun LoginScreen(
 
             // Welcome Text
             Row {
-                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text("!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(strings.loginSubtitle, fontSize = 14.sp, color = TextSecondary)
+            Text(strings.loginSubtitle, fontSize = 14.sp, color = TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Email Address
-            Text(strings.emailAddress, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
+            // Phone Number
+            Text(strings.phoneNumber, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = { Text(strings.enterYourEmail, color = Color.LightGray) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                placeholder = { Text(strings.enterYourPhone, color = Color.LightGray) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -134,40 +79,18 @@ fun LoginScreen(
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Black
                 )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = strings.otpHint,
+                fontSize = 13.sp,
+                color = TextSecondary,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Password
-            Text(strings.password, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                placeholder = { Text(strings.password, color = Color.LightGray) },
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = PrimaryBlue,
-                    unfocusedBorderColor = Color(0xFFE8E8E8),
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color(0xFFF8F8F8),
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                )
-            )
-
-            // Forgot Password
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = { }) {
-                    Text(strings.forgotPassword, fontSize = 13.sp, color = PrimaryBlue, fontWeight = FontWeight.Medium)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             // Error message
             errorMessage?.let {
@@ -182,15 +105,15 @@ fun LoginScreen(
             // Log In Button
             Button(
                 onClick = {
-                    if (email.isNotBlank()) {
+                    if (phoneNumber.isNotBlank()) {
                         isLoading = true
                         errorMessage = null
                         scope.launch {
                             try {
-                                AuthApi.sendOtp(email, mode = "login").fold(
+                                AuthApi.sendOtp(mode = "login", phone = phoneNumber).fold(
                                     onSuccess = {
                                         isLoading = false
-                                        onNavigateToOtp(email)
+                                        onNavigateToOtp(phoneNumber)
                                     },
                                     onFailure = { e ->
                                         isLoading = false
@@ -212,60 +135,8 @@ fun LoginScreen(
                 if (isLoading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                 } else {
-                    Text(strings.logIn, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(strings.sendVerificationCode, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Or Divider
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
-                Text("  ${strings.or}  ", color = TextSecondary, fontSize = 14.sp)
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE8E8E8))
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Social Login Icons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_apple),
-                    contentDescription = "Apple",
-                    modifier = Modifier.height(64.dp).clickable { },
-                    contentScale = ContentScale.FillHeight
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_google),
-                    contentDescription = "Google",
-                    modifier = Modifier.height(64.dp).clickable {
-                        if (getPlatform().name.startsWith("Android")) {
-                            googleSignInAction.startFlow()
-                        } else {
-                            // iOS: use OAuth web flow
-                            scope.launch {
-                                try {
-                                    SupabaseConfig.client.auth.signInWith(Google)
-                                } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Google sign-in failed"
-                                }
-                            }
-                        }
-                    },
-                    contentScale = ContentScale.FillHeight
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Image(
-                    painter = painterResource(Res.drawable.sign_in_facebook),
-                    contentDescription = "Facebook",
-                    modifier = Modifier.height(64.dp).clickable { },
-                    contentScale = ContentScale.FillHeight
-                )
             }
 
             Spacer(modifier = Modifier.weight(1f))

@@ -49,6 +49,7 @@ import com.company.carryon.data.model.Wallet
 import com.company.carryon.data.model.WalletTransaction
 import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.components.CarryOnHeader
+import androidx.compose.ui.text.style.TextOverflow
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextSecondary
@@ -125,7 +126,7 @@ fun WalletScreen(
                 ) {
                     Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(6.dp))
-                    Text("RM ${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
+                    Text("RM ${balance.toInt()}", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(14.dp))
                     Button(
                         onClick = onAddMoney,
@@ -282,7 +283,8 @@ private fun TransactionRow(txn: WalletTransaction) {
             amountText,
             color = if (isCredit) Color(0xFF3B82F6) else Color(0xFF3B82F6),
             fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
         )
     }
 }

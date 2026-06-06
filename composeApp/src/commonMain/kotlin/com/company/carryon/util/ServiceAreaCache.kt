@@ -2,7 +2,7 @@ package com.company.carryon.util
 
 import com.company.carryon.data.model.ServiceArea
 import com.company.carryon.data.network.LocationApi
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 object ServiceAreaCache {
     private var cachedAreas: List<ServiceArea>? = null

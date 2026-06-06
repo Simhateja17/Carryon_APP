@@ -664,7 +664,7 @@ private fun OngoingDeliveryCard(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text("COURIER", fontSize = OrderCardLabelFontSize, color = Color(0xFF71749E), fontWeight = FontWeight.Normal)
-                        Text(card.courierName, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium, color = Color.Black)
+                        Text(card.courierName, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text("ETA", fontSize = OrderCardLabelFontSize, color = Color(0xFF71749E), fontWeight = FontWeight.Normal)
@@ -730,13 +730,13 @@ private fun OngoingDeliveryCard(
                     Column(modifier = Modifier.weight(1f)) {
                         if (hasDrop) {
                             Text("PICKUP", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
-                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Spacer(modifier = Modifier.height(10.dp))
                             Text("DROPOFF", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
-                            Text(card.secondaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                            Text(card.secondaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         } else {
                             Text("CURRENT GOAL", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
-                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                            Text(card.primaryValue, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }
@@ -910,11 +910,11 @@ private fun CompletedOrderCard(
                 ) {
                     Column {
                         Text("PICKUP", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
-                        Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                        Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                     Column {
                         Text("DROP", color = Color(0xFF555881), fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium)
-                        Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                        Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 }
             }
@@ -1033,7 +1033,7 @@ private fun CancelledOrderCard(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("PICKUP", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
-                            Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                            Text(card.order.pickup, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                     }
 
@@ -1059,7 +1059,7 @@ private fun CancelledOrderCard(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("DROP-OFF", color = Color.Black, fontSize = OrderCardLabelFontSize, fontWeight = FontWeight.Medium, letterSpacing = 0.5.sp)
-                            Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal)
+                            Text(card.order.delivery, color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Normal, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }
                     }
                 }

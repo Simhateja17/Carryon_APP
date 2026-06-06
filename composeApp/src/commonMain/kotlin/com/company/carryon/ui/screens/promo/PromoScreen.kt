@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Coupon
@@ -131,7 +132,9 @@ fun PromoScreen(
                                         fontSize = 28.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White,
-                                        letterSpacing = 4.sp
+                                        letterSpacing = 4.sp,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Text(strings.shareAndEarn, fontSize = 13.sp, color = Color.White.copy(alpha = 0.7f), textAlign = TextAlign.Center)
@@ -232,7 +235,9 @@ private fun CouponCard(coupon: Coupon, onApply: () -> Unit) {
                         else "RM ${coupon.discountValue.formatDecimal(0)} OFF",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PrimaryBlue
+                        color = PrimaryBlue,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Box(
                         modifier = Modifier
@@ -275,7 +280,7 @@ private fun StatCard(title: String, value: String, modifier: Modifier = Modifier
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue)
+            Text(value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.height(4.dp))
             Text(title, fontSize = 13.sp, color = TextSecondary)
         }

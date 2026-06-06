@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Booking
@@ -164,7 +165,7 @@ fun OrderDetailScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(text = strings.pickup, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-                                    Text(text = pickupAddress, fontSize = 14.sp)
+                                    Text(text = pickupAddress, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 }
                             }
 
@@ -175,7 +176,7 @@ fun OrderDetailScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(text = strings.delivery, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.Medium)
-                                    Text(text = deliveryAddress, fontSize = 14.sp)
+                                    Text(text = deliveryAddress, fontSize = 14.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                 }
                             }
 
@@ -215,7 +216,7 @@ fun OrderDetailScreen(
                                 ) { Text("", fontSize = 28.sp) }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = driverName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(text = driverName, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                     Text(text = "$vehicleType • $vehicleNumber", fontSize = 13.sp, color = Color.Gray)
                                 }
                                 if (driverRating > 0) {

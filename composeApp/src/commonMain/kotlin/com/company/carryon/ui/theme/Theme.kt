@@ -1,10 +1,12 @@
 package com.company.carryon.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.i18n.getStringsForLanguage
 
@@ -99,11 +101,21 @@ fun CarryOnTheme(
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    CompositionLocalProvider(LocalStrings provides getStringsForLanguage(language)) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = AppTypography(),
-            content = content
-        )
+    BoxWithConstraints {
+        val widthClass = when {
+            maxWidth < 360.dp -> WindowWidthClass.Compact
+            maxWidth < 600.dp -> WindowWidthClass.Medium
+            else -> WindowWidthClass.Expanded
+        }
+        CompositionLocalProvider(
+            LocalStrings provides getStringsForLanguage(language),
+            LocalWindowWidthClass provides widthClass
+        ) {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = AppTypography(),
+                content = content
+            )
+        }
     }
 }

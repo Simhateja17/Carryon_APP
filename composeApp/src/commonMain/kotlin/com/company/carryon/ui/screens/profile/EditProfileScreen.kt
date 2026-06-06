@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.ellipse_4
@@ -127,7 +128,9 @@ fun EditProfileScreen(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         color = Color.Black,
                         fontSize = 42.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "CARRYON USER",
@@ -159,8 +162,7 @@ fun EditProfileScreen(
                         Text("Contact support to change email.", color = Color(0xB3666666), fontSize = 13.sp)
 
                         ProfileFieldLabel("PHONE NUMBER")
-                        LockedField(value = phone)
-                        Text("Contact support to change your verified phone number.", color = Color(0xB3666666), fontSize = 13.sp)
+                        EditableField(value = phone, onValueChange = { phone = it })
 
                         ProfileFieldLabel("CITY")
                         SelectField(value = city)
@@ -188,7 +190,7 @@ fun EditProfileScreen(
                             saveError = null
                             isLoading = true
                             scope.launch {
-                                UserApi.updateProfile(name = name, email = email)
+                                UserApi.updateProfile(name = name, email = email, phone = phone)
                                     .onSuccess {
                                         isLoading = false
                                         showSuccessDialog = true

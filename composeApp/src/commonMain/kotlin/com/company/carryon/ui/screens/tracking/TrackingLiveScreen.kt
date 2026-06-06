@@ -10,7 +10,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.*
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.NotificationsNone
+import com.company.carryon.util.telUriFor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,9 +39,11 @@ fun TrackingLiveScreen(
     bookingId: String,
     onBack: () -> Unit,
     onCallAgent: () -> Unit = {},
-    onChatWithDriver: (String, String) -> Unit = { _, _ -> }
+    onChatWithDriver: (String, String) -> Unit = { _, _ -> },
+    onDeliveryComplete: (String) -> Unit = {}
 ) {
     val strings = LocalStrings.current
+    val uriHandler = LocalUriHandler.current
     
     // Booking state
     var booking by remember { mutableStateOf<Booking?>(null) }
@@ -220,6 +225,13 @@ fun TrackingLiveScreen(
         }
     }
 
+    // Navigate to delivery complete screen when status becomes DELIVERED
+    LaunchedEffect(booking?.status) {
+        if (booking?.status == com.company.carryon.data.model.BookingStatus.DELIVERED) {
+            onDeliveryComplete(bookingId)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -305,7 +317,9 @@ fun TrackingLiveScreen(
                             strings.trackYourShipment,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -396,7 +410,9 @@ fun TrackingLiveScreen(
                                     trackingDisplay.title,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF90CAF9)
+                                    color = Color(0xFF90CAF9),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
@@ -410,15 +426,23 @@ fun TrackingLiveScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        val driverTelUri = telUriFor(currentBooking.driver?.phone)
+
                         // Call Delivery Agent button
                         Button(
-                            onClick = onCallAgent,
+                            onClick = {
+                                if (driverTelUri != null) {
+                                    uriHandler.openUri(driverTelUri)
+                                } else {
+                                    onCallAgent()
+                                }
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                            enabled = currentBooking.driver != null
+                            enabled = driverTelUri != null
                         ) {
                             Icon(imageVector = Icons.Outlined.Call, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(8.dp))

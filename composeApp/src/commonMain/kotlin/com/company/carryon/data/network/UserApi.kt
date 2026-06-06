@@ -13,7 +13,8 @@ import kotlinx.serialization.json.JsonObject
 @Serializable
 private data class UpdateProfileRequest(
     val name: String? = null,
-    val email: String? = null
+    val email: String? = null,
+    val phone: String? = null
 )
 
 @Serializable
@@ -28,10 +29,10 @@ object UserApi {
         response.data ?: throw Exception("User not found")
     }
 
-    suspend fun updateProfile(name: String, email: String): Result<User> = runCatching {
+    suspend fun updateProfile(name: String, email: String, phone: String = ""): Result<User> = runCatching {
         val response = client.put("/api/users/me") {
             contentType(ContentType.Application.Json)
-            setBody(UpdateProfileRequest(name = name, email = email))
+            setBody(UpdateProfileRequest(name = name, email = email, phone = phone))
         }.body<ApiResponse<User>>()
         response.data ?: throw Exception("Update failed")
     }

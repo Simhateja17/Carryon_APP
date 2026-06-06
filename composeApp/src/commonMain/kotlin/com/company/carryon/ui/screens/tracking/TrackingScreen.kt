@@ -15,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -28,6 +30,7 @@ import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
 import com.company.carryon.util.formatOrderDisplayId
+import com.company.carryon.util.telUriFor
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.RatingApi
 import com.company.carryon.data.model.Booking
@@ -79,6 +82,7 @@ fun TrackingScreen(
     var driverFoundEvent by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val uriHandler = LocalUriHandler.current
 
     // Initial load
     LaunchedEffect(bookingId) {
@@ -137,6 +141,7 @@ fun TrackingScreen(
 
     val driverName = booking?.driver?.name?.ifBlank { "—" } ?: "—"
     val driverRating = booking?.driver?.rating?.let { it.formatDecimal(1) } ?: "—"
+    val driverTelUri = telUriFor(booking?.driver?.phone)
     val etaMinutes = booking?.eta?.let { "$it min" } ?: strings.estimatedDelivery
     val vehicleType = booking?.vehicleType ?: "—"
     val displayOrderId = formatOrderDisplayId(bookingId, booking?.orderCode)
@@ -385,7 +390,9 @@ fun TrackingScreen(
                             Text(
                                 text = driverName,
                                 fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("⭐", fontSize = 14.sp)
@@ -402,10 +409,12 @@ fun TrackingScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(PrimaryBlueSurface, CircleShape)
-                                .clickable { },
+                                .clickable(enabled = driverTelUri != null) {
+                                    driverTelUri?.let(uriHandler::openUri)
+                                },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("", fontSize = 18.sp)
+                            Text("Call", fontSize = 11.sp, color = PrimaryBlue, fontWeight = FontWeight.Bold)
                         }
 
                         Spacer(modifier = Modifier.width(8.dp))

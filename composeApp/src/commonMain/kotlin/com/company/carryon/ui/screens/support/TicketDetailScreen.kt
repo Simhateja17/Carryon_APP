@@ -13,11 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.SupportTicket
 import com.company.carryon.data.model.TicketMessage
+import com.company.carryon.data.network.RealtimeSupportService
 import com.company.carryon.data.network.SupportApi
+import com.company.carryon.ui.components.rememberRealtimeMessaging
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import kotlinx.coroutines.launch
@@ -32,22 +35,20 @@ fun TicketDetailScreen(
     val scope = rememberCoroutineScope()
     var ticket by remember { mutableStateOf<SupportTicket?>(null) }
     var replyText by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(true) }
-    val listState = rememberLazyListState()
 
-    LaunchedEffect(ticketId) {
-        SupportApi.getTicket(ticketId).onSuccess { resp ->
-            ticket = resp.data
-        }
-        isLoading = false
-    }
-
-    LaunchedEffect(ticket?.messages?.size) {
-        val msgs = ticket?.messages ?: emptyList()
-        if (msgs.isNotEmpty()) {
-            listState.animateScrollToItem(msgs.size - 1)
-        }
-    }
+    // Shared realtime lifecycle: load → subscribe → signal → refresh → scroll
+    val messaging = rememberRealtimeMessaging<TicketMessage>(
+        entityId = ticketId,
+        signalFlow = RealtimeSupportService.ticketSignal,
+        startListening = { id, s -> RealtimeSupportService.startListening(id, s) },
+        stopListening = { RealtimeSupportService.stopListening() },
+        load = { id ->
+            SupportApi.getTicket(id).onSuccess { resp -> ticket = resp.data }
+            ticket?.messages ?: emptyList()
+        },
+    )
+    val isLoading = messaging.isLoading
+    val listState = messaging.listState
 
     Scaffold(
         topBar = {
@@ -67,18 +68,6 @@ fun TicketDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
                         Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        if (ticket?.status != "CLOSED") {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            TextButton(onClick = {
-                                scope.launch {
-                                    SupportApi.closeTicket(ticketId).onSuccess {
-                                        ticket = ticket?.copy(status = "CLOSED")
-                                    }
-                                }
-                            }) {
-                                Text(strings.closeTicket, color = ErrorRed, fontSize = 13.sp)
-                            }
-                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)

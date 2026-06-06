@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
@@ -230,7 +231,7 @@ fun BookingScreen(
             modifier = Modifier.fillMaxSize().padding(paddingValues).background(BackgroundLight)
         ) {
             // Interactive Map with route and isoline
-            Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+            Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
                 MapViewComposable(
                     modifier = Modifier.fillMaxSize(),
                     styleUrl = mapConfig.styleUrl,
@@ -310,7 +311,7 @@ fun BookingScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text("Pickup", fontSize = 12.sp, color = TextSecondary)
-                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                                Text(pickupAddress.ifBlank { "Pickup Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             }
                         }
                         Box(modifier = Modifier.padding(start = 4.dp).width(2.dp).height(20.dp).background(Color.LightGray))
@@ -319,7 +320,7 @@ fun BookingScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text("Delivery", fontSize = 12.sp, color = TextSecondary)
-                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary)
+                                Text(deliveryAddress.ifBlank { "Delivery Location" }, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }

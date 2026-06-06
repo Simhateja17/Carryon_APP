@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Address
@@ -208,7 +209,7 @@ fun AddAddressScreen(
                             ) {
                                 Text("", color = Color(0xFF111111), fontSize = 22.sp)
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text(address.address.ifBlank { "Unnamed address" }, color = Color(0xFF111111), fontSize = 14.sp)
+                                Text(address.address.ifBlank { "Unnamed address" }, color = Color(0xFF111111), fontSize = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                         }

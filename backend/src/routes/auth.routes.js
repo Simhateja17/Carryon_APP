@@ -6,6 +6,15 @@ const { AppError } = require('../middleware/errorHandler');
 const { OTP_LENGTH, isValidOtp, normalizeOtp } = require('../lib/otp');
 const { getSupabaseAdmin } = require('../lib/supabase');
 const { maskEmail } = require('../lib/maskEmail');
+const {
+  normalizeEmail,
+  normalizePhone,
+  maskPhone,
+  resolveUniqueByPhone,
+  assertUniquePhone,
+  sendSmsOtp,
+  verifySmsOtp,
+} = require('../services/authOtp');
 
 const router = Router();
 
@@ -32,13 +41,22 @@ function getSupabaseAuthClient() {
   return _supabaseAuthClient;
 }
 
-// POST /api/auth/send-otp — Send OTP via Supabase Auth
-router.post('/send-otp', async (req, res, next) => {
-  const { email, mode = 'login' } = req.body;
+function phoneOnlyEmail(phone) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return '';
+  return `phone-${normalized.slice(1)}@phone.carryon.local`;
+}
 
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+// POST /api/auth/send-otp — Send OTP via Supabase Auth SMS provider
+router.post('/send-otp', async (req, res, next) => {
+  const { mode = 'login' } = req.body;
+  let email = normalizeEmail(req.body.email);
+  const requestedPhone = normalizePhone(req.body.phone);
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     console.error('[auth] send-otp failed: invalid email payload', {
-      emailProvided: !!email,
+      rawEmail: req.body.email,
+      normalizedEmail: email,
       mode,
       path: req.originalUrl,
       ip: req.ip,
@@ -47,47 +65,42 @@ router.post('/send-otp', async (req, res, next) => {
   }
 
   try {
-    console.log(`[auth] send-otp request for ${maskEmail(email)} (mode=${mode})`);
+    console.log(`[auth] send-otp request for ${email ? maskEmail(email) : maskPhone(requestedPhone)} (mode=${mode})`);
+    let phone = requestedPhone;
 
     // Mode-based guards
     if (mode === 'login') {
-      const existingUser = await prisma.user.findUnique({ where: { email } });
+      const existingUser = email
+        ? await prisma.user.findUnique({ where: { email } })
+        : await resolveUniqueByPhone({ prisma, model: 'user', phone });
       if (!existingUser) {
-        console.error(`[auth] send-otp blocked: login requested for unknown user ${maskEmail(email)}`);
-        return next(new AppError('No account found with this email. Please sign up.', 400));
+        console.error(`[auth] send-otp blocked: login requested for unknown user ${email ? maskEmail(email) : maskPhone(phone)}`);
+        return next(new AppError('No account found with this phone number. Please sign up.', 400));
+      }
+      email = existingUser.email;
+      phone = normalizePhone(existingUser.phone);
+      if (!phone) {
+        return next(new AppError('This account does not have a valid phone number. Please contact support.', 400));
       }
     } else if (mode === 'signup') {
+      if (!phone) {
+        return next(new AppError('A valid phone number is required.', 400));
+      }
+      if (!email) email = phoneOnlyEmail(phone);
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) {
         console.error(`[auth] send-otp blocked: signup requested for existing user ${maskEmail(email)}`);
-        return next(new AppError('An account with this email already exists. Please log in.', 400));
+        return next(new AppError('An account with this phone number already exists. Please log in.', 400));
       }
+      await assertUniquePhone({ prisma, model: 'user', phone });
+    } else {
+      return next(new AppError('Invalid OTP mode.', 400));
     }
 
-    // Send OTP via Supabase Auth
-    // Always allow Supabase to create the auth user if it doesn't exist — the Prisma
-    // mode guard above already enforces login/signup logic. Without this, Supabase
-    // silently skips sending the OTP when the user exists in Prisma but not in Supabase Auth.
-    const { error } = await getSupabaseAdmin().auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-      },
-    });
+    const sent = await sendSmsOtp(phone);
 
-    if (error) {
-      console.error('[auth] send-otp failed: Supabase signInWithOtp error', {
-        email: maskEmail(email),
-        mode,
-        message: error.message,
-        status: error.status ?? null,
-        code: error.code ?? null,
-      });
-      return next(new AppError('Failed to send verification code. Please try again.', 500));
-    }
-
-    console.log(`[auth] OTP sent to ${maskEmail(email)} via Supabase`);
-    res.json({ success: true, message: 'OTP sent successfully.' });
+    console.log(`[auth] OTP sent to ${email ? maskEmail(email) : 'phone-only account'} via SMS ${sent.maskedPhone}`);
+    res.json({ success: true, message: 'OTP sent successfully.', maskedPhone: sent.maskedPhone });
   } catch (err) {
     console.error('[auth] send-otp failed: unexpected error', {
       email: maskEmail(email),
@@ -99,19 +112,25 @@ router.post('/send-otp', async (req, res, next) => {
   }
 });
 
-// POST /api/auth/verify-otp — Verify OTP via Supabase Auth
+// POST /api/auth/verify-otp — Verify OTP via Supabase Auth SMS provider
 router.post('/verify-otp', async (req, res, next) => {
-  const { email, otp, mode = 'login', name = '' } = req.body;
+  const { otp, mode = 'login', name = '' } = req.body;
+  let email = normalizeEmail(req.body.email);
+  const requestedPhone = normalizePhone(req.body.phone);
 
-  if (!email || !otp) {
+  if (!otp) {
     console.error('[auth] verify-otp failed: missing required fields', {
       emailProvided: !!email,
+      phoneProvided: !!requestedPhone,
       otpProvided: !!otp,
       mode,
       path: req.originalUrl,
       ip: req.ip,
     });
-    return next(new AppError('Email and OTP are required.', 400));
+    return next(new AppError('Phone number and OTP are required.', 400));
+  }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return next(new AppError('A valid email address is required.', 400));
   }
   if (!isValidOtp(otp)) {
     return next(new AppError(`OTP must be ${OTP_LENGTH} digits.`, 400));
@@ -120,58 +139,55 @@ router.post('/verify-otp', async (req, res, next) => {
   try {
     console.log(`[auth] verify-otp request for ${maskEmail(email)} (mode=${mode})`);
     const normalizedOtp = normalizeOtp(otp);
+    let phone = requestedPhone;
 
-    // Verify OTP with Supabase
-    const { data, error } = await getSupabaseAdmin().auth.verifyOtp({
-      email,
-      token: normalizedOtp,
-      type: 'email',
-    });
-
-    if (error) {
-      console.error('[auth] verify-otp failed: Supabase verify error', {
-        email: maskEmail(email),
-        mode,
-        message: error.message,
-        status: error.status ?? null,
-        code: error.code ?? null,
-      });
-      return next(new AppError('Incorrect or expired code. Please try again.', 400));
+    if (mode === 'login') {
+      const existingUser = email
+        ? await prisma.user.findUnique({ where: { email } })
+        : await resolveUniqueByPhone({ prisma, model: 'user', phone });
+      if (!existingUser) {
+        return next(new AppError('No account found with this phone number. Please sign up.', 400));
+      }
+      email = existingUser.email;
+      phone = normalizePhone(existingUser.phone);
+    } else if (mode === 'signup') {
+      if (!phone) {
+        return next(new AppError('A valid phone number is required.', 400));
+      }
+      if (!email) email = phoneOnlyEmail(phone);
+      await assertUniquePhone({ prisma, model: 'user', phone, excludingEmail: email });
+    } else {
+      return next(new AppError('Invalid OTP mode.', 400));
     }
 
-    // Get the Supabase session tokens
-    const token = data.session?.access_token;
-    const refreshToken = data.session?.refresh_token;
-    const expiresIn = data.session?.expires_in;
-    if (!token || !refreshToken || !expiresIn) {
-      console.error('[auth] verify-otp failed: missing session tokens in Supabase response', {
-        email: maskEmail(email),
-        mode,
-        hasSession: !!data.session,
-        hasUser: !!data.user,
-        hasAccessToken: !!token,
-        hasRefreshToken: !!refreshToken,
-        hasExpiresIn: expiresIn != null,
-      });
-      return next(new AppError('Verification failed. Please try again.', 500));
-    }
+    const { token, refreshToken, expiresIn } = await verifySmsOtp({ phone, otp: normalizedOtp });
 
     // Create or find user in Prisma
     let user = await prisma.user.findUnique({ where: { email } });
     const isNewUser = !user;
+    if (isNewUser) {
+      await assertUniquePhone({ prisma, model: 'user', phone, excludingEmail: email });
+    }
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email, name, isVerified: true },
+        data: { email, name, phone, isVerified: true },
       });
       // Create wallet for new user
       await prisma.wallet.create({ data: { userId: user.id } });
     } else {
-      await prisma.user.update({ where: { email }, data: { isVerified: true, ...(name ? { name } : {}) } });
+      await prisma.user.update({
+        where: { email },
+        data: {
+          isVerified: true,
+          ...(name ? { name } : {}),
+          ...(phone ? { phone } : {}),
+        },
+      });
       user = await prisma.user.findUnique({ where: { email } });
     }
 
-    console.log(`[auth] OTP verified for ${maskEmail(email)} (mode=${mode})`);
+    console.log(`[auth] OTP verified for ${maskEmail(email)} via SMS ${maskPhone(phone)} (mode=${mode})`);
     res.json({
       success: true,
       message: 'OTP verified successfully.',
@@ -282,7 +298,7 @@ router.post('/logout', authenticateToken, async (req, res, next) => {
 router.post('/sync', authenticateToken, async (req, res, next) => {
   try {
     const { email } = req.user;
-    const { name = '' } = req.body;
+    const { name = '', phone = '' } = req.body;
     console.log('[auth] POST sync — email:', maskEmail(email));
 
     let user = await prisma.user.findUnique({ where: { email } });
@@ -290,7 +306,7 @@ router.post('/sync', authenticateToken, async (req, res, next) => {
 
     if (!user) {
       user = await prisma.user.create({
-        data: { email, name, isVerified: true },
+        data: { email, name, phone, isVerified: true },
       });
       await prisma.wallet.create({ data: { userId: user.id } });
       console.log('[auth] sync — created new user id:', user.id);

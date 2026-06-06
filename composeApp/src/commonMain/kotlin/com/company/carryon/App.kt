@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import carryon.composeapp.generated.resources.Res
@@ -46,6 +48,7 @@ import com.company.carryon.ui.screens.booking.SenderReceiverScreen
 import com.company.carryon.ui.screens.booking.PaymentScreen
 import com.company.carryon.ui.screens.booking.PaymentSuccessScreen
 import com.company.carryon.ui.screens.booking.SearchingDriverScreen
+import com.company.carryon.ui.screens.tracking.DeliveryCompleteScreen
 import com.company.carryon.ui.screens.tracking.DriverApproachingScreen
 import com.company.carryon.ui.screens.home.SelectAddressScreen
 import com.company.carryon.ui.screens.booking.DetailsScreen
@@ -99,8 +102,8 @@ sealed class AppScreen {
     data object Splash : AppScreen()
     data object Welcome : AppScreen()
     data object Login : AppScreen()
-    data class Register(val email: String = "") : AppScreen()
-    data class Otp(val email: String, val mode: String = "login", val name: String = "") : AppScreen()
+    data class Register(val phone: String = "") : AppScreen()
+    data class Otp(val phone: String, val mode: String = "login", val name: String = "") : AppScreen()
     data object Home : AppScreen()
     data object Profile : AppScreen()
     data object Calculate : AppScreen()
@@ -192,6 +195,7 @@ sealed class AppScreen {
     data class Promo(val referralCode: String = "") : AppScreen()
     data object InvoiceHub : AppScreen()
     data class Invoice(val bookingId: String) : AppScreen()
+    data class DeliveryComplete(val bookingId: String) : AppScreen()
 }
 
 enum class AppScreenDestination {
@@ -221,7 +225,8 @@ private fun PendingPushNavigation.toAppScreen(): AppScreen? {
     return when (type.uppercase()) {
         "DRIVER_ASSIGNED" -> AppScreen.SearchingDriver(bookingId)
         "DRIVER_ARRIVED" -> AppScreen.DriverApproaching(bookingId)
-        "PICKUP_DONE", "IN_TRANSIT", "DELIVERED", "CANCELLED", "DELIVERY_OTP_REQUESTED" ->
+        "DELIVERED" -> AppScreen.DeliveryComplete(bookingId)
+        "PICKUP_DONE", "IN_TRANSIT", "CANCELLED", "DELIVERY_OTP_REQUESTED" ->
             AppScreen.TrackOrder(bookingId)
         else -> AppScreen.TrackOrder(bookingId)
     }
@@ -300,7 +305,8 @@ fun App() {
         currentScreen !is AppScreen.AddMoney &&
         currentScreen !is AppScreen.SendMoney &&
         currentScreen !is AppScreen.AddPaymentMethod &&
-        currentScreen !is AppScreen.Transactions
+        currentScreen !is AppScreen.Transactions &&
+        currentScreen !is AppScreen.DeliveryComplete
 
     val selectedTab = when (currentScreen) {
         is AppScreen.Home, is AppScreen.SelectAddress, is AppScreen.ReadyToBook,
@@ -309,7 +315,8 @@ fun App() {
         is AppScreen.TrackingLive, is AppScreen.PackageDetails, is AppScreen.ActiveShipment,
         is AppScreen.DeliveryDetails, is AppScreen.Booking, is AppScreen.SenderReceiver,
         is AppScreen.BookingPayment, is AppScreen.SearchingDriver,
-        is AppScreen.DriverApproaching -> 1
+        is AppScreen.DriverApproaching,
+        is AppScreen.DeliveryComplete -> 1
         is AppScreen.Wallet, is AppScreen.Invoice, is AppScreen.InvoiceHub -> 2
         is AppScreen.AddMoney -> 2
         is AppScreen.SendMoney -> 2
@@ -358,29 +365,25 @@ fun App() {
             }
             is AppScreen.Login -> {
                 LoginScreen(
-                    onNavigateToOtp = { email -> currentScreen = AppScreen.Otp(email) },
-                    onNavigateToRegister = { currentScreen = AppScreen.Register() },
-                    onGoogleSignInSuccess = {
-                        AuthStateManager.setLoggedIn(true)
-                        scope.launch { UserApi.updateLanguage(currentLanguage) }
-                        currentScreen = AppScreen.Home
-                    }
+                    onNavigateToOtp = { phone -> currentScreen = AppScreen.Otp(phone) },
+                    onNavigateToRegister = { currentScreen = AppScreen.Register() }
                 )
             }
             is AppScreen.Register -> {
                 RegisterScreen(
-                    phone = screen.email,
-                    onRegisterSuccess = { currentScreen = AppScreen.Otp(screen.email) },
-                    onNavigateToOtp = { email, name ->
-                        currentScreen = AppScreen.Otp(email, mode = "signup", name = name)
+                    phone = screen.phone,
+                    onRegisterSuccess = { currentScreen = AppScreen.Otp(screen.phone) },
+                    onNavigateToOtp = { phone, name ->
+                        currentScreen = AppScreen.Otp(phone, mode = "signup", name = name)
                     }
                 )
             }
             is AppScreen.Otp -> {
                 OtpScreen(
-                    email = screen.email,
+                    phoneNumber = screen.phone,
                     mode = screen.mode,
                     name = screen.name,
+                    phone = screen.phone,
                     onVerifySuccess = {
                         AuthStateManager.setLoggedIn(true)
                         scope.launch { UserApi.updateLanguage(currentLanguage) }
@@ -423,6 +426,7 @@ fun App() {
                         scope.launch { AuthStateManager.logout() }
                         currentScreen = AppScreen.Welcome
                     },
+                    onDeleteAccount = { currentScreen = AppScreen.Welcome },
                     onBack = { currentScreen = AppScreen.Home }
                 )
             }
@@ -477,7 +481,8 @@ fun App() {
                 PrivacySecurityScreen(
                     onBack = { currentScreen = AppScreen.Profile },
                     onChangePassword = { currentScreen = AppScreen.ChangePassword },
-                    onLoggedInDevices = { currentScreen = AppScreen.LoggedInDevices }
+                    onLoggedInDevices = { currentScreen = AppScreen.LoggedInDevices },
+                    onDeleteAccount = { currentScreen = AppScreen.Welcome }
                 )
             }
             is AppScreen.ChangePassword -> {
@@ -513,6 +518,9 @@ fun App() {
                     onChatWithDriver = { bookingId, driverName ->
                         previousScreenBeforeChat = currentScreen
                         currentScreen = AppScreen.Chat(bookingId, driverName)
+                    },
+                    onDeliveryComplete = { bookingId ->
+                        currentScreen = AppScreen.DeliveryComplete(bookingId)
                     }
                 )
             }
@@ -523,6 +531,9 @@ fun App() {
                     onChatWithDriver = { bookingId, driverName ->
                         previousScreenBeforeChat = currentScreen
                         currentScreen = AppScreen.Chat(bookingId, driverName)
+                    },
+                    onDeliveryComplete = { bookingId ->
+                        currentScreen = AppScreen.DeliveryComplete(bookingId)
                     }
                 )
             }
@@ -851,6 +862,7 @@ fun App() {
                     onTicketClick = { ticketId ->
                         currentScreen = when (ticketId) {
                             "chat" -> AppScreen.SupportChat
+                            "select_order" -> AppScreen.SupportChat
                             "call" -> AppScreen.SupportCall
                             "report_issue" -> AppScreen.ReportIssue
                             else -> AppScreen.TicketDetail(ticketId)
@@ -860,7 +872,8 @@ fun App() {
             }
             is AppScreen.SupportChat -> {
                 SupportChatScreen(
-                    onBack = { currentScreen = AppScreen.Support }
+                    onBack = { currentScreen = AppScreen.Support },
+                    onTicketCreated = { ticketId -> currentScreen = AppScreen.TicketDetail(ticketId) }
                 )
             }
             is AppScreen.SupportCall -> {
@@ -892,6 +905,16 @@ fun App() {
                 InvoiceScreen(
                     bookingId = screen.bookingId,
                     onBack = { currentScreen = AppScreen.Orders }
+                )
+            }
+            is AppScreen.DeliveryComplete -> {
+                DeliveryCompleteScreen(
+                    bookingId = screen.bookingId,
+                    onBackToHome = { currentScreen = AppScreen.Home },
+                    onRateDriver = { driverName ->
+                        currentScreen = AppScreen.DriverRating(driverName, screen.bookingId)
+                    },
+                    onViewReceipt = { currentScreen = AppScreen.Invoice(screen.bookingId) }
                 )
             }
         }
@@ -957,7 +980,7 @@ private fun AppBottomBar(
                             shape = CircleShape,
                             color = PrimaryBlue,
                             shadowElevation = 6.dp,
-                            modifier = Modifier.size(64.dp)
+                            modifier = Modifier.size(56.dp)
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -972,7 +995,7 @@ private fun AppBottomBar(
                                     contentScale = ContentScale.Fit
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text(label, color = Color.White, style = MaterialTheme.typography.labelSmall)
+                                Text(label, color = Color.White, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                             }
                         }
                     } else {
@@ -987,7 +1010,10 @@ private fun AppBottomBar(
                         Text(
                             label,
                             color = PrimaryBlue,
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }

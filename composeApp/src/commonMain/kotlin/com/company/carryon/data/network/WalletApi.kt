@@ -21,7 +21,15 @@ data class PaymentConfig(
     val currency: String = "myr",
     val country: String = "MY",
     val walletTopUpMin: Double = 10.0,
-    val walletTopUpMax: Double = 1000.0
+    val walletTopUpMax: Double = 1000.0,
+    val customPaymentMethods: List<CustomPaymentMethodConfig> = emptyList()
+)
+
+@Serializable
+data class CustomPaymentMethodConfig(
+    val id: String = "",
+    val label: String = "",
+    val subtitle: String = ""
 )
 
 @Serializable
