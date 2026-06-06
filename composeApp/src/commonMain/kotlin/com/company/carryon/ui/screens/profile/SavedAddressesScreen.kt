@@ -145,7 +145,7 @@ fun SavedAddressesScreen(
                         .height(58.dp)
                         .shadow(10.dp, RoundedCornerShape(20.dp), clip = false),
                     shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094))
                 ) {
                     Text(
                         text = strings.addNewAddress,

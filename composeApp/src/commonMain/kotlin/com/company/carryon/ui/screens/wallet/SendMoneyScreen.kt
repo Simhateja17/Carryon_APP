@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -90,14 +89,13 @@ fun SendMoneyScreen(
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                com.company.carryon.ui.components.CarryOnWordmark()
             }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        Text("TRANSACTION PORTAL", color = Color(0xFF2F5EA8), fontSize = 10.sp, letterSpacing = 1.sp)
+        Text("TRANSACTION PORTAL", color = Color(0xFF034094), fontSize = 10.sp, letterSpacing = 1.sp)
         Text("Send money to", color = Color(0xFF0F172A), fontSize = 50.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text("anywhere.", color = PrimaryBlue, fontSize = 50.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
 
@@ -187,7 +185,7 @@ fun SendMoneyScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.horizontalGradient(listOf(Color(0xFF2E74D8), Color(0xFF3E87ED))),
+                    Color(0xFF034094),
                     RoundedCornerShape(18.dp)
                 )
                 .padding(16.dp)

@@ -44,11 +44,10 @@ fun SupportCallScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("‹", color = PrimaryBlue, fontSize = 28.sp, modifier = Modifier.clickable { onBack() })
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text("Contact Support", color = Color(0xFF1D4ED8), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Contact Support", color = Color(0xFF034094), fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        com.company.carryon.ui.components.CarryOnWordmark()
                     }
                 }
                 Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0x1A000000)))

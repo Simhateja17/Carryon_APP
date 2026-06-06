@@ -252,10 +252,10 @@ private fun SecurityTab(icon: String, label: String, selected: Boolean) {
             .padding(horizontal = 12.dp, vertical = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(icon, color = if (selected) Color(0xFF1D4ED8) else Color(0xFF64748B), fontSize = 16.sp)
+        Text(icon, color = if (selected) Color(0xFF034094) else Color(0xFF64748B), fontSize = 16.sp)
         Text(
             text = label,
-            color = if (selected) Color(0xFF1D4ED8) else Color(0xFF64748B),
+            color = if (selected) Color(0xFF034094) else Color(0xFF64748B),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold
         )

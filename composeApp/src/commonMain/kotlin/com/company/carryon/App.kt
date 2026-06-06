@@ -1,6 +1,7 @@
 package com.company.carryon
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -214,6 +215,41 @@ fun AppScreen.contentDestination(): AppScreenDestination =
         else -> AppScreenDestination.Other
     }
 
+private fun AppScreen.backgroundColor(): Color =
+    when (this) {
+        is AppScreen.Profile,
+        is AppScreen.EditProfile,
+        is AppScreen.PrivacySecurity,
+        is AppScreen.ChangePassword,
+        is AppScreen.LoggedInDevices,
+        is AppScreen.Wallet,
+        is AppScreen.AddMoney,
+        is AppScreen.SendMoney,
+        is AppScreen.AddPaymentMethod,
+        is AppScreen.Transactions,
+        is AppScreen.DeliveryReceipts,
+        is AppScreen.Support,
+        is AppScreen.SupportChat -> Color(0xFFF5F6F8)
+
+        is AppScreen.Settings,
+        is AppScreen.LanguageSettings,
+        is AppScreen.DefaultVehicle,
+        is AppScreen.ClearCache,
+        is AppScreen.SavedAddresses,
+        is AppScreen.AddAddress -> Color(0xFFF3F4F6)
+
+        is AppScreen.SupportCall,
+        is AppScreen.ReportIssue -> Color(0xFFF7F7F8)
+
+        is AppScreen.InvoiceHub -> Color(0xFFF7F9FC)
+        is AppScreen.Orders -> Color(0xFFF8F8FA)
+        is AppScreen.Home,
+        is AppScreen.TrackShipment,
+        is AppScreen.TrackOrder -> Color(0xFFF8F9FA)
+
+        else -> Color.White
+    }
+
 private fun PendingPushNavigation.toAppScreen(): AppScreen? {
     toDeepLinkTarget()?.let { target ->
         return when (target) {
@@ -331,8 +367,10 @@ fun App() {
     }
 
     CarryOnTheme(language = currentLanguage) {
+        val screenBackground = currentScreen.backgroundColor()
+
         Scaffold(
-            containerColor = Color.White,
+            containerColor = screenBackground,
             bottomBar = {
                 if (showBottomBar) {
                     AppBottomBar(
@@ -345,7 +383,12 @@ fun App() {
                 }
             }
         ) { scaffoldPadding ->
-        Box(modifier = Modifier.padding(scaffoldPadding)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(screenBackground)
+                .padding(scaffoldPadding)
+        ) {
         when (val screen = currentScreen) {
             is AppScreen.Splash -> {
                 SplashScreen(
@@ -366,6 +409,7 @@ fun App() {
             is AppScreen.Login -> {
                 LoginScreen(
                     onNavigateToOtp = { phone -> currentScreen = AppScreen.Otp(phone) },
+                    onBack = { currentScreen = AppScreen.Welcome },
                     onNavigateToRegister = { currentScreen = AppScreen.Register() }
                 )
             }
@@ -373,6 +417,7 @@ fun App() {
                 RegisterScreen(
                     phone = screen.phone,
                     onRegisterSuccess = { currentScreen = AppScreen.Otp(screen.phone) },
+                    onBack = { currentScreen = AppScreen.Welcome },
                     onNavigateToOtp = { phone, name ->
                         currentScreen = AppScreen.Otp(phone, mode = "signup", name = name)
                     }

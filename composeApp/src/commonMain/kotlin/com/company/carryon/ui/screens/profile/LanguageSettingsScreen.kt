@@ -64,8 +64,7 @@ fun LanguageSettingsScreen(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    com.company.carryon.ui.components.CarryOnWordmark()
                 }
             }
 

@@ -374,8 +374,7 @@ private fun SupportBotHeader(onBack: () -> Unit) {
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                com.company.carryon.ui.components.CarryOnWordmark()
             }
         }
         Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE7E7EE)))

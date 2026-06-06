@@ -51,7 +51,7 @@ actual fun ContactPickerButton(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF2F80ED), RoundedCornerShape(12.dp))
+            .background(Color(0xFF034094), RoundedCornerShape(12.dp))
             .clickable {
                 val hasPermission = ContextCompat.checkSelfPermission(
                     context, Manifest.permission.READ_CONTACTS

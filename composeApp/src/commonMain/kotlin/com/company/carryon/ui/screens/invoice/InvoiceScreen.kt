@@ -88,7 +88,7 @@ fun InvoiceScreen(
                             Column(modifier = Modifier.padding(20.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Column {
-                                        Text("CarryOn", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        com.company.carryon.ui.components.CarryOnWordmark(fontSize = 22.sp)
                                         Text(detail.company.name, fontSize = 12.sp, color = TextSecondary)
                                     }
                                     Column(horizontalAlignment = Alignment.End) {

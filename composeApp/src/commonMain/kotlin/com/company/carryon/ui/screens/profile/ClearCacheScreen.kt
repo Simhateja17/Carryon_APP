@@ -112,7 +112,7 @@ private fun StorageOverviewCard() {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "MB",
-                color = Color(0x992F80ED),
+                color = Color(0x99034094),
                 fontSize = 30.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -139,7 +139,7 @@ private fun StorageOverviewCard() {
                 modifier = Modifier
                     .weight(0.33f)
                     .fillMaxHeight()
-                    .background(Color(0xFF7B9CFF))
+                    .background(Color(0xFF034094))
             )
             Box(
                 modifier = Modifier

@@ -272,8 +272,7 @@ fun RequestForRideScreen(
             TopAppBar(
                 title = {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        com.company.carryon.ui.components.CarryOnWordmark()
                     }
                 },
                 actions = {

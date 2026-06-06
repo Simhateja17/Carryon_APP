@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -145,7 +144,7 @@ fun InvoiceHubScreen(
             item {
                 Text(
                     "Invoices &\nStatements",
-                    color = Color(0xFF3A7BC8),
+                    color = Color(0xFF034094),
                     fontSize = 36.sp,
                     lineHeight = 42.sp,
                     fontWeight = FontWeight.SemiBold
@@ -170,13 +169,13 @@ fun InvoiceHubScreen(
                 ) {
                     Text("Invoice Total", color = Color(0xFF334155), fontSize = 10.sp)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF3A7BC8), fontSize = 26.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF034094), fontSize = 26.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(10.dp))
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                Brush.horizontalGradient(listOf(Color(0xFF3B82F6), Color(0xFF2F80ED))),
+                                Color(0xFF034094),
                                 RoundedCornerShape(8.dp)
                             )
                             .padding(10.dp)
@@ -244,7 +243,7 @@ fun InvoiceHubScreen(
                 ) {
                     Text(
                         if (invoices.isEmpty()) "Monthly Summary" else "Invoice Summary",
-                        color = Color(0xFF4C86C8),
+                        color = Color(0xFF034094),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
@@ -253,7 +252,7 @@ fun InvoiceHubScreen(
                     )
                     Text(
                         latestInvoice?.issuedAt?.let { "${formatInvoiceMonth(it)}\nStatement" } ?: "No invoices\nyet",
-                        color = Color(0xFF3A7BC8),
+                        color = Color(0xFF034094),
                         fontSize = 28.sp,
                         lineHeight = 30.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -270,7 +269,7 @@ fun InvoiceHubScreen(
                     Text("Total Amount", color = Color(0xFF334155), fontSize = 10.sp)
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column {
-                            Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF2F80ED), fontSize = 34.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text("RM ${totalAmount.formatDecimal(2)}", color = Color(0xFF034094), fontSize = 34.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             if (downloadError != null) {
                                 Text(downloadError!!, color = Color(0xFFEF4444), fontSize = 10.sp)
                             }
@@ -279,7 +278,7 @@ fun InvoiceHubScreen(
                             onClick = { downloadStatement() },
                             enabled = !isDownloading,
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094))
                         ) {
                             if (isDownloading) {
                                 CircularProgressIndicator(color = Color.White, modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
@@ -429,11 +428,11 @@ private fun InvoiceHistoryRow(item: InvoiceItem, onDownload: () -> Unit) {
             Text(item.title, color = Color(0xFF334155), fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(item.subtitle, color = Color(0xFF64748B), fontSize = 10.sp)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(item.amount, color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(item.amount, color = Color(0xFF034094), fontSize = 20.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Text(
             text = "⇩",
-            color = Color(0xFF3B82F6),
+            color = Color(0xFF034094),
             fontSize = 14.sp,
             modifier = Modifier
                 .clickable(onClick = onDownload)

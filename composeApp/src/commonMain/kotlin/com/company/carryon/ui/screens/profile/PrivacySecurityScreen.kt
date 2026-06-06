@@ -308,7 +308,7 @@ private fun ToggleRow(
             modifier = Modifier
                 .width(44.dp)
                 .height(24.dp)
-                .background(if (checked) Color(0xFF2F80ED) else Color(0xFFA6D2F3), RoundedCornerShape(999.dp))
+                .background(if (checked) Color(0xFF034094) else Color(0xFFA6D2F3), RoundedCornerShape(999.dp))
         ) {
             Box(
                 modifier = Modifier

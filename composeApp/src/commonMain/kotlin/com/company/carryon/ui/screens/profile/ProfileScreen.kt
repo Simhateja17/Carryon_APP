@@ -156,10 +156,13 @@ fun ProfileScreen(
 
             Text(
                 text = displayName,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
                 color = Color(0xFF111827),
-                fontSize = 44.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.SemiBold,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -338,8 +341,8 @@ private fun StatCard(
                 spotColor = Color(0x0D000000)
             )
             .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Box(
             modifier = Modifier
@@ -358,10 +361,12 @@ private fun StatCard(
         Text(
             label,
             color = Color.Black,
-            fontSize = 12.sp,
-            letterSpacing = 0.6.sp,
-            lineHeight = 16.sp,
-            fontWeight = FontWeight.Normal
+            fontSize = 11.sp,
+            letterSpacing = 0.3.sp,
+            lineHeight = 14.sp,
+            fontWeight = FontWeight.Normal,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

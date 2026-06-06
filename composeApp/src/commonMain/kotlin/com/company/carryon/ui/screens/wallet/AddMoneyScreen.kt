@@ -77,8 +77,7 @@ fun AddMoneyScreen(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Payment", color = Color(0xFF1F2937), fontSize = 21.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.weight(1f))
-            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+            com.company.carryon.ui.components.CarryOnWordmark()
         }
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -134,7 +133,7 @@ fun AddMoneyScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("RM", color = Color(0xFF8BB1E7), fontSize = 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("RM", color = Color(0xFF034094), fontSize = 36.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(amount.toString(), color = PrimaryBlue, fontSize = 46.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }

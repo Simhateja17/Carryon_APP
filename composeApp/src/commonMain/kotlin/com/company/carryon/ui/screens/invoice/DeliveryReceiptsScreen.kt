@@ -34,7 +34,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -178,7 +177,7 @@ private fun SpendingCard(totalAmount: Double) {
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                brush = Brush.horizontalGradient(listOf(Color(0xFF2F80ED), Color(0xFF4D8BEA))),
+                color = Color(0xFF034094),
                 shape = RoundedCornerShape(32.dp)
             )
             .padding(24.dp)

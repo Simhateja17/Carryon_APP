@@ -81,8 +81,7 @@ fun AddAddressScreen(
                     Text("Add Address", color = Color(0xFF1D254B), fontSize = 28.sp, fontWeight = FontWeight.Medium)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    com.company.carryon.ui.components.CarryOnWordmark()
                 }
             }
 
@@ -106,7 +105,7 @@ fun AddAddressScreen(
                     Box(
                         modifier = Modifier
                             .size(44.dp)
-                            .background(Color(0xFF2F80ED), RoundedCornerShape(16.dp)),
+                            .background(Color(0xFF034094), RoundedCornerShape(16.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text("⌖", color = Color.White, fontSize = 22.sp)
@@ -172,7 +171,7 @@ fun AddAddressScreen(
                         Box(
                             modifier = Modifier
                                 .size(36.dp)
-                                .background(Color(0xFF2F80ED), RoundedCornerShape(18.dp)),
+                                .background(Color(0xFF034094), RoundedCornerShape(18.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("↺", color = Color.White, fontSize = 18.sp)
@@ -180,7 +179,7 @@ fun AddAddressScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text("Recent Destinations", color = Color(0xFF111111), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                            Text("Frequently used pickup locations", color = Color(0xFF2F80ED), fontSize = 13.sp)
+                            Text("Frequently used pickup locations", color = Color(0xFF034094), fontSize = 13.sp)
                         }
                     }
 
@@ -257,7 +256,7 @@ fun AddAddressScreen(
                         .fillMaxWidth()
                         .height(58.dp),
                     shape = RoundedCornerShape(22.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094))
                 ) {
                     if (isSaving) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
@@ -292,7 +291,7 @@ private fun AddressTypeChip(
         modifier = Modifier
             .height(52.dp)
             .background(
-                if (selected) Color(0xFF2F80ED) else Color(0xFFF5F6F8),
+                if (selected) Color(0xFF034094) else Color(0xFFF5F6F8),
                 RoundedCornerShape(26.dp)
             )
             .clickable { onClick() }
@@ -301,7 +300,7 @@ private fun AddressTypeChip(
     ) {
         Text(
             text = title,
-            color = if (selected) Color.White else Color(0xFF2F80ED),
+            color = if (selected) Color.White else Color(0xFF034094),
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold
         )

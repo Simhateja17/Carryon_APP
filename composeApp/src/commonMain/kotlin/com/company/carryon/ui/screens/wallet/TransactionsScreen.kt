@@ -203,7 +203,7 @@ private fun TransactionCard(txn: WalletTransaction) {
         }
         Text(
             amountText,
-            color = if (isCredit) Color(0xFF3B82F6) else Color(0xFF3B82F6),
+            color = if (isCredit) Color(0xFF034094) else Color(0xFF034094),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )

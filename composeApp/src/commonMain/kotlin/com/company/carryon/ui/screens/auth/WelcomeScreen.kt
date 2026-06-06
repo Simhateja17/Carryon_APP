@@ -69,18 +69,7 @@ fun WelcomeScreen(
                     fontSize = 15.sp,
                     color = TextSecondary
                 )
-                Text(
-                    text = "Carry",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue
-                )
-                Text(
-                    text = " On",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PrimaryBlueDark
-                )
+                com.company.carryon.ui.components.CarryOnWordmark(fontSize = 15.sp)
             }
 
             Spacer(modifier = Modifier.height(48.dp))

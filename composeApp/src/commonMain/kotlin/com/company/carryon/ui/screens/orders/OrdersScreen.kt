@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -193,7 +192,7 @@ fun OrdersScreen(
             actionLabel = "Re-book",
             footerText = "",
             dropIconBg = Color(0xFFA6D2F3),
-            dropIconTint = Color(0xFF2F80ED)
+            dropIconTint = Color(0xFF034094)
         )
     }
 
@@ -222,7 +221,7 @@ fun OrdersScreen(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(999.dp))
-                        .background(if (isSelected) Color(0xFF2F80ED) else Color.Transparent)
+                        .background(if (isSelected) Color(0xFF034094) else Color.Transparent)
                         .clickable { selectedTab = tab }
                 ) {
                     Text(
@@ -374,7 +373,7 @@ private fun CompletedOrdersScreen(
         ) {
             Text(
                 text = "‹",
-                color = Color(0xFF2F80ED),
+                color = Color(0xFF034094),
                 fontSize = 22.sp,
                 modifier = Modifier.clickable { onBack() }
             )
@@ -412,7 +411,7 @@ private fun CompletedOrdersScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(999.dp))
-                    .background(Color(0xFF2F80ED))
+                    .background(Color(0xFF034094))
             ) {
                 Text(
                     text = "Completed",
@@ -691,7 +690,7 @@ private fun OngoingDeliveryCard(
                             modifier = Modifier
                                 .size(12.dp)
                                 .align(Alignment.TopCenter)
-                                .background(Color(0x332F80ED), CircleShape)
+                                .background(Color(0x33034094), CircleShape)
                                 .padding(2.dp)
                         ) {
                             Box(
@@ -707,19 +706,19 @@ private fun OngoingDeliveryCard(
                                     .width(2.dp)
                                     .height(40.dp)
                                     .align(Alignment.Center)
-                                    .background(Color(0x667B9CFF))
+                                    .background(Color(0x66034094))
                             )
                             Box(
                                 modifier = Modifier
                                     .size(12.dp)
                                     .align(Alignment.BottomCenter)
-                                    .background(Color(0x332F80ED), CircleShape)
+                                    .background(Color(0x33034094), CircleShape)
                                     .padding(2.dp)
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF74A3F2), CircleShape)
+                                        .background(Color(0xFF034094), CircleShape)
                                 )
                             }
                         }
@@ -750,7 +749,7 @@ private fun OngoingDeliveryCard(
                         .shadow(6.dp, RoundedCornerShape(999.dp))
                         .height(48.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094)),
                     contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
                 ) {
                     Text(card.buttonText, color = Color.White, fontWeight = FontWeight.Medium, fontSize = OrderCardActionFontSize)
@@ -878,10 +877,10 @@ private fun CompletedOrderCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
-                            modifier = Modifier.size(13.dp).background(Color(0xFF2F80ED), CircleShape)
+                            modifier = Modifier.size(13.dp).background(Color(0xFF034094), CircleShape)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text(card.statusText, color = Color(0xFF2F80ED), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
+                        Text(card.statusText, color = Color(0xFF034094), fontSize = OrderCardStatusFontSize, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -894,13 +893,13 @@ private fun CompletedOrderCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
-                        modifier = Modifier.size(10.dp).background(Color(0xFF2F80ED), CircleShape)
+                        modifier = Modifier.size(10.dp).background(Color(0xFF034094), CircleShape)
                     )
                     Box(
                         modifier = Modifier.width(1.dp).height(40.dp).background(Color(0x4DA7AAD7))
                     )
                     Box(
-                        modifier = Modifier.size(10.dp).background(Color(0xFF2F80ED), CircleShape)
+                        modifier = Modifier.size(10.dp).background(Color(0xFF034094), CircleShape)
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -936,16 +935,16 @@ private fun CompletedOrderCard(
                     OutlinedButton(
                         onClick = onViewDetails,
                         shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color(0xFF2F80ED)),
+                        border = BorderStroke(1.dp, Color(0xFF034094)),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        Text("View Details", color = Color(0xFF2F80ED), fontSize = OrderCardActionFontSize, fontWeight = FontWeight.Medium)
+                        Text("View Details", color = Color(0xFF034094), fontSize = OrderCardActionFontSize, fontWeight = FontWeight.Medium)
                     }
                     Button(
                         onClick = onRepeat,
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094)),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                         modifier = Modifier.shadow(4.dp, RoundedCornerShape(16.dp))
                     ) {
@@ -1026,7 +1025,7 @@ private fun CancelledOrderCard(
                             Icon(
                                 imageVector = Icons.Outlined.Place,
                                 contentDescription = null,
-                                tint = Color(0xFF2F80ED),
+                                tint = Color(0xFF034094),
                                 modifier = Modifier.size(12.dp)
                             )
                         }
@@ -1078,7 +1077,7 @@ private fun CancelledOrderCard(
                         modifier = Modifier
                             .width(4.dp)
                             .fillMaxHeight()
-                            .background(Color(0xFF2F80ED))
+                            .background(Color(0xFF034094))
                     )
                 }
                 Row(
@@ -1088,20 +1087,20 @@ private fun CancelledOrderCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (card.reasonLeftBorder) {
-                        Text("⊗", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.Medium)
+                        Text("⊗", color = Color(0xFF034094), fontSize = 20.sp, fontWeight = FontWeight.Medium)
                     } else {
                         Image(
                             painter = painterResource(Res.drawable.icon_profile),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
-                            colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
+                            colorFilter = ColorFilter.tint(Color(0xFF034094))
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
                             card.reasonTitle,
-                            color = if (card.reasonTitleBlue) Color(0xFF2F80ED) else Color.Black,
+                            color = if (card.reasonTitleBlue) Color(0xFF034094) else Color.Black,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -1139,7 +1138,7 @@ private fun CancelledOrderCard(
                     modifier = Modifier
                         .shadow(10.dp, RoundedCornerShape(999.dp)),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094)),
                     contentPadding = PaddingValues(horizontal = 30.dp, vertical = 10.dp)
                 ) {
                     Text(
@@ -1161,7 +1160,7 @@ private fun ProMembershipBanner() {
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(20.dp))
-            .background(Color(0xFF3D7FD4)),
+            .background(Color(0xFF034094)),
         contentAlignment = Alignment.BottomStart
     ) {
         // Faded truck icon at top
@@ -1173,20 +1172,14 @@ private fun ProMembershipBanner() {
                 .padding(top = 8.dp)
                 .size(100.dp),
             alpha = 0.14f,
-            colorFilter = ColorFilter.tint(Color(0xFF1D4ED8))
+            colorFilter = ColorFilter.tint(Color(0xFF034094))
         )
-        // Bottom-up gradient overlay (transparent top → dark blue bottom)
+        // Solid brand-color overlay.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0f to Color(0x000050D4),
-                            0.5f to Color(0x660050D4),
-                            1f to Color(0xFF0050D4)
-                        )
-                    )
+                    Color(0xFF034094)
                 )
         )
         Column(modifier = Modifier.padding(24.dp)) {
@@ -1211,7 +1204,7 @@ private fun ProMembershipBanner() {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                 contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp)
             ) {
-                Text("CONTACT SALES", color = Color(0xFF2F80ED), fontWeight = FontWeight.Medium, fontSize = 12.sp, letterSpacing = 0.6.sp)
+                Text("CONTACT SALES", color = Color(0xFF034094), fontWeight = FontWeight.Medium, fontSize = 12.sp, letterSpacing = 0.6.sp)
             }
         }
     }
@@ -1234,7 +1227,7 @@ private fun UtilitySectionCards() {
                     painter = painterResource(Res.drawable.icon_help),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
-                    colorFilter = ColorFilter.tint(Color(0xFF2F80ED))
+                    colorFilter = ColorFilter.tint(Color(0xFF034094))
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("24/7 Support", color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium)
@@ -1248,7 +1241,7 @@ private fun UtilitySectionCards() {
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Icon(imageVector = Icons.Outlined.StarOutline, contentDescription = null, tint = Color(0xFF2F80ED), modifier = Modifier.size(20.dp))
+                Icon(imageVector = Icons.Outlined.StarOutline, contentDescription = null, tint = Color(0xFF034094), modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Loyalty Perks", color = Color.Black, fontSize = OrderCardSubValueFontSize, fontWeight = FontWeight.Medium)
                 Text("Points: 1,450", color = Color.Black, fontSize = 10.sp)

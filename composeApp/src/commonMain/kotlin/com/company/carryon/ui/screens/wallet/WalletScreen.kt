@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -117,9 +116,7 @@ fun WalletScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            brush = Brush.horizontalGradient(
-                                listOf(Color(0xFF3B82F6), Color(0xFF2F80ED))
-                            ),
+                            color = Color(0xFF034094),
                             shape = RoundedCornerShape(22.dp)
                         )
                         .padding(18.dp)
@@ -159,7 +156,7 @@ fun WalletScreen(
                     Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                     Text(
                         "See All",
-                        color = Color(0xFF3B82F6),
+                        color = Color(0xFF034094),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.clickable { onSeeAllTransactions() }
@@ -281,7 +278,7 @@ private fun TransactionRow(txn: WalletTransaction) {
         }
         Text(
             amountText,
-            color = if (isCredit) Color(0xFF3B82F6) else Color(0xFF3B82F6),
+            color = if (isCredit) Color(0xFF034094) else Color(0xFF034094),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             maxLines = 1

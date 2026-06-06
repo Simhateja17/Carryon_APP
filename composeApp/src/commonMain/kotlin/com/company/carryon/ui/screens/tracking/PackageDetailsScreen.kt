@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -269,18 +268,13 @@ fun PackageDetailsScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    // Package Card with Gradient
+                    // Package card
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(20.dp))
                             .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF2F80ED),
-                                        Color(0xFF64B5F6)
-                                    )
-                                )
+                                color = Color(0xFF034094)
                             )
                     ) {
                         Column(

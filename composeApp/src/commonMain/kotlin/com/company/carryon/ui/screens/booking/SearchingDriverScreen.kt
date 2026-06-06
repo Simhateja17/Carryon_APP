@@ -249,8 +249,7 @@ fun SearchingDriverScreen(
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                    Text("On", color = Color(0xFF282B51), fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                    com.company.carryon.ui.components.CarryOnWordmark()
                 }
             }
 
@@ -265,13 +264,13 @@ fun SearchingDriverScreen(
                         .size(92.dp)
                         .scale(pulseRadius)
                         .background(Color.White, RoundedCornerShape(61.dp))
-                        .border(3.dp, Color(0xFF2F66E7), RoundedCornerShape(61.dp)),
+                        .border(3.dp, Color(0xFF034094), RoundedCornerShape(61.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "◎",
                         fontSize = 42.sp,
-                        color = Color(0xFF2F66E7),
+                        color = Color(0xFF034094),
                         fontWeight = FontWeight.Bold
                     )
                 }

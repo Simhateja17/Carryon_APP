@@ -81,7 +81,7 @@ fun ReportIssueScreen(
                         .fillMaxWidth()
                         .height(56.dp),
                     shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F80ED))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094))
                 ) {
                     Text("Submit Report  ▷", color = Color(0xFFF1F2FF), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
                 }
@@ -129,7 +129,7 @@ fun ReportIssueScreen(
                         .background(Color.White, RoundedCornerShape(999.dp))
                         .padding(horizontal = 12.dp, vertical = 5.dp)
                 ) {
-                    Text("DELIVERED", color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                    Text("DELIVERED", color = Color(0xFF034094), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                 }
             }
 

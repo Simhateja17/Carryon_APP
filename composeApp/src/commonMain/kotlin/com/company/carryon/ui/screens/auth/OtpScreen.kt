@@ -4,15 +4,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +48,7 @@ fun OtpScreen(
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
     val otpPhone = phone.ifBlank { phoneNumber }
+    val focusManager = LocalFocusManager.current
 
     fun verifyOtp() {
         if (otpValue.length == 6) {
@@ -75,17 +81,29 @@ fun OtpScreen(
         }
     }
 
-    Box(
+    LaunchedEffect(otpValue.length) {
+        if (otpValue.length == 6) {
+            focusManager.clearFocus()
+        }
+    }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
+        val compactHeight = maxHeight < 700.dp
+        val compactWidth = maxWidth < 360.dp
+        val horizontalPadding = if (compactWidth) 16.dp else 24.dp
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = horizontalPadding)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
 
             // Top bar: Back Arrow + Continue button
             Row(
@@ -113,7 +131,7 @@ fun OtpScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 40.dp))
 
             // Enter the Code
             Text(
@@ -143,7 +161,7 @@ fun OtpScreen(
                 color = TextPrimary
             )
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 24.dp else 40.dp))
 
             // OTP Input - 6 digit boxes
             BasicTextField(
@@ -155,7 +173,14 @@ fun OtpScreen(
                     }
                 },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        if (otpValue.length == 6) verifyOtp()
+                    }
                 ),
                 decorationBox = {
                     Row(
@@ -183,7 +208,7 @@ fun OtpScreen(
                                     .background(
                                         color = when {
                                             errorMessage != null -> Color(0xFFFFF0F0)
-                                            char != null -> Color(0x332F80ED)
+                                            char != null -> Color(0x33034094)
                                             else -> Color.White
                                         },
                                         shape = RoundedCornerShape(12.dp)
@@ -255,7 +280,7 @@ fun OtpScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(if (compactHeight) 28.dp else 48.dp))
 
             // Next Button
             Button(
@@ -274,7 +299,7 @@ fun OtpScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 40.dp))
         }
     }
 }

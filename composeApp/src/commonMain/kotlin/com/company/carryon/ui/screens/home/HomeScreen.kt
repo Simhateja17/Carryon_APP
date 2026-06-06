@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -345,8 +344,7 @@ fun HomeScreen(
                 modifier = Modifier.clickable { onNavigateToProfile() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                com.company.carryon.ui.components.CarryOnWordmark()
             }
             Spacer(modifier = Modifier.weight(1f))
             Column(horizontalAlignment = Alignment.End) {
@@ -706,7 +704,7 @@ private fun VehicleCard(
                     .fillMaxWidth()
                     .height(72.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (selected) Color(0xFF1F3F78) else HomeCardBackground),
+                    .background(if (selected) Color(0xFF034094) else HomeCardBackground),
                 contentAlignment = Alignment.Center
             ) {
                 Image(

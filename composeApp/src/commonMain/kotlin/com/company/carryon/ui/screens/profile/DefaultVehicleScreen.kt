@@ -153,7 +153,7 @@ fun DefaultVehicleScreen(
                     .fillMaxWidth()
                     .height(68.dp),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4E7FE1))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF034094))
             ) {
                 Text(strings.savePreferences, color = Color(0xFFF1F2FF), fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
@@ -174,7 +174,7 @@ private fun VehicleCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(if (selected) Color.White else Color(0x33A6D2F3), RoundedCornerShape(12.dp))
-            .border(2.dp, if (selected) Color(0xFF2F80ED) else Color.Transparent, RoundedCornerShape(12.dp))
+            .border(2.dp, if (selected) Color(0xFF034094) else Color.Transparent, RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(24.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -183,7 +183,7 @@ private fun VehicleCard(
             modifier = Modifier
                 .size(80.dp)
                 .background(if (selected) Color(0x33A6D2F3) else Color.White, RoundedCornerShape(12.dp))
-                .border(if (selected) 2.dp else 0.dp, if (selected) Color(0xFF2F80ED) else Color.Transparent, RoundedCornerShape(12.dp)),
+                .border(if (selected) 2.dp else 0.dp, if (selected) Color(0xFF034094) else Color.Transparent, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -209,7 +209,7 @@ private fun VehicleCard(
                             .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
                             .padding(horizontal = 12.dp, vertical = 4.dp)
                     ) {
-                        Text(LocalStrings.current.selected.uppercase(), color = Color(0xFF2F80ED), fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                        Text(LocalStrings.current.selected.uppercase(), color = Color(0xFF034094), fontSize = 12.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -226,8 +226,8 @@ private fun VehicleCard(
         Box(
             modifier = Modifier
                 .size(24.dp)
-                .background(if (selected) Color(0xFF4E7FE1) else Color.Transparent, CircleShape)
-                .border(if (selected) 0.dp else 2.dp, Color(0xFF4E7FE1), CircleShape),
+                .background(if (selected) Color(0xFF034094) else Color.Transparent, CircleShape)
+                .border(if (selected) 0.dp else 2.dp, Color(0xFF034094), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (selected) {

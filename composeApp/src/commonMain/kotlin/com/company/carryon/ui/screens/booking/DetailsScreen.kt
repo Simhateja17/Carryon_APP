@@ -43,7 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -138,7 +137,7 @@ fun DetailsScreen(
                 title = {
                     Text(
                         text = "Delivery Details",
-                        color = Color(0xFF2563EB),
+                        color = Color(0xFF034094),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -173,13 +172,7 @@ fun DetailsScreen(
                             .height(56.dp)
                             .clip(CircleShape)
                             .background(
-                                Brush.horizontalGradient(
-                                    colors = if (canContinue) {
-                                        listOf(Color(0xFF2563EB), Color(0xFF60A5FA))
-                                    } else {
-                                        listOf(Color(0xFF9CB3E9), Color(0xFFB8C8EB))
-                                    }
-                                )
+                                if (canContinue) Color(0xFF034094) else Color(0xFF9CB3E9)
                             )
                             .clickable {
                                 if (!canContinue) {
@@ -252,7 +245,7 @@ fun DetailsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Regular delivery", color = Color(0xFF2F80ED), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+                    Text("Regular delivery", color = Color(0xFF034094), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
                     Spacer(modifier = Modifier.height(6.dp))
                     Text("A nearby driver is requested after booking confirmation.", color = Color.Black, fontSize = 14.sp, lineHeight = 20.sp)
                 }
@@ -338,7 +331,7 @@ fun DetailsScreen(
                             spotColor = Color(0x40000000)
                         )
                         .clip(RoundedCornerShape(32.dp))
-                        .background(Color(0xFF2F80ED))
+                        .background(Color(0xFF034094))
                         .padding(24.dp)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -357,7 +350,7 @@ fun DetailsScreen(
             } else if (false && deliveryMode == DeliveryModePriority) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Select Slot", fontSize = 18.sp, color = Color.Black, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF2F80ED)) {
+                    Surface(shape = RoundedCornerShape(999.dp), color = Color(0xFF034094)) {
                         Text("Today", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                     }
                 }
@@ -483,7 +476,7 @@ fun DetailsScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(vehicleLabel, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color.Black)
-                            Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF2F80ED))
+                            Text("◕  3–5 hours ETA", fontSize = 12.sp, color = Color(0xFF034094))
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text("RM 180", fontSize = 24.sp, fontWeight = FontWeight.Medium, color = Color.Black)
@@ -626,7 +619,7 @@ fun DetailsScreen(
                             Text(
                                 "+RM 30.00 per booking",
                                 fontSize = 12.sp,
-                                color = Color(0xFF2F80ED)
+                                color = Color(0xFF034094)
                             )
                         }
                         // Custom toggle with visible white knob
@@ -635,7 +628,7 @@ fun DetailsScreen(
                                 .width(44.dp)
                                 .height(24.dp)
                                 .background(
-                                    if (offloading) Color(0xFF2F80ED) else Color(0xFFA6D2F3),
+                                    if (offloading) Color(0xFF034094) else Color(0xFFA6D2F3),
                                     CircleShape
                                 )
                                 .clickable { offloading = !offloading }
@@ -660,11 +653,11 @@ fun DetailsScreen(
                         .shadow(
                             elevation = 20.dp,
                             shape = RoundedCornerShape(24.dp),
-                            ambientColor = Color(0x330050D4),
-                            spotColor = Color(0x330050D4)
+                            ambientColor = Color(0x33034094),
+                            spotColor = Color(0x33034094)
                         )
                         .clip(RoundedCornerShape(24.dp))
-                        .background(Color(0xFF2F80ED))
+                        .background(Color(0xFF034094))
                         .padding(20.dp)
                 ) {
                     Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.fillMaxWidth()) {
@@ -796,7 +789,7 @@ private fun ScheduleSelectorCard(
             .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text(title, color = Color(0xFF2F80ED), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            Text(title, color = Color(0xFF034094), fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
             Spacer(modifier = Modifier.height(2.dp))
             Text(value, color = Color(0xFF282B51), fontSize = 14.sp, fontWeight = FontWeight.Medium)
         }
@@ -836,7 +829,7 @@ private fun DeliveryModeChip(
 ) {
     Surface(
         shape = RoundedCornerShape(999.dp),
-        color = if (selected) Color(0xFF2F80ED) else Color.White,
+        color = if (selected) Color(0xFF034094) else Color.White,
         shadowElevation = if (selected) 3.dp else 0.dp,
         modifier = modifier.height(34.dp).clickable(onClick = onClick)
     ) {
@@ -890,7 +883,7 @@ private fun SameDaySlotCard(
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = if (selected) Color(0xFF2F80ED) else SectionTint20,
+        color = if (selected) Color(0xFF034094) else SectionTint20,
         shadowElevation = if (selected) 6.dp else 0.dp,
         modifier = modifier.clickable(onClick = onClick)
     ) {

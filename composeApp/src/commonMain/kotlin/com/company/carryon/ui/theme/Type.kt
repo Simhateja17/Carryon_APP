@@ -4,6 +4,7 @@ import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.*
@@ -16,6 +17,17 @@ fun PoppinsFontFamily(): FontFamily {
         Font(Res.font.poppins_medium, FontWeight.Medium),
         Font(Res.font.poppins_semibold, FontWeight.SemiBold),
         Font(Res.font.poppins_bold, FontWeight.Bold),
+    )
+}
+
+@Composable
+fun MontserratItalicFontFamily(): FontFamily {
+    return FontFamily(
+        Font(
+            Res.font.montserrat_italic_variable,
+            FontWeight.ExtraBold,
+            FontStyle.Italic
+        ),
     )
 }
 

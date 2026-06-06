@@ -77,8 +77,7 @@ fun PaymentScreen(
                             fontWeight = FontWeight.SemiBold
                         )
                         Row {
-                            Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                            Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                            com.company.carryon.ui.components.CarryOnWordmark()
                         }
                     }
                 },

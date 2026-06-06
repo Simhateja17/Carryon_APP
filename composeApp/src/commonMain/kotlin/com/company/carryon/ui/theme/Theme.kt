@@ -11,15 +11,15 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.i18n.getStringsForLanguage
 
 // Primary Blue Theme (matching Carry On design)
-val PrimaryBlue = Color(0xFF1E88E5)
-val PrimaryBlueLight = Color(0xFF42A5F5)
-val PrimaryBlueDark = Color(0xFF1565C0)
+val PrimaryBlue = Color(0xFF034094)
+val PrimaryBlueLight = Color(0xFF034094)
+val PrimaryBlueDark = Color(0xFF034094)
 val PrimaryBlueSurface = Color(0xFFE3F2FD)
 
 // Secondary Colors
-val SecondaryBlue = Color(0xFF2196F3)
-val SecondaryBlueLight = Color(0xFF64B5F6)
-val SecondaryBlueDark = Color(0xFF1976D2)
+val SecondaryBlue = Color(0xFF034094)
+val SecondaryBlueLight = Color(0xFF034094)
+val SecondaryBlueDark = Color(0xFF034094)
 
 // Accent Colors
 val AccentYellow = Color(0xFFFFD700)
@@ -35,13 +35,13 @@ val SurfaceDark = Color(0xFF1E1E1E)
 val TextPrimary = Color(0xFF212121)
 val TextSecondary = Color(0xFF757575)
 val TextOnPrimary = Color(0xFFFFFFFF)
-val TextBlue = Color(0xFF1E88E5)
+val TextBlue = Color(0xFF034094)
 
 // Status Colors
 val SuccessGreen = Color(0xFF4CAF50)
 val WarningYellow = Color(0xFFFFC107)
 val ErrorRed = Color(0xFFF44336)
-val InfoBlue = Color(0xFF2196F3)
+val InfoBlue = Color(0xFF034094)
 
 // Card Colors
 val CardBackground = Color(0xFFFFFFFF)

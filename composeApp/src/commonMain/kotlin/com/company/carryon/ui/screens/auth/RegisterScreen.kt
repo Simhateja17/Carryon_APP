@@ -1,9 +1,11 @@
 package com.company.carryon.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -11,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -26,6 +30,7 @@ import kotlinx.coroutines.launch
 fun RegisterScreen(
     phone: String,
     onRegisterSuccess: () -> Unit,
+    onBack: () -> Unit = {},
     onNavigateToOtp: (phone: String, name: String) -> Unit = { _, _ -> }
 ) {
     var name by remember { mutableStateOf("") }
@@ -35,33 +40,57 @@ fun RegisterScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
+    val focusManager = LocalFocusManager.current
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
+        val compactHeight = maxHeight < 700.dp
+        val compactWidth = maxWidth < 360.dp
+        val horizontalPadding = if (compactWidth) 16.dp else 24.dp
+        val titleFontSize = if (compactWidth) 22.sp else 26.sp
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "‹",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .clickable { onBack() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 48.dp))
 
             // Welcome Text
             Row {
-                Text(strings.welcomeTo, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(strings.appName, fontSize = 26.sp, fontWeight = FontWeight.Bold, color = PrimaryBlue, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("!", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                Text(strings.welcomeTo, fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                com.company.carryon.ui.components.CarryOnWordmark(fontSize = titleFontSize)
+                Text("!", fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = TextPrimary)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(strings.registerSubtitle, fontSize = 14.sp, color = TextSecondary)
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 32.dp))
 
             // Name
             Text(strings.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextPrimary, modifier = Modifier.fillMaxWidth())
@@ -92,7 +121,13 @@ fun RegisterScreen(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
                 placeholder = { Text(strings.enterYourPhone, color = Color.LightGray) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { focusManager.clearFocus() }
+                ),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -115,7 +150,7 @@ fun RegisterScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 28.dp))
 
             // Error message
             errorMessage?.let {
@@ -131,6 +166,7 @@ fun RegisterScreen(
             Button(
                 onClick = {
                     if (name.isNotBlank() && phoneNumber.isNotBlank()) {
+                        focusManager.clearFocus()
                         isLoading = true
                         errorMessage = null
                         scope.launch {
@@ -164,7 +200,7 @@ fun RegisterScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 40.dp))
         }
     }
 }

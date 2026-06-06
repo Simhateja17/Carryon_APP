@@ -98,8 +98,8 @@ actual fun MapViewComposable(
             val polygonPoints = polygonGeometry.map { GmsLatLng(it.lat, it.lng) }
             Polygon(
                 points = polygonPoints,
-                fillColor = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#331E88E5")),
-                strokeColor = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#881E88E5")),
+                fillColor = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#33034094")),
+                strokeColor = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#88034094")),
                 strokeWidth = 2f,
             )
         }
@@ -109,7 +109,7 @@ actual fun MapViewComposable(
             val polylinePoints = routeGeometry.map { GmsLatLng(it.lat, it.lng) }
             Polyline(
                 points = polylinePoints,
-                color = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#1E88E5")),
+                color = androidx.compose.ui.graphics.Color(AndroidColor.parseColor("#034094")),
                 width = 10f,
             )
         }

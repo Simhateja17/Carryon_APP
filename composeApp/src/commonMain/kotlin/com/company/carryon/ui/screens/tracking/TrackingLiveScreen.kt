@@ -241,8 +241,7 @@ fun TrackingLiveScreen(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Carry", color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
-                        Text("On", color = PrimaryBlueDark, fontWeight = FontWeight.SemiBold, fontSize = 21.sp)
+                        com.company.carryon.ui.components.CarryOnWordmark()
                     }
                 },
                 actions = {
@@ -410,7 +409,7 @@ fun TrackingLiveScreen(
                                     trackingDisplay.title,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF90CAF9),
+                                    color = Color(0xFF034094),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
