@@ -43,6 +43,7 @@ import com.company.carryon.data.network.WalletApi
 import com.company.carryon.data.payment.StripePaymentLauncher
 import com.company.carryon.data.payment.StripePaymentResult
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.DrawableResource
@@ -85,7 +86,7 @@ fun AddMoneyScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
+                .carryOnWhiteCard(RoundedCornerShape(999.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text("WALLET REFILL", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
@@ -116,7 +117,7 @@ fun AddMoneyScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
+                .carryOnWhiteCard(RoundedCornerShape(28.dp))
                 .padding(18.dp)
         ) {
             Text(

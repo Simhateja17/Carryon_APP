@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 
 @Composable
 fun PrivacySecurityScreen(
@@ -106,8 +107,8 @@ fun PrivacySecurityScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
-                        .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.White, RoundedCornerShape(12.dp))
                 ) {
                     ToggleRow(
                         icon = Icons.Outlined.LocationOn,
@@ -148,8 +149,8 @@ fun PrivacySecurityScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
-                        .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(12.dp))
+                        .border(1.dp, Color.White, RoundedCornerShape(12.dp))
                         .clickable { showDeleteDialog = true }
                         .padding(vertical = 17.dp),
                     horizontalArrangement = Arrangement.Center,
@@ -258,7 +259,7 @@ private fun ActionCard(icon: ImageVector, title: String, onClick: () -> Unit = {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+            .carryOnWhiteCard(RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,

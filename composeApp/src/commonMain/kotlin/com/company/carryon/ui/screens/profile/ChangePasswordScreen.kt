@@ -40,6 +40,7 @@ import carryon.composeapp.generated.resources.change_password_active_icon
 import carryon.composeapp.generated.resources.change_password_encryption_shape
 import carryon.composeapp.generated.resources.change_password_update_icon
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import org.jetbrains.compose.resources.painterResource
 
@@ -125,7 +126,7 @@ fun ChangePasswordScreen(onBack: () -> Unit) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(16.dp))
                         .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {

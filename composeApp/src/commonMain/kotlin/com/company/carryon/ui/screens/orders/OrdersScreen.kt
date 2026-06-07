@@ -72,6 +72,7 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.screens.tracking.isLiveTrackable
 import com.company.carryon.ui.theme.ErrorRed
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatOrderDisplayId
@@ -211,7 +212,7 @@ fun OrdersScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0x33A6D2F3), RoundedCornerShape(26.dp))
+                .carryOnWhiteCard(RoundedCornerShape(26.dp))
                 .padding(horizontal = 8.dp, vertical = 8.dp)
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -390,7 +391,7 @@ private fun CompletedOrdersScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0x33A6D2F3), RoundedCornerShape(26.dp))
+                .carryOnWhiteCard(RoundedCornerShape(26.dp))
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -578,11 +579,12 @@ private fun OngoingDeliveryCard(
     val hasDrop = card.secondaryValue.isNotBlank()
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
         shape = RoundedCornerShape(OrderCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, Color(0x10A7AAD7))
     ) {
         Column {
             Row(
@@ -963,10 +965,11 @@ private fun CancelledOrderCard(
     onAction: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
         shape = RoundedCornerShape(OrderCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
-        border = BorderStroke(1.dp, Color(0x1AA7AAD7)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(25.dp)) {
@@ -1217,9 +1220,11 @@ private fun UtilitySectionCards() {
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Card(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
             shape = RoundedCornerShape(OrderCardCornerRadius),
-            colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -1235,9 +1240,11 @@ private fun UtilitySectionCards() {
             }
         }
         Card(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
             shape = RoundedCornerShape(OrderCardCornerRadius),
-            colors = CardDefaults.cardColors(containerColor = Color(0x33A6D2F3)),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {

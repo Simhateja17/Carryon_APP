@@ -82,6 +82,7 @@ import com.company.carryon.util.ServiceAreaCache
 import com.company.carryon.ui.theme.PrimaryBlueSurface
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -94,7 +95,7 @@ private data class VehicleOption(
     val price: String
 )
 
-private val HomeCardBackground = Color(0x33A6D2F3)
+private val HomeCardBackground = Color.White
 
 @Composable
 fun HomeScreen(
@@ -370,9 +371,11 @@ fun HomeScreen(
         if (activeBooking != null) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFE8EEF7),
+                color = Color.White,
                 tonalElevation = 0.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .carryOnWhiteCard(RoundedCornerShape(16.dp))
             ) {
                 Row(
                     modifier = Modifier
@@ -409,9 +412,11 @@ fun HomeScreen(
         } else {
             Surface(
                 shape = RoundedCornerShape(16.dp),
-                color = Color(0xFFE8EEF7),
+                color = Color.White,
                 tonalElevation = 0.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .carryOnWhiteCard(RoundedCornerShape(16.dp))
             ) {
                 Text(
                     text = strings.noActiveDeliveriesRightNow,
@@ -481,14 +486,16 @@ fun HomeScreen(
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE7ECF4),
-                    unfocusedContainerColor = Color(0xFFE7ECF4),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .carryOnWhiteCard(RoundedCornerShape(12.dp))
             )
 
             DropdownMenu(
@@ -562,14 +569,16 @@ fun HomeScreen(
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE7ECF4),
-                    unfocusedContainerColor = Color(0xFFE7ECF4),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
                     focusedBorderColor = if (showDeliveryRequiredError) Color(0xFFEB5757) else Color.Transparent,
                     unfocusedBorderColor = if (showDeliveryRequiredError) Color(0xFFEB5757) else Color.Transparent,
                     focusedTextColor = TextPrimary,
                     unfocusedTextColor = TextPrimary
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .carryOnWhiteCard(RoundedCornerShape(12.dp))
             )
 
             DropdownMenu(
@@ -744,9 +753,11 @@ private fun VehicleCard(
 @Composable
 private fun RecentDeliveryCard(title: String, subtitle: String, repeatLabel: String, onRepeat: () -> Unit) {
     Surface(
-        color = HomeCardBackground,
+        color = Color.White,
         shape = RoundedCornerShape(14.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(14.dp))
     ) {
         Row(
             modifier = Modifier
@@ -793,9 +804,9 @@ private fun SavedAddressCard(
     modifier: Modifier = Modifier
 ) {
     Surface(
-        color = HomeCardBackground,
+        color = Color.White,
         shape = RoundedCornerShape(12.dp),
-        modifier = modifier.border(1.dp, Color(0xFFD8DEE8), RoundedCornerShape(12.dp))
+        modifier = modifier.carryOnWhiteCard(RoundedCornerShape(12.dp))
     ) {
         Column(modifier = Modifier.padding(10.dp)) {
             Image(

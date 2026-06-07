@@ -43,6 +43,7 @@ import com.company.carryon.data.network.WalletApi
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -166,7 +167,7 @@ private fun TransactionCard(txn: WalletTransaction) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
+            .carryOnWhiteCard(RoundedCornerShape(18.dp))
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

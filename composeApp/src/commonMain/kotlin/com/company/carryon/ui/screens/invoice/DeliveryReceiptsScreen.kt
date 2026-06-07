@@ -44,6 +44,7 @@ import com.company.carryon.data.model.InvoiceDetail
 import com.company.carryon.data.network.InvoiceApi
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.util.formatDecimal
 import kotlinx.datetime.Instant
@@ -149,7 +150,7 @@ fun DeliveryReceiptsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(16.dp))
                         .padding(16.dp)
                 ) {
                     Text("No receipts available yet.", color = Color.Black, fontSize = 14.sp)
@@ -210,7 +211,7 @@ private fun SearchCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
+            .carryOnWhiteCard(RoundedCornerShape(32.dp))
             .padding(20.dp)
     ) {
         Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
@@ -247,7 +248,7 @@ private fun ReceiptRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+            .carryOnWhiteCard(RoundedCornerShape(16.dp))
             .border(
                 width = if (selected) 0.dp else 0.dp,
                 color = Color.Transparent,
@@ -297,7 +298,7 @@ private fun ReceiptRow(
                 Text(amount, color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                 Box(
                     modifier = Modifier
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(999.dp))
                         .padding(horizontal = 8.dp, vertical = 1.dp)
                 ) {
                     Text("PAID", color = PrimaryBlue, fontSize = 10.sp, letterSpacing = 0.5.sp, fontWeight = FontWeight.Medium)
@@ -320,13 +321,13 @@ private fun DetailedReceiptCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(36.dp))
+            .carryOnWhiteCard(RoundedCornerShape(36.dp))
             .padding(4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0x33A6D2F3), RoundedCornerShape(32.dp))
+                .carryOnWhiteCard(RoundedCornerShape(32.dp))
                 .padding(24.dp)
         ) {
             Row(

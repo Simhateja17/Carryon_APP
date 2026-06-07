@@ -60,27 +60,19 @@ fun RegisterScreen(
                 .padding(horizontal = horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Text(
-                    text = "‹",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .clickable { onBack() }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 48.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 40.dp else 96.dp))
 
             // Welcome Text
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "‹",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = TextPrimary,
+                    modifier = Modifier
+                        .clickable { onBack() }
+                        .padding(end = 8.dp)
+                )
                 Text(strings.welcomeTo, fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = TextPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 com.company.carryon.ui.components.CarryOnWordmark(fontSize = titleFontSize)
                 Text("!", fontSize = titleFontSize, fontWeight = FontWeight.Bold, color = TextPrimary)

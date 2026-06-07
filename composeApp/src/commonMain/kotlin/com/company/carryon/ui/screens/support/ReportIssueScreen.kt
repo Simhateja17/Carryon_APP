@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import com.company.carryon.ui.theme.ScreenVerticalPadding
 
@@ -107,7 +108,7 @@ fun ReportIssueScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+                    .carryOnWhiteCard(RoundedCornerShape(12.dp))
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -138,7 +139,7 @@ fun ReportIssueScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(12.dp))
                         .clickable { expanded = true }
                         .padding(horizontal = 20.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -176,8 +177,8 @@ fun ReportIssueScreen(
                     )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0x33A6D2F3),
-                    unfocusedContainerColor = Color(0x33A6D2F3),
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent
                 )
@@ -235,14 +236,14 @@ private fun SectionLabel(text: String) {
 @Composable
 private fun AttachmentBox(
     modifier: Modifier = Modifier,
-    background: Color = Color(0x33A6D2F3),
+    background: Color = Color.White,
     content: @Composable ColumnScope.() -> Unit
 ) {
     Column(
         modifier = modifier
             .height(106.dp)
             .background(background, RoundedCornerShape(12.dp))
-            .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+            .border(1.dp, Color.White, RoundedCornerShape(12.dp))
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

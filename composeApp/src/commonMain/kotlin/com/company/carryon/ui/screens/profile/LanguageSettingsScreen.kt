@@ -148,7 +148,7 @@ private fun LanguageItemCard(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                if (selected) Color(0xFFA6D2F3) else Color(0x33A6D2F3),
+                if (selected) Color(0xFFA6D2F3) else Color.White,
                 RoundedCornerShape(16.dp)
             )
             .clickable { onClick() }

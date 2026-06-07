@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -168,7 +169,7 @@ fun WalletScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(18.dp))
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -296,8 +297,7 @@ private fun UtilityCard(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x33A6D2F3))
+            .carryOnWhiteCard(RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(14.dp)
     ) {

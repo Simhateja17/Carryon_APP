@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 
 @Composable
 fun ClearCacheScreen(
@@ -90,7 +91,7 @@ private fun StorageOverviewCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
+            .carryOnWhiteCard(RoundedCornerShape(28.dp))
             .padding(24.dp)
     ) {
         Text(
@@ -187,7 +188,7 @@ private fun OptimizedCleaningCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(28.dp))
+            .carryOnWhiteCard(RoundedCornerShape(28.dp))
             .padding(24.dp)
     ) {
         Text(
@@ -231,7 +232,7 @@ private fun DataUtilitiesCard() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
+            .carryOnWhiteCard(RoundedCornerShape(24.dp))
             .padding(vertical = 4.dp)
     ) {
         UtilityRow("", "Manage Offline Maps")

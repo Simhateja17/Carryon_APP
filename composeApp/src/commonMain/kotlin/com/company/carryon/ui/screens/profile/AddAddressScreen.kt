@@ -28,7 +28,7 @@ import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import kotlinx.coroutines.launch
 
-private val AddAddressFieldBackground = Color(0x33A6D2F3)
+private val AddAddressFieldBackground = Color.White
 
 @Composable
 fun AddAddressScreen(

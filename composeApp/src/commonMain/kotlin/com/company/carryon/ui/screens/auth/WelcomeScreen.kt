@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.welcome_truck
+import carryon.composeapp.generated.resources.welcome_hero
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
@@ -26,34 +26,32 @@ fun WelcomeScreen(
     onLogin: () -> Unit
 ) {
     val strings = LocalStrings.current
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
+        Image(
+            painter = painterResource(Res.drawable.welcome_hero),
+            contentDescription = "Carry On delivery van",
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.22f),
+            contentScale = ContentScale.Crop
+        )
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp)
+                .padding(top = 34.dp, bottom = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Bottom
         ) {
-            // Truck Image
-            Image(
-                painter = painterResource(Res.drawable.welcome_truck),
-                contentDescription = "Delivery Truck",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp),
-                contentScale = ContentScale.Fit
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // Welcome text
             Text(
                 text = strings.welcome,
-                fontSize = 24.sp,
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
                 maxLines = 2,
@@ -62,30 +60,31 @@ fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Subtitle
-            Row {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = strings.welcomeSubtitle,
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
                     color = TextSecondary
                 )
-                com.company.carryon.ui.components.CarryOnWordmark(fontSize = 15.sp)
+                com.company.carryon.ui.components.CarryOnWordmark(fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(56.dp))
 
-            // Create an account Button (filled blue)
             Button(
                 onClick = onCreateAccount,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                    .height(58.dp),
+                shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
                 Text(
                     strings.createAnAccount,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White
                 )
@@ -93,25 +92,22 @@ fun WelcomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Log In Button (outlined)
             OutlinedButton(
                 onClick = onLogin,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                    .height(58.dp),
+                shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
                 border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
             ) {
                 Text(
                     strings.logIn,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryBlue
                 )
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

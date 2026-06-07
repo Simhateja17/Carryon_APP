@@ -264,10 +264,10 @@ private fun EditableField(value: String, onValueChange: (String) -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0x33A6D2F3),
-            unfocusedContainerColor = Color(0x33A6D2F3),
-            focusedBorderColor = Color(0x33A6D2F3),
-            unfocusedBorderColor = Color(0x33A6D2F3),
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = Color.White,
+            unfocusedBorderColor = Color.White,
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black
         )
@@ -285,8 +285,8 @@ private fun LockedField(value: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            disabledContainerColor = Color(0x33A6D2F3),
-            disabledBorderColor = Color(0x33A6D2F3),
+            disabledContainerColor = Color.White,
+            disabledBorderColor = Color.White,
             disabledTextColor = Color.Black,
             disabledTrailingIconColor = PrimaryBlue
         )
@@ -304,10 +304,10 @@ private fun SelectField(value: String) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedContainerColor = Color(0x33A6D2F3),
-            unfocusedContainerColor = Color(0x33A6D2F3),
-            focusedBorderColor = Color(0x33A6D2F3),
-            unfocusedBorderColor = Color(0x33A6D2F3),
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = Color.White,
+            unfocusedBorderColor = Color.White,
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black
         )

@@ -245,10 +245,10 @@ private fun PaymentTypeButton(icon: String, title: String, selected: Boolean, on
             .fillMaxWidth()
             .height(72.dp)
             .clickable { onClick() }
-            .background(if (selected) Color(0xFF034094) else Color(0x33A6D2F3), RoundedCornerShape(14.dp))
+            .background(if (selected) Color(0xFF034094) else Color.White, RoundedCornerShape(14.dp))
             .border(
                 width = if (selected) 0.dp else 1.dp,
-                color = if (selected) Color.Transparent else Color(0x33A6D2F3),
+                color = if (selected) Color.Transparent else Color.White,
                 shape = RoundedCornerShape(14.dp)
             ),
         contentAlignment = Alignment.Center

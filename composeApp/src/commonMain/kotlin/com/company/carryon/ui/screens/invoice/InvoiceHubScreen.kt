@@ -56,6 +56,7 @@ import com.company.carryon.data.network.InvoiceApi
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.util.formatDecimal
 import kotlin.time.Clock
 import kotlinx.datetime.Instant
@@ -64,7 +65,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-private val InvoiceCardBackground = Color(0x33A6D2F3)
+private val InvoiceCardBackground = Color.White
 
 @Composable
 fun InvoiceHubScreen(
@@ -237,7 +238,7 @@ fun InvoiceHubScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(InvoiceCardBackground, RoundedCornerShape(14.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(14.dp))
                         .padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -294,7 +295,7 @@ fun InvoiceHubScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(InvoiceCardBackground, RoundedCornerShape(14.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(14.dp))
                         .padding(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -333,7 +334,7 @@ fun InvoiceHubScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(InvoiceCardBackground, RoundedCornerShape(14.dp))
+                            .carryOnWhiteCard(RoundedCornerShape(14.dp))
                             .padding(16.dp)
                     ) {
                         Text("No invoices available yet.", color = Color(0xFF334155), fontSize = 13.sp)
@@ -413,7 +414,7 @@ private fun InvoiceHistoryRow(item: InvoiceItem, onDownload: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(InvoiceCardBackground, RoundedCornerShape(10.dp))
+            .carryOnWhiteCard(RoundedCornerShape(10.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

@@ -173,7 +173,7 @@ private fun VehicleCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(if (selected) Color.White else Color(0x33A6D2F3), RoundedCornerShape(12.dp))
+            .background(Color.White, RoundedCornerShape(12.dp))
             .border(2.dp, if (selected) Color(0xFF034094) else Color.Transparent, RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(24.dp),
@@ -182,7 +182,7 @@ private fun VehicleCard(
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .background(if (selected) Color(0x33A6D2F3) else Color.White, RoundedCornerShape(12.dp))
+                .background(Color.White, RoundedCornerShape(12.dp))
                 .border(if (selected) 2.dp else 0.dp, if (selected) Color(0xFF034094) else Color.Transparent, RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
@@ -206,7 +206,7 @@ private fun VehicleCard(
                 if (selected) {
                     Box(
                         modifier = Modifier
-                            .background(Color(0x33A6D2F3), RoundedCornerShape(999.dp))
+                            .background(Color.White, RoundedCornerShape(999.dp))
                             .padding(horizontal = 12.dp, vertical = 4.dp)
                     ) {
                         Text(LocalStrings.current.selected.uppercase(), color = Color(0xFF034094), fontSize = 12.sp, fontWeight = FontWeight.Medium)

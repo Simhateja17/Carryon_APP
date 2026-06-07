@@ -56,6 +56,7 @@ import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.ScreenHorizontalPadding
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import com.company.carryon.util.formatDecimal
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -65,7 +66,7 @@ import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
-private val SectionTint20 = Color(0x33A6D2F3)
+private val SectionTint20 = Color.White
 private const val DeliveryModePooling = "Pooling"
 private const val DeliveryModePriority = "Priority"
 private const val DeliveryModeRegular = "Regular"
@@ -242,7 +243,9 @@ fun DetailsScreen(
             Surface(
                 shape = RoundedCornerShape(20.dp),
                 color = SectionTint20,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .carryOnWhiteCard(RoundedCornerShape(20.dp))
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("Regular delivery", color = Color(0xFF034094), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
@@ -384,7 +387,10 @@ fun DetailsScreen(
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = SectionTint20,
-                        modifier = Modifier.weight(1f).height(parcelCardHeight)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(parcelCardHeight)
+                            .carryOnWhiteCard(RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("WEIGHT (KG)", fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp)
@@ -395,7 +401,10 @@ fun DetailsScreen(
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = SectionTint20,
-                        modifier = Modifier.weight(1f).height(parcelCardHeight)
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(parcelCardHeight)
+                            .carryOnWhiteCard(RoundedCornerShape(16.dp))
                     ) {
                         ExposedDropdownMenuBox(
                             expanded = parcelDropdownExpanded,
@@ -430,7 +439,7 @@ fun DetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+                Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth().carryOnWhiteCard(RoundedCornerShape(16.dp))) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("INSTRUCTIONS", fontSize = 12.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -465,7 +474,7 @@ fun DetailsScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Surface(shape = RoundedCornerShape(32.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+                Surface(shape = RoundedCornerShape(32.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth().carryOnWhiteCard(RoundedCornerShape(32.dp))) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -603,7 +612,9 @@ fun DetailsScreen(
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = SectionTint20,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .carryOnWhiteCard(RoundedCornerShape(16.dp))
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -853,7 +864,9 @@ private fun SectionCard(
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = SectionTint20,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(24.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -903,7 +916,7 @@ private fun SameDayReceiverRow(
     onValueChange: (String) -> Unit,
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
-    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth()) {
+    Surface(shape = RoundedCornerShape(16.dp), color = SectionTint20, modifier = Modifier.fillMaxWidth().carryOnWhiteCard(RoundedCornerShape(16.dp))) {
         Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(icon, fontSize = 16.sp, color = Color.Black)
             Spacer(modifier = Modifier.width(12.dp))
@@ -930,7 +943,9 @@ private fun ExpressContainerCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = SectionTint20,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(20.dp))
     ) {
         Column(modifier = Modifier.padding(21.dp), content = content)
     }

@@ -2,7 +2,6 @@ package com.company.carryon.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.rememberScrollState
@@ -51,6 +50,7 @@ import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
+import com.company.carryon.ui.theme.carryOnWhiteCard
 
 @Composable
 fun ProfileScreen(
@@ -226,7 +226,7 @@ fun ProfileScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0x33A6D2F3), RoundedCornerShape(18.dp))
+                    .carryOnWhiteCard(RoundedCornerShape(18.dp))
                     .clickable { onLogout() }
                     .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center
@@ -335,12 +335,12 @@ private fun StatCard(
     Column(
         modifier = modifier
             .shadow(
-                elevation = 2.dp,
+                elevation = 8.dp,
                 shape = RoundedCornerShape(24.dp),
-                ambientColor = Color(0x0D000000),
-                spotColor = Color(0x0D000000)
+                ambientColor = Color(0x26000000),
+                spotColor = Color(0x26000000)
             )
-            .background(Color(0x33A6D2F3), RoundedCornerShape(24.dp))
+            .background(Color.White, RoundedCornerShape(24.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
@@ -381,8 +381,13 @@ private fun ProfileOptionCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
-            .border(1.dp, Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(16.dp),
+                ambientColor = Color(0x26000000),
+                spotColor = Color(0x26000000)
+            )
+            .background(Color.White, RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically

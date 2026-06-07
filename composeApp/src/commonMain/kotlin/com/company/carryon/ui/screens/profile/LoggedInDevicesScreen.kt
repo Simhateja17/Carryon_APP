@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
+import com.company.carryon.ui.theme.carryOnWhiteCard
 
 @Composable
 fun LoggedInDevicesScreen(onBack: () -> Unit) {
@@ -129,7 +130,7 @@ fun LoggedInDevicesScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 150.dp)
-                        .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(16.dp))
                         .padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     Column {
@@ -166,7 +167,7 @@ private fun DeviceCard(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0x33A6D2F3), RoundedCornerShape(16.dp))
+            .carryOnWhiteCard(RoundedCornerShape(16.dp))
             .padding(20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -36,7 +36,7 @@ import com.company.carryon.i18n.LocalStrings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
-private val SettingsCardBackground = Color(0x33A6D2F3)
+private val SettingsCardBackground = Color.White
 
 @Composable
 fun SettingsScreen(
@@ -210,9 +210,8 @@ fun SettingsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .background(SettingsCardBackground, RoundedCornerShape(24.dp))
-                    .clickable { }
-                    .border(1.dp, Color(0xFFD5E1EF), RoundedCornerShape(24.dp)),
+                    .carryOnWhiteCard(RoundedCornerShape(24.dp))
+                    .clickable { },
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -261,8 +260,7 @@ private fun SettingsGroupCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SettingsCardBackground, RoundedCornerShape(24.dp))
-            .border(1.dp, Color(0xFFD5E1EF), RoundedCornerShape(24.dp))
+            .carryOnWhiteCard(RoundedCornerShape(24.dp))
             .padding(8.dp)
     ) {
         if (heading != null) {
