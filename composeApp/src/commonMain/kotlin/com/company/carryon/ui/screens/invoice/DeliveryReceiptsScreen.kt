@@ -208,29 +208,22 @@ private fun SpendingCard(totalAmount: Double) {
 
 @Composable
 private fun SearchCard() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .carryOnWhiteCard(RoundedCornerShape(32.dp))
-            .padding(20.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .carryOnWhiteCard(RoundedCornerShape(32.dp))
+                .padding(20.dp)
     ) {
         Text("Quick Search", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         Spacer(modifier = Modifier.height(14.dp))
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
-                .padding(14.dp)
+                .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFF3F6FB), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 14.dp, vertical = 12.dp)
-            ) {
-                Text("⌕  Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
-            }
+            Text("⌕  Order ID or date...", color = PrimaryBlue, fontSize = 16.sp)
         }
 
     }

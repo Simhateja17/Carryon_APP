@@ -80,7 +80,6 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(bottom = 130.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -173,57 +172,47 @@ fun EditProfileScreen(
 
                         ProfileFieldLabel("LANGUAGE")
                         SelectField(value = language)
-                    }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .border(1.dp, Color(0x4DE0E0E0), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-                        .padding(top = 14.dp, start = 16.dp, end = 16.dp, bottom = 14.dp)
-                ) {
-                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFFE0E0E0)))
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = {
-                            saveError = null
-                            isLoading = true
-                            scope.launch {
-                                UserApi.updateProfile(name = name, email = email, phone = phone)
-                                    .onSuccess {
-                                        isLoading = false
-                                        showSuccessDialog = true
-                                    }
-                                    .onFailure { err ->
-                                        isLoading = false
-                                        saveError = err.message ?: "Save failed"
-                                    }
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp)
-                            .shadow(8.dp, RoundedCornerShape(12.dp), clip = false),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                        enabled = !isLoading
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(22.dp))
-                        } else {
-                            Text("Save Changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-
-                    if (saveError != null) {
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(saveError ?: "", color = ErrorRed, fontSize = 12.sp)
-                    }
+
+                        Button(
+                            onClick = {
+                                saveError = null
+                                isLoading = true
+                                scope.launch {
+                                    UserApi.updateProfile(name = name, email = email, phone = phone)
+                                        .onSuccess {
+                                            isLoading = false
+                                            showSuccessDialog = true
+                                        }
+                                        .onFailure { err ->
+                                            isLoading = false
+                                            saveError = err.message ?: "Save failed"
+                                        }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .shadow(8.dp, RoundedCornerShape(12.dp), clip = false),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                            enabled = !isLoading
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(22.dp))
+                            } else {
+                                Text("Save Changes", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+
+                        if (saveError != null) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(saveError ?: "", color = ErrorRed, fontSize = 12.sp)
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                                    }
                 }
             }
         }

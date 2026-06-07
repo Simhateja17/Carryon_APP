@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -302,7 +303,8 @@ private fun SettingsNavRow(
                 painter = painterResource(iconRes),
                 contentDescription = title,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(PrimaryBlue)
             )
         }
 
@@ -352,7 +354,8 @@ private fun SettingsToggleRow(
                 painter = painterResource(iconRes),
                 contentDescription = title,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(PrimaryBlue)
             )
         }
 

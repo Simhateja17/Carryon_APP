@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -101,7 +102,7 @@ fun SupportScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFDCE6F1), RoundedCornerShape(26.dp))
+                .carryOnWhiteCard(RoundedCornerShape(26.dp))
                 .padding(16.dp)
         ) {
             Text("Need help with an order?", color = Color(0xFF111827), fontSize = 22.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -208,8 +209,7 @@ private fun QuickSupportCard(
     Column(
         modifier = modifier
             .height(170.dp)
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(22.dp))
-            .border(1.dp, Color(0xFFD2DDEB), RoundedCornerShape(22.dp))
+            .carryOnWhiteCard(RoundedCornerShape(22.dp))
             .clickable { onClick() }
             .padding(14.dp)
     ) {
@@ -223,7 +223,8 @@ private fun QuickSupportCard(
                 painter = painterResource(icon),
                 contentDescription = title,
                 modifier = Modifier.size(20.dp),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(PrimaryBlue)
             )
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -237,8 +238,7 @@ private fun FaqRow(question: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(18.dp))
-            .border(1.dp, Color(0xFFD2DDEB), RoundedCornerShape(18.dp))
+            .carryOnWhiteCard(RoundedCornerShape(18.dp))
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically

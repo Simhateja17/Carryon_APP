@@ -81,8 +81,6 @@ fun ClearCacheScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
-
-            StorageBottomStrip()
     }
 }
 
@@ -235,7 +233,7 @@ private fun DataUtilitiesCard() {
             .carryOnWhiteCard(RoundedCornerShape(24.dp))
             .padding(vertical = 4.dp)
     ) {
-        UtilityRow("", "Manage Offline Maps")
+        UtilityRow("▦", "Manage Offline Maps")
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -243,7 +241,7 @@ private fun DataUtilitiesCard() {
                 .height(1.dp)
                 .background(Color(0x20A7AAD7))
         )
-        UtilityRow("", "Clear Search History")
+        UtilityRow("⌕", "Clear Search History")
     }
 }
 

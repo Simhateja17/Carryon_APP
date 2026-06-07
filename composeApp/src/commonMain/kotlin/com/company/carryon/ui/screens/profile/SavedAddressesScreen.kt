@@ -42,6 +42,7 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -115,7 +116,7 @@ fun SavedAddressesScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color(0xFFDCE6F1), RoundedCornerShape(26.dp))
+                                    .carryOnWhiteCard(RoundedCornerShape(26.dp))
                                     .padding(horizontal = 18.dp, vertical = 24.dp)
                             ) {
                                 Text(
@@ -188,7 +189,7 @@ private fun SavedAddressCard(address: SavedAddressUi) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFDCE6F1), RoundedCornerShape(26.dp))
+            .carryOnWhiteCard(RoundedCornerShape(26.dp))
             .padding(horizontal = 14.dp, vertical = 16.dp),
         verticalAlignment = Alignment.Top
     ) {

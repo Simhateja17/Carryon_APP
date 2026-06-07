@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -471,7 +472,8 @@ fun HomeScreen(
                         painter = painterResource(Res.drawable.icon_map),
                         contentDescription = "Enter pickup location",
                         modifier = Modifier.size(14.dp),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(PrimaryBlue)
                     )
                 },
                 trailingIcon = if (isGettingLocation || isSearchingPickup) {
@@ -554,7 +556,8 @@ fun HomeScreen(
                         painter = painterResource(Res.drawable.icon_home),
                         contentDescription = "Where should we deliver",
                         modifier = Modifier.size(14.dp),
-                        contentScale = ContentScale.Fit
+                        contentScale = ContentScale.Fit,
+                        colorFilter = ColorFilter.tint(PrimaryBlue)
                     )
                 },
                 trailingIcon = if (isSearchingDelivery) {

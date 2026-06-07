@@ -783,9 +783,11 @@ private fun OngoingOrderCard(order: OrderItem, canTrack: Boolean, onTrack: () ->
         else -> order.status.name.replace('_', ' ')
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
         shape = RoundedCornerShape(OrderCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF2FC)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -858,9 +860,11 @@ private fun CompletedOrderCard(
     onRepeat: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(OrderCardCornerRadius)),
         shape = RoundedCornerShape(OrderCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF2FC)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp)) {
@@ -1309,8 +1313,10 @@ private fun RetryBlock(message: String, onRetry: () -> Unit) {
 private fun EmptyOrdersState(message: String) {
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFFEAF2FC),
-        modifier = Modifier.fillMaxWidth()
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .carryOnWhiteCard(RoundedCornerShape(14.dp))
     ) {
         Text(
             text = message,

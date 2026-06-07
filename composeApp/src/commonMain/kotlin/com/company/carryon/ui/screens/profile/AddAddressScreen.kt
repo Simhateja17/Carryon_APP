@@ -26,6 +26,7 @@ import com.company.carryon.data.model.AddressType
 import com.company.carryon.data.network.AddressApi
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
+import com.company.carryon.ui.theme.carryOnWhiteCard
 import kotlinx.coroutines.launch
 
 private val AddAddressFieldBackground = Color.White
@@ -164,7 +165,7 @@ fun AddAddressScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFDCE6F1), RoundedCornerShape(16.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(16.dp))
                         .padding(14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

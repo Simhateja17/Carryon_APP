@@ -165,8 +165,8 @@ fun InvoiceHubScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                    .background(Color(0xFFE8EEF6), RoundedCornerShape(10.dp))
-                    .padding(12.dp)
+                        .carryOnWhiteCard(RoundedCornerShape(10.dp))
+                        .padding(12.dp)
                 ) {
                     Text("Invoice Total", color = Color(0xFF334155), fontSize = 10.sp)
                     Spacer(modifier = Modifier.height(2.dp))
@@ -299,13 +299,6 @@ fun InvoiceHubScreen(
                         .padding(14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .background(Color(0xFFF1F5FA), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) { Text("", color = PrimaryBlue) }
-                    Spacer(modifier = Modifier.height(8.dp))
                     Text("Custom Range", color = Color(0xFF334155), fontSize = 15.sp, fontWeight = FontWeight.Medium)
                     Text("Select specific dates to generate a\nconsolidated PDF report.", color = Color(0xFF64748B), fontSize = 11.sp)
                     Spacer(modifier = Modifier.height(10.dp))
@@ -358,7 +351,7 @@ fun InvoiceHubScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 32.dp)
-                        .background(Color(0xFFE8EEF6), RoundedCornerShape(999.dp))
+                        .carryOnWhiteCard(RoundedCornerShape(999.dp), elevation = 4.dp)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) { Text("Load More History", color = Color(0xFF64748B), fontSize = 12.sp, fontWeight = FontWeight.Medium) }
@@ -402,7 +395,7 @@ private fun formatInvoiceMonth(value: String): String {
 private fun FilterChip(text: String) {
     Box(
         modifier = Modifier
-            .background(Color(0xFFE8EEF6), RoundedCornerShape(6.dp))
+            .carryOnWhiteCard(RoundedCornerShape(6.dp), elevation = 4.dp)
             .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
         Text(text, color = Color(0xFF64748B), fontSize = 10.sp)
