@@ -97,6 +97,7 @@ import com.company.carryon.ui.components.LanguageSelectionDialog
 import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import com.company.carryon.update.AppUpdateGate
 
 // Simple screen state for iOS compatibility
 sealed class AppScreen {
@@ -271,6 +272,13 @@ private fun PendingPushNavigation.toAppScreen(): AppScreen? {
 @Composable
 @Preview
 fun App() {
+    AppUpdateGate {
+        AppContent()
+    }
+}
+
+@Composable
+private fun AppContent() {
     var currentScreen by remember { mutableStateOf<AppScreen>(AppScreen.Splash) }
     var previousScreenBeforeTrackingLive by remember { mutableStateOf<AppScreen>(AppScreen.Home) }
     var previousScreenBeforeChat by remember { mutableStateOf<AppScreen>(AppScreen.Home) }
