@@ -6,19 +6,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,7 +44,6 @@ fun OtpScreen(
     val scope = rememberCoroutineScope()
     val strings = LocalStrings.current
     val otpPhone = phone.ifBlank { phoneNumber }
-    val focusManager = LocalFocusManager.current
 
     fun verifyOtp() {
         if (otpValue.length == 6) {
@@ -81,12 +76,6 @@ fun OtpScreen(
         }
     }
 
-    LaunchedEffect(otpValue.length) {
-        if (otpValue.length == 6) {
-            focusManager.clearFocus()
-        }
-    }
-
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
@@ -99,7 +88,6 @@ fun OtpScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = horizontalPadding)
         ) {
@@ -164,68 +152,9 @@ fun OtpScreen(
             Spacer(modifier = Modifier.height(if (compactHeight) 24.dp else 40.dp))
 
             // OTP Input - 6 digit boxes
-            BasicTextField(
-                value = otpValue,
-                onValueChange = {
-                    if (it.length <= 6 && it.all { char -> char.isDigit() }) {
-                        otpValue = it
-                        errorMessage = null
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        if (otpValue.length == 6) verifyOtp()
-                    }
-                ),
-                decorationBox = {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        repeat(6) { index ->
-                            val char = otpValue.getOrNull(index)
-                            val isFocused = otpValue.length == index
-
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(56.dp)
-                                    .border(
-                                        width = if (isFocused) 2.dp else 1.5.dp,
-                                        color = when {
-                                            errorMessage != null -> Color.Red
-                                            isFocused -> PrimaryBlue
-                                            char != null -> PrimaryBlue
-                                            else -> Color(0xFFBDBDBD)
-                                        },
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                    .background(
-                                        color = when {
-                                            errorMessage != null -> Color(0xFFFFF0F0)
-                                            char != null -> Color(0x33034094)
-                                            else -> Color.White
-                                        },
-                                        shape = RoundedCornerShape(12.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = char?.toString() ?: "",
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary,
-                                    maxLines = 1
-                                )
-                            }
-                        }
-                    }
-                }
+            OtpCodeBoxes(
+                otpValue = otpValue,
+                hasError = errorMessage != null
             )
 
             errorMessage?.let {
@@ -280,7 +209,25 @@ fun OtpScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(if (compactHeight) 28.dp else 48.dp))
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 28.dp))
+
+            CarryOnNumberPad(
+                compact = compactHeight,
+                onNumberClick = { number ->
+                    if (otpValue.length < 6) {
+                        otpValue += number
+                        errorMessage = null
+                    }
+                },
+                onBackspaceClick = {
+                    if (otpValue.isNotEmpty()) {
+                        otpValue = otpValue.dropLast(1)
+                        errorMessage = null
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 28.dp))
 
             // Next Button
             Button(
@@ -301,5 +248,156 @@ fun OtpScreen(
 
             Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 40.dp))
         }
+    }
+}
+
+@Composable
+private fun OtpCodeBoxes(
+    otpValue: String,
+    hasError: Boolean
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        repeat(6) { index ->
+            val char = otpValue.getOrNull(index)
+            val isNext = otpValue.length == index
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp)
+                    .border(
+                        width = if (isNext) 2.dp else 1.5.dp,
+                        color = when {
+                            hasError -> Color.Red
+                            isNext || char != null -> PrimaryBlue
+                            else -> Color(0xFFD4DCE8)
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .background(
+                        color = when {
+                            hasError -> Color(0xFFFFF0F0)
+                            char != null -> PrimaryBlueSurface
+                            else -> Color.White
+                        },
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = char?.toString() ?: "",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    maxLines = 1
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CarryOnNumberPad(
+    compact: Boolean,
+    onNumberClick: (String) -> Unit,
+    onBackspaceClick: () -> Unit
+) {
+    val keyHeight = if (compact) 52.dp else 58.dp
+    val rows = listOf(
+        listOf("1", "2", "3"),
+        listOf("4", "5", "6"),
+        listOf("7", "8", "9")
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF3F7FC), RoundedCornerShape(24.dp))
+            .border(1.dp, Color(0xFFE1E9F4), RoundedCornerShape(24.dp))
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        rows.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                row.forEach { number ->
+                    NumberPadKey(
+                        modifier = Modifier.weight(1f).height(keyHeight),
+                        onClick = { onNumberClick(number) }
+                    ) {
+                        Text(
+                            text = number,
+                            color = TextPrimary,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(1f).height(keyHeight))
+            NumberPadKey(
+                modifier = Modifier.weight(1f).height(keyHeight),
+                onClick = { onNumberClick("0") }
+            ) {
+                Text(
+                    text = "0",
+                    color = TextPrimary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+            }
+            NumberPadKey(
+                modifier = Modifier.weight(1f).height(keyHeight),
+                onClick = onBackspaceClick,
+                containerColor = PrimaryBlue
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Backspace,
+                    contentDescription = "Delete last digit",
+                    tint = Color.White,
+                    modifier = Modifier.size(25.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NumberPadKey(
+    modifier: Modifier,
+    onClick: () -> Unit,
+    containerColor: Color = Color.White,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = containerColor,
+        border = if (containerColor == Color.White) {
+            androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFDCE6F2))
+        } else {
+            null
+        },
+        shadowElevation = if (containerColor == Color.White) 1.dp else 0.dp
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+            content = content
+        )
     }
 }
