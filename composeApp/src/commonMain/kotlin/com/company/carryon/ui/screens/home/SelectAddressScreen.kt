@@ -432,7 +432,7 @@ fun SelectAddressScreen(
                             performSearch(it)
                         },
                         placeholder = { Text(strings.to, color = PrimaryBlue) },
-                        leadingIcon = { Image(painter = painterResource(Res.drawable.ellipse_to), contentDescription = null, modifier = Modifier.size(22.dp), contentScale = ContentScale.Fit) },
+                        leadingIcon = { Icon(imageVector = Icons.Outlined.Place, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(22.dp)) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PrimaryBlue, unfocusedBorderColor = PrimaryBlue, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),

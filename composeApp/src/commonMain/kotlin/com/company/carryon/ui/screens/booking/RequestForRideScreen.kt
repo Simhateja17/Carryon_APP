@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -441,12 +442,28 @@ fun RequestForRideScreen(
         val actualTopUp = maxOf(topUpShortfall, walletTopUpMin)
         ModalBottomSheet(
             onDismissRequest = { showTopUpSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = Color.Transparent,
+            tonalElevation = 0.dp,
+            contentWindowInsets = { WindowInsets(0) }
         ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                        spotColor = Color(0x40000000),
+                        ambientColor = Color(0x40000000)
+                    ),
+                color = Color.White,
+                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+            ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp, vertical = 16.dp)
+                    .navigationBarsPadding()
             ) {
                 Text(
                     "Insufficient Wallet Balance",
@@ -589,6 +606,7 @@ fun RequestForRideScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
+            } // Surface
         }
     }
 }

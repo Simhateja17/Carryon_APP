@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -86,133 +87,159 @@ fun OtpScreen(
         val horizontalPadding = if (compactWidth) 16.dp else 24.dp
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = horizontalPadding)
+            modifier = Modifier.fillMaxSize()
         ) {
-            Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
-
-            // Top bar: Back Arrow + Continue button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Scrollable top content
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = horizontalPadding)
             ) {
-                Text(
-                    text = "‹",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier
-                        .clickable { onBack() }
-                        .padding(8.dp)
-                )
-                Text(
-                    text = strings.next,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (otpValue.length == 6 && !isLoading) PrimaryBlue else Color.LightGray,
-                    modifier = Modifier
-                        .clickable(enabled = otpValue.length == 6 && !isLoading) { verifyOtp() }
-                        .padding(8.dp)
-                )
-            }
+                Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
 
-            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 40.dp))
-
-            // Enter the Code
-            Text(
-                text = strings.enterTheCode,
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Subtitle
-            Text(
-                text = strings.verificationCodeSentTo,
-                fontSize = 14.sp,
-                color = TextSecondary
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = otpPhone,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(if (compactHeight) 24.dp else 40.dp))
-
-            // OTP Input - 6 digit boxes
-            OtpCodeBoxes(
-                otpValue = otpValue,
-                hasError = errorMessage != null
-            )
-
-            errorMessage?.let {
-                Text(
-                    text = it,
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            // Resend Code
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = strings.dontReceiveCode,
-                    color = TextSecondary,
-                    fontSize = 14.sp
-                )
-
-                if (canResend) {
+                // Top bar: Back Arrow + Continue button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = strings.resendAgain,
-                        color = PrimaryBlue,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                        modifier = Modifier.clickable {
-                            scope.launch {
-                                AuthApi.sendOtp(mode = mode, phone = otpPhone).fold(
-                                    onSuccess = {
-                                        resendTimer = 30
-                                        canResend = false
-                                    },
-                                    onFailure = { e ->
-                                        errorMessage = e.message ?: strings.failedToResendCode
-                                    }
-                                )
-                            }
-                        }
+                        text = "‹",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        modifier = Modifier
+                            .clickable { onBack() }
+                            .padding(8.dp)
                     )
-                } else {
                     Text(
-                        text = strings.resendAgainTimer(resendTimer),
-                        color = Color.LightGray,
-                        fontSize = 14.sp
+                        text = strings.next,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (otpValue.length == 6 && !isLoading) PrimaryBlue else Color.LightGray,
+                        modifier = Modifier
+                            .clickable(enabled = otpValue.length == 6 && !isLoading) { verifyOtp() }
+                            .padding(8.dp)
                     )
                 }
+
+                Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 40.dp))
+
+                // Enter the Code
+                Text(
+                    text = strings.enterTheCode,
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Subtitle
+                Text(
+                    text = strings.verificationCodeSentTo,
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = otpPhone,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(if (compactHeight) 24.dp else 40.dp))
+
+                // OTP Input - 6 digit boxes
+                OtpCodeBoxes(
+                    otpValue = otpValue,
+                    hasError = errorMessage != null
+                )
+
+                errorMessage?.let {
+                    Text(
+                        text = it,
+                        color = Color.Red,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                // Resend Code
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = strings.dontReceiveCode,
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+
+                    if (canResend) {
+                        Text(
+                            text = strings.resendAgain,
+                            color = PrimaryBlue,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    AuthApi.sendOtp(mode = mode, phone = otpPhone).fold(
+                                        onSuccess = {
+                                            resendTimer = 30
+                                            canResend = false
+                                        },
+                                        onFailure = { e ->
+                                            errorMessage = e.message ?: strings.failedToResendCode
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    } else {
+                        Text(
+                            text = strings.resendAgainTimer(resendTimer),
+                            color = Color.LightGray,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 24.dp))
+
+                // Next Button — directly below resend row
+                Button(
+                    onClick = { verifyOtp() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    enabled = otpValue.length == 6 && !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 20.dp))
             }
 
-            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 28.dp))
-
+            // Keypad pinned at the bottom
             CarryOnNumberPad(
                 compact = compactHeight,
+                modifier = Modifier.padding(horizontal = horizontalPadding).padding(bottom = if (compactHeight) 16.dp else 24.dp),
                 onNumberClick = { number ->
                     if (otpValue.length < 6) {
                         otpValue += number
@@ -226,27 +253,6 @@ fun OtpScreen(
                     }
                 }
             )
-
-            Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 28.dp))
-
-            // Next Button
-            Button(
-                onClick = { verifyOtp() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                enabled = otpValue.length == 6 && !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                } else {
-                    Text(strings.next, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(if (compactHeight) 16.dp else 40.dp))
         }
     }
 }
@@ -302,6 +308,7 @@ private fun OtpCodeBoxes(
 @Composable
 private fun CarryOnNumberPad(
     compact: Boolean,
+    modifier: Modifier = Modifier,
     onNumberClick: (String) -> Unit,
     onBackspaceClick: () -> Unit
 ) {
@@ -313,10 +320,15 @@ private fun CarryOnNumberPad(
     )
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .background(Color(0xFFF3F7FC), RoundedCornerShape(24.dp))
-            .border(1.dp, Color(0xFFE1E9F4), RoundedCornerShape(24.dp))
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(24.dp),
+                ambientColor = Color(0x40000000),
+                spotColor = Color(0x40000000)
+            )
+            .background(Color.White, RoundedCornerShape(24.dp))
             .padding(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
