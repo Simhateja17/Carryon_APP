@@ -63,6 +63,8 @@ import carryon.composeapp.generated.resources.icon_home
 import carryon.composeapp.generated.resources.icon_map
 import carryon.composeapp.generated.resources.mini_van
 import carryon.composeapp.generated.resources.truck
+import carryon.composeapp.generated.resources.vehicle_truck_icon
+import carryon.composeapp.generated.resources.carf
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.UserApi
@@ -384,15 +386,11 @@ fun HomeScreen(
                         .padding(horizontal = 14.dp, vertical = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = Color.White,
+                    Image(
+                        painter = painterResource(Res.drawable.carf),
+                        contentDescription = null,
                         modifier = Modifier.size(28.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text("🚚", fontSize = 13.sp)
-                        }
-                    }
+                    )
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(strings.deliveryInProgressStatus, color = TextPrimary, fontWeight = FontWeight.Medium, fontSize = 13.sp)

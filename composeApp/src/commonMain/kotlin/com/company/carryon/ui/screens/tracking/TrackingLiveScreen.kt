@@ -26,6 +26,7 @@ import com.company.carryon.data.network.LocationApi
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.LiveTrackingApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
@@ -66,6 +67,9 @@ fun TrackingLiveScreen(
     var trackingStale by remember { mutableStateOf(false) }
     var consecutiveFailures by remember { mutableStateOf(0) }
     var liveTrackingConnected by remember { mutableStateOf(false) }
+    var showCancelOrderDialog by remember { mutableStateOf(false) }
+    var isCancellingOrder by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // Load booking data
     LaunchedEffect(bookingId) {
@@ -232,13 +236,53 @@ fun TrackingLiveScreen(
         }
     }
 
+    if (showCancelOrderDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isCancellingOrder) showCancelOrderDialog = false },
+            containerColor = Color.White,
+            title = { Text("Cancel order?", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Are you sure you want to cancel this delivery? A cancellation fee may apply if the driver is already on their way to pick up your package. Any eligible refund will be credited to your wallet.",
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCancelOrderDialog = false
+                        if (!isCancellingOrder) {
+                            isCancellingOrder = true
+                            scope.launch {
+                                BookingApi.cancelBooking(bookingId)
+                                onBack()
+                            }
+                        }
+                    },
+                    enabled = !isCancellingOrder
+                ) {
+                    Text("Cancel order", color = ErrorRed, fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showCancelOrderDialog = false },
+                    enabled = !isCancellingOrder
+                ) {
+                    Text("Keep order", color = PrimaryBlue, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
+                        horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         com.company.carryon.ui.components.CarryOnWordmark()
@@ -451,6 +495,38 @@ fun TrackingLiveScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color.White
                             )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Cancel Order button
+                        Button(
+                            onClick = { showCancelOrderDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFFF0F0),
+                                contentColor = ErrorRed,
+                                disabledContainerColor = Color(0xFFFFE0E0)
+                            ),
+                            enabled = !isCancellingOrder
+                        ) {
+                            if (isCancellingOrder) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = ErrorRed,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    "Cancel Order",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = ErrorRed
+                                )
+                            }
                         }
                     }
                 }

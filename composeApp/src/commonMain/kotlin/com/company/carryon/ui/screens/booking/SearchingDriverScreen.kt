@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -153,6 +154,13 @@ fun SearchingDriverScreen(
     if (showCancelDialog) {
         AlertDialog(
             onDismissRequest = { showCancelDialog = false },
+            modifier = Modifier.shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(28.dp),
+                ambientColor = Color(0x40000000),
+                spotColor = Color(0x40000000)
+            ),
+            containerColor = Color.White,
             title = { Text("Cancel request?") },
             text = {
                 Text(
@@ -215,7 +223,7 @@ fun SearchingDriverScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0x80F4F7FF))
+                .background(Color.White)
         )
 
         Column(
@@ -243,7 +251,7 @@ fun SearchingDriverScreen(
                     Spacer(modifier = Modifier.width(14.dp))
                     Text(
                         text = "Finding Your Driver",
-                        fontSize = 28.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF1D2B53)
                     )
@@ -305,9 +313,16 @@ fun SearchingDriverScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .shadow(
+                        elevation = 12.dp,
+                        shape = RoundedCornerShape(28.dp),
+                        ambientColor = Color(0x59000000),
+                        spotColor = Color(0x59000000)
+                    ),
                 shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.97f))
+                colors = CardDefaults.cardColors(containerColor = Color.White)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Row(
@@ -321,12 +336,6 @@ fun SearchingDriverScreen(
                                 .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Image(
-                                    painter = painterResource(vehicleIconRes),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
                                 Text(vehicleLabel, color = PrimaryBlue, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                             }
                         }
@@ -340,7 +349,7 @@ fun SearchingDriverScreen(
                     HorizontalDivider(color = Color(0xFFE7EAF0))
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    Text("PICKUP", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                    Text("PICKUP", fontSize = 11.sp, color = PrimaryBlue, fontWeight = FontWeight.Medium)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(pickupAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -350,7 +359,7 @@ fun SearchingDriverScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("DROP OFF", fontSize = 11.sp, color = TextSecondary, fontWeight = FontWeight.Medium)
+                            Text("DROP OFF", fontSize = 11.sp, color = PrimaryBlue, fontWeight = FontWeight.Medium)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(dropoffAddressText, fontSize = 16.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                         }

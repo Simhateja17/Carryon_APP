@@ -271,6 +271,17 @@ fun RequestForRideScreen(
         },
         topBar = {
             TopAppBar(
+                navigationIcon = {
+                    Text(
+                        "‹",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF1D2B53),
+                        modifier = Modifier
+                            .clickable { onBack() }
+                            .padding(start = 16.dp, end = 8.dp)
+                    )
+                },
                 title = {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         com.company.carryon.ui.components.CarryOnWordmark()
