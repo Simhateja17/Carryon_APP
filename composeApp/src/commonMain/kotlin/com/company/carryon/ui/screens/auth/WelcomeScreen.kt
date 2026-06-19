@@ -29,24 +29,32 @@ fun WelcomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(Res.drawable.welcome_hero),
-            contentDescription = "Carry On delivery van",
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1.22f),
-            contentScale = ContentScale.Crop
-        )
+                .weight(0.62f)
+                .padding(top = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(Res.drawable.welcome_hero),
+                contentDescription = "Carry On delivery van",
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .fillMaxHeight(),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp)
-                .padding(top = 34.dp, bottom = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom
+                .fillMaxWidth(0.75f)
+                .weight(0.38f)
+                .padding(top = 36.dp, bottom = 40.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = strings.welcome,
@@ -58,7 +66,7 @@ fun WelcomeScreen(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -72,13 +80,13 @@ fun WelcomeScreen(
                 com.company.carryon.ui.components.CarryOnWordmark(fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(56.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             Button(
                 onClick = onCreateAccount,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(58.dp),
+                    .height(56.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
             ) {
@@ -96,7 +104,7 @@ fun WelcomeScreen(
                 onClick = onLogin,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(58.dp),
+                    .height(56.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryBlue),
                 border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryBlue)
