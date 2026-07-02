@@ -32,7 +32,7 @@ private val AuthHeaderPlugin = createClientPlugin("AuthHeaderPlugin") {
 }
 
 object HttpClientFactory {
-    private fun buildClient(includeAuth: Boolean, notifyAuthExpiry: Boolean): HttpClient = HttpClient {
+    private fun buildClient(includeAuth: Boolean, notifyAuthExpiry: Boolean): HttpClient = createPlatformHttpClient {
         install(ContentNegotiation) {
             json(networkJson)
         }

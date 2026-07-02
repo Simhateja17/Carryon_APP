@@ -25,6 +25,9 @@ import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.CarryOnTheme
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueSurface
+import com.company.carryon.ui.theme.ResponsiveContentHost
+import com.company.carryon.ui.theme.LocalWindowAdaptiveInfo
+import com.company.carryon.ui.theme.WindowWidthClass
 import com.company.carryon.ui.screens.splash.SplashScreen
 import com.company.carryon.ui.screens.auth.WelcomeScreen
 import com.company.carryon.ui.screens.auth.LoginScreen
@@ -391,7 +394,7 @@ private fun AppContent() {
                 }
             }
         ) { scaffoldPadding ->
-        Box(
+        ResponsiveContentHost(
             modifier = Modifier
                 .fillMaxSize()
                 .background(screenBackground)
@@ -999,6 +1002,9 @@ private fun AppBottomBar(
     onAccountClick: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val adaptiveInfo = LocalWindowAdaptiveInfo.current
+    val selectedItemSize = if (adaptiveInfo.widthClass == WindowWidthClass.Compact) 48.dp else 56.dp
+    val horizontalPadding = if (adaptiveInfo.widthClass == WindowWidthClass.Compact) 4.dp else 12.dp
     Surface(
         color = Color.White,
         shadowElevation = 8.dp
@@ -1014,7 +1020,7 @@ private fun AppBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = horizontalPadding, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -1025,6 +1031,7 @@ private fun AppBottomBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .heightIn(min = 48.dp)
                         .clickable { actions[index]() },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -1033,7 +1040,7 @@ private fun AppBottomBar(
                             shape = CircleShape,
                             color = PrimaryBlue,
                             shadowElevation = 6.dp,
-                            modifier = Modifier.size(56.dp)
+                            modifier = Modifier.size(selectedItemSize)
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),

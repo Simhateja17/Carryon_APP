@@ -1,59 +1,92 @@
 package com.company.carryon.ui.theme
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/**
- * Screen-width buckets for responsive layouts.
- * Compact  : phones under 360 dp  (iPhone SE, Galaxy A-series)
- * Medium   : typical phones 360-600 dp
- * Expanded : tablets / foldables > 600 dp
- */
+/** Width classes are based on the available app window, not the physical device. */
 enum class WindowWidthClass { Compact, Medium, Expanded }
+
+enum class WindowHeightClass { Compact, Medium, Expanded }
+
+@Immutable
+data class WindowAdaptiveInfo(
+    val width: Dp,
+    val height: Dp,
+    val widthClass: WindowWidthClass,
+    val heightClass: WindowHeightClass,
+) {
+    val isLandscape: Boolean get() = width > height
+    val horizontalPadding: Dp
+        get() = when {
+            width < 360.dp -> 12.dp
+            width < 600.dp -> 16.dp
+            else -> 24.dp
+        }
+}
+
+fun windowWidthClass(width: Dp): WindowWidthClass = when {
+    width < 360.dp -> WindowWidthClass.Compact
+    width < 600.dp -> WindowWidthClass.Medium
+    else -> WindowWidthClass.Expanded
+}
+
+fun windowHeightClass(height: Dp): WindowHeightClass = when {
+    height < 480.dp -> WindowHeightClass.Compact
+    height < 720.dp -> WindowHeightClass.Medium
+    else -> WindowHeightClass.Expanded
+}
+
+val LocalWindowAdaptiveInfo = compositionLocalOf {
+    WindowAdaptiveInfo(
+        width = 360.dp,
+        height = 640.dp,
+        widthClass = WindowWidthClass.Medium,
+        heightClass = WindowHeightClass.Medium,
+    )
+}
 
 val LocalWindowWidthClass = compositionLocalOf { WindowWidthClass.Medium }
 
-/** Call inside your root composable (CarryOnTheme or Scaffold). */
+/**
+ * Keeps phone UI readable in wide landscape/foldable windows. Background still fills the window,
+ * while screen content is centered and capped at a comfortable single-pane width.
+ */
 @Composable
-fun rememberWindowWidthClass(): WindowWidthClass {
-    val density = LocalDensity.current
-    val widthDp = with(density) {
-        // BoxWithConstraints is heavyweight; use screen metrics via density
-        // screenWidthDp is available from LocalConfiguration on Android,
-        // but for KMP we approximate using density.density * logical pixels.
-        // In practice the theme wraps the whole app, so we use a safe default.
-        // The actual width will be provided by the caller via BoxWithConstraints.
-        0.dp // placeholder — overridden by ProvideWindowWidthClass
-    }
-    return when {
-        widthDp < 360.dp -> WindowWidthClass.Compact
-        widthDp < 600.dp -> WindowWidthClass.Medium
-        else -> WindowWidthClass.Expanded
+fun ResponsiveContentHost(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Box(
+            modifier = Modifier
+                .widthIn(max = 600.dp)
+                .fillMaxSize(),
+            content = content,
+        )
     }
 }
 
-// ─── Responsive scale factors ────────────────────────────────────
-
-/**
- * Returns a scale factor (0.85 / 1.0 / 1.1) depending on screen width.
- * Use to multiply dp or sp values that must shrink on small screens.
- */
+/** Only decorative dimensions scale. Interactive targets must remain at least 48 dp. */
 @Composable
 fun responsiveScale(): Float = when (LocalWindowWidthClass.current) {
-    WindowWidthClass.Compact -> 0.85f
-    WindowWidthClass.Medium -> 1.0f
+    WindowWidthClass.Compact -> 0.9f
+    WindowWidthClass.Medium -> 1f
     WindowWidthClass.Expanded -> 1.1f
 }
 
-/** Scales a Dp value by the current window-width class. */
 @Composable
 fun Dp.responsive(): Dp = this * responsiveScale()
 
-/** Scales a TextUnit (sp) value by the current window-width class. */
 @Composable
-fun TextUnit.responsive(): TextUnit = (this.value * responsiveScale()).sp
+fun TextUnit.responsive(): TextUnit = (value * responsiveScale()).sp

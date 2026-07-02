@@ -170,12 +170,28 @@ fun RegisterScreen(
                                     },
                                     onFailure = { e ->
                                         isLoading = false
-                                        errorMessage = e.message ?: strings.failedToSendCode
+                                        val msg = e.message ?: ""
+                                        errorMessage = if (msg.contains("Chain validation failed", ignoreCase = true) ||
+                                            msg.contains("SSL", ignoreCase = true) ||
+                                            msg.contains("certificate", ignoreCase = true) ||
+                                            msg.contains("trust anchor", ignoreCase = true)) {
+                                            "Connection error. Please check your internet connection and try again."
+                                        } else {
+                                            msg.ifBlank { strings.failedToSendCode }
+                                        }
                                     }
                                 )
                             } catch (e: Exception) {
                                 isLoading = false
-                                errorMessage = e.message ?: strings.unexpectedError
+                                val msg = e.message ?: ""
+                                errorMessage = if (msg.contains("Chain validation failed", ignoreCase = true) ||
+                                    msg.contains("SSL", ignoreCase = true) ||
+                                    msg.contains("certificate", ignoreCase = true) ||
+                                    msg.contains("trust anchor", ignoreCase = true)) {
+                                    "Connection error. Please check your internet connection and try again."
+                                } else {
+                                    msg.ifBlank { strings.unexpectedError }
+                                }
                             }
                         }
                     }

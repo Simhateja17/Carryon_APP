@@ -21,11 +21,11 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Coupon
 import com.company.carryon.data.model.ReferralInfo
 import com.company.carryon.data.network.PromoApi
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.WindowInsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,18 +55,12 @@ fun PromoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(strings.promoAndReferrals, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    TextButton(onClick = onBack) { Text("‹ ${strings.back}", color = Color.Black) }
-                },
-                actions = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        com.company.carryon.ui.components.CarryOnWordmark()
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-                windowInsets = WindowInsets(0)
+            CarryOnHeader(
+                title = strings.promoAndReferrals,
+                titleWeight = FontWeight.Normal,
+                backgroundColor = Color.White,
+                onBack = onBack,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
             )
         },
         containerColor = BackgroundLight

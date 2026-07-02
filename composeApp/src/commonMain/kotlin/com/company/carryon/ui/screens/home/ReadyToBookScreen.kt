@@ -3,6 +3,8 @@ package com.company.carryon.ui.screens.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +31,7 @@ fun ReadyToBookScreen(
     onLetsRide: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val adaptiveInfo = LocalWindowAdaptiveInfo.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -69,10 +72,11 @@ fun ReadyToBookScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(Color.White)
-                .padding(horizontal = ScreenHorizontalPadding),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = adaptiveInfo.horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(0.6f))
+            Spacer(modifier = Modifier.height(if (adaptiveInfo.heightClass == WindowHeightClass.Compact) 8.dp else 24.dp))
 
             // Vehicle Image
             Image(
@@ -80,7 +84,7 @@ fun ReadyToBookScreen(
                 contentDescription = "Truck Vehicle",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp),
+                    .height(if (adaptiveInfo.heightClass == WindowHeightClass.Compact) 120.dp else 220.dp),
                 contentScale = ContentScale.Fit
             )
 
@@ -111,7 +115,7 @@ fun ReadyToBookScreen(
                 lineHeight = 22.sp
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(if (adaptiveInfo.heightClass == WindowHeightClass.Compact) 16.dp else 32.dp))
 
             // Lets Ride Button
             Button(

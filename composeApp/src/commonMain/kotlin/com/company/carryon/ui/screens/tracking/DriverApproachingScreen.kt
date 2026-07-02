@@ -318,19 +318,23 @@ fun DriverApproachingScreen(
 
                             Spacer(modifier = Modifier.width(14.dp))
 
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     if (isDriverArrived) strings.driverArrivedStatus else strings.driverOnTheWayStatus,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                                 if (isDriverArrived) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         strings.waitTimerStarted,
                                         fontSize = 13.sp,
-                                        color = Color.White.copy(alpha = 0.85f)
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                                 currentBooking.driver?.let { driver ->
@@ -338,7 +342,9 @@ fun DriverApproachingScreen(
                                     Text(
                                         "${driver.name} - ${driver.vehicleModel}",
                                         fontSize = 13.sp,
-                                        color = Color.White.copy(alpha = 0.85f)
+                                        color = Color.White.copy(alpha = 0.85f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                             }

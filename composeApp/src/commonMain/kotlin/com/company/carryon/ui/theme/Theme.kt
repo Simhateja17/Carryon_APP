@@ -102,14 +102,17 @@ fun CarryOnTheme(
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     BoxWithConstraints {
-        val widthClass = when {
-            maxWidth < 360.dp -> WindowWidthClass.Compact
-            maxWidth < 600.dp -> WindowWidthClass.Medium
-            else -> WindowWidthClass.Expanded
-        }
+        val widthClass = windowWidthClass(maxWidth)
+        val adaptiveInfo = WindowAdaptiveInfo(
+            width = maxWidth,
+            height = maxHeight,
+            widthClass = widthClass,
+            heightClass = windowHeightClass(maxHeight),
+        )
         CompositionLocalProvider(
             LocalStrings provides getStringsForLanguage(language),
-            LocalWindowWidthClass provides widthClass
+            LocalWindowWidthClass provides widthClass,
+            LocalWindowAdaptiveInfo provides adaptiveInfo,
         ) {
             MaterialTheme(
                 colorScheme = colorScheme,

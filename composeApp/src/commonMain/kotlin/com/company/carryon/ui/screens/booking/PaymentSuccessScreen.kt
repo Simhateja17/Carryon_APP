@@ -3,6 +3,8 @@ package com.company.carryon.ui.screens.booking
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -29,6 +31,8 @@ fun PaymentSuccessScreen(
     onContinue: () -> Unit
 ) {
     val strings = LocalStrings.current
+    val adaptiveInfo = LocalWindowAdaptiveInfo.current
+    val compactHeight = adaptiveInfo.heightClass == WindowHeightClass.Compact
     val displayAmount = if (amount == amount.toLong().toDouble()) {
         amount.toLong().toString()
     } else {
@@ -37,21 +41,23 @@ fun PaymentSuccessScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
+            .background(Color.White)
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = if (compactHeight) 16.dp else 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 24.dp))
 
         // ── SUCCESS ICON ──
         Image(
             painter = painterResource(Res.drawable.thankyou_icon),
             contentDescription = "Success",
-            modifier = Modifier.size(160.dp),
+            modifier = Modifier.size(if (compactHeight) 96.dp else 160.dp),
             contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(if (compactHeight) 12.dp else 32.dp))
 
         Text(
             strings.paymentSuccess,
@@ -67,7 +73,7 @@ fun PaymentSuccessScreen(
         // ── AMOUNT ──
         Text(
             "RM $displayAmount",
-            fontSize = 52.sp,
+            fontSize = if (adaptiveInfo.widthClass == WindowWidthClass.Compact) 40.sp else 52.sp,
             fontWeight = FontWeight.Bold,
             color = PrimaryBlue,
             textAlign = TextAlign.Center,
@@ -85,14 +91,14 @@ fun PaymentSuccessScreen(
             lineHeight = 22.sp
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(if (compactHeight) 20.dp else 40.dp))
 
         // ── CONTINUE BUTTON ──
         Button(
             onClick = onContinue,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 28.dp)
+                .padding(horizontal = adaptiveInfo.horizontalPadding)
                 .height(54.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
@@ -100,6 +106,6 @@ fun PaymentSuccessScreen(
             Text(strings.continueText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(if (compactHeight) 8.dp else 16.dp))
     }
 }
