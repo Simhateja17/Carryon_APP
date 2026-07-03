@@ -159,7 +159,7 @@ fun TransactionsScreen(
 @Composable
 private fun TransactionCard(txn: WalletTransaction) {
     val isCredit = txn.amount >= 0
-    val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(0)}"
+    val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(2)}"
     val title = txn.description.ifBlank {
         if (txn.type == "TOP_UP") "Wallet top-up" else "Wallet transaction"
     }

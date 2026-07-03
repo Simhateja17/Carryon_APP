@@ -240,7 +240,7 @@ private fun ActionItem(icon: ImageVector, label: String, onClick: (() -> Unit)? 
 @Composable
 private fun TransactionRow(txn: WalletTransaction) {
     val isCredit = txn.amount >= 0
-    val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(0)}"
+    val amountText = "${if (isCredit) "+" else "-"}RM ${kotlin.math.abs(txn.amount).formatDecimal(2)}"
     val title = txn.description.ifBlank {
         if (txn.type == "TOP_UP") "Wallet top-up" else "Wallet transaction"
     }
