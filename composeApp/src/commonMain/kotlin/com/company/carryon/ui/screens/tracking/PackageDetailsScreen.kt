@@ -3,7 +3,6 @@ package com.company.carryon.ui.screens.tracking
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -15,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import carryon.composeapp.generated.resources.Res
 import carryon.composeapp.generated.resources.track_sent
-import carryon.composeapp.generated.resources.track_transit
 import carryon.composeapp.generated.resources.track_journey
 import carryon.composeapp.generated.resources.track_accepted
+import carryon.composeapp.generated.resources.icon_documents
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.ui.theme.*
@@ -34,8 +34,7 @@ import com.company.carryon.util.formatDecimal
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.model.BookingStatus
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.NotificationsNone
+import com.company.carryon.ui.components.CarryOnHeader
 
 private data class TrackingStep(
     val iconRes: DrawableResource,
@@ -75,7 +74,7 @@ private fun buildTrackingSteps(
             isCompleted = statusStep >= 0
         ),
         TrackingStep(
-            iconRes = Res.drawable.track_transit,
+            iconRes = Res.drawable.track_journey,
             title = strings.transit,
             subtitle = booking.vehicleType,
             date = if (statusStep >= 1) updatedDate else "",
@@ -170,35 +169,10 @@ fun PackageDetailsScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Carry",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryBlue,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                        )
-                        Text(
-                            text = " On",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
+            CarryOnHeader(
+                title = strings.packageLabel,
+                onBack = onBack,
+                contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)
             )
         },
     ) { paddingValues ->
@@ -239,33 +213,6 @@ fun PackageDetailsScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 16.dp)
                 ) {
-                    // Sub Header
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "‹",
-                            fontSize = 20.sp,
-                            color = TextSecondary,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        
-                        Spacer(modifier = Modifier.weight(1f))
-                        
-                        Text(
-                            text = strings.packageLabel,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        
-                        Spacer(modifier = Modifier.weight(1f))
-                        
-                        Text("", fontSize = 20.sp, color = TextSecondary)
-                    }
-                    
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Package card
@@ -292,7 +239,12 @@ fun PackageDetailsScreen(
                                         .background(Color.White, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text("", fontSize = 18.sp)
+                                    Image(
+                                        painter = painterResource(Res.drawable.icon_documents),
+                                        contentDescription = strings.documents,
+                                        modifier = Modifier.size(22.dp),
+                                        colorFilter = ColorFilter.tint(PrimaryBlue)
+                                    )
                                 }
                                 
                                 Spacer(modifier = Modifier.width(12.dp))

@@ -602,6 +602,13 @@ private fun AppContent() {
                     onTrackOrder = { bookingId ->
                         navigateToTrackingLive(bookingId)
                     },
+                    onRebook = { pickup, delivery, vehicleType ->
+                        currentScreen = AppScreen.SelectAddress(
+                            pickup = pickup,
+                            delivery = delivery,
+                            vehicleType = vehicleType
+                        )
+                    }
                 )
             }
             is AppScreen.PackageDetails -> {

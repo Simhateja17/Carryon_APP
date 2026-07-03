@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,6 +25,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,9 +44,9 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.data.model.Booking
 import com.company.carryon.data.network.BookingApi
 import com.company.carryon.i18n.LocalStrings
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
 import com.company.carryon.ui.theme.PrimaryBlueDark
-import com.company.carryon.ui.theme.SuccessGreen
 import com.company.carryon.ui.theme.TextPrimary
 
 private val CompleteBg = Color(0xFFF7F8FC)
@@ -79,14 +81,26 @@ fun DeliveryCompleteScreen(
 
     val currentBooking = booking
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CompleteBg)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Scaffold(
+        topBar = {
+            CarryOnHeader(
+                title = "",
+                showBack = false,
+                backgroundColor = CompleteBg,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
+            )
+        },
+        containerColor = CompleteBg
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(CompleteBg)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         Spacer(Modifier.height(24.dp))
 
         // Success icon
@@ -99,7 +113,7 @@ fun DeliveryCompleteScreen(
             Icon(
                 Icons.Filled.CheckCircle,
                 contentDescription = null,
-                tint = SuccessGreen,
+                tint = PrimaryBlue,
                 modifier = Modifier.size(64.dp)
             )
         }
@@ -245,7 +259,8 @@ fun DeliveryCompleteScreen(
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
+        }
     }
 }
 

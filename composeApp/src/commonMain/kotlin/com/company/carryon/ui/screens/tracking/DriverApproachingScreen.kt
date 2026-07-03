@@ -1,7 +1,6 @@
 package com.company.carryon.ui.screens.tracking
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,6 +26,7 @@ import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.MapMarker
 import com.company.carryon.ui.components.MapViewComposable
 import com.company.carryon.ui.components.MarkerColor
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -183,17 +184,17 @@ fun DriverApproachingScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        com.company.carryon.ui.components.CarryOnWordmark()
-                    }
+            CarryOnHeader(
+                title = if (booking?.status == BookingStatus.DRIVER_ARRIVED) {
+                    strings.driverArrivedStatus
+                } else {
+                    strings.driverOnTheWayStatus
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                onBack = onBack,
+                backgroundColor = Color.White,
+                titleColor = TextPrimary,
+                titleWeight = FontWeight.Bold,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp)
             )
         },
         containerColor = Color.White
@@ -235,31 +236,6 @@ fun DriverApproachingScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // Back arrow + title
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "‹",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            if (isDriverArrived) strings.driverArrivedStatus else strings.driverOnTheWayStatus,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
                     // Map
                     Box(modifier = Modifier.weight(1f)) {
                         val centerLat = if (driverLat != 0.0) driverLat else pickupLat
@@ -354,10 +330,17 @@ fun DriverApproachingScreen(
 
                         // Driver contact card
                         Card(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .shadow(
+                                    elevation = 8.dp,
+                                    shape = RoundedCornerShape(16.dp),
+                                    ambientColor = Color(0x59000000),
+                                    spotColor = Color(0x59000000)
+                                ),
                             shape = RoundedCornerShape(16.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFEAF4FE))
+                            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(18.dp),

@@ -1,7 +1,6 @@
 package com.company.carryon.ui.screens.tracking
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.MapViewComposable
+import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.data.model.LatLng
 import com.company.carryon.data.model.MapConfig
 import com.company.carryon.data.model.RouteResult
@@ -29,9 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.NotificationsNone
 import com.company.carryon.util.telUriFor
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -278,30 +276,13 @@ fun TrackingLiveScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Start,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        com.company.carryon.ui.components.CarryOnWordmark()
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            onChatWithDriver(bookingId, booking?.driver?.name ?: "Driver")
-                        },
-                        enabled = booking?.driver != null
-                    ) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.Chat, contentDescription = "Chat with Driver", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
-                    }
-                    IconButton(onClick = {}) {
-                        Icon(imageVector = Icons.Outlined.NotificationsNone, contentDescription = "Notifications", tint = PrimaryBlue, modifier = Modifier.size(24.dp))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            CarryOnHeader(
+                title = strings.trackYourShipment,
+                onBack = onBack,
+                titleColor = TextPrimary,
+                titleWeight = FontWeight.Bold,
+                backgroundColor = Color.White,
+                contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)
             )
         },
         containerColor = Color.White
@@ -341,31 +322,6 @@ fun TrackingLiveScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    // Title row with back arrow
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "‹",
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            modifier = Modifier.clickable { onBack() }
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            strings.trackYourShipment,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
                     // Stale tracking warning
                     if (trackingStale) {
                         Row(

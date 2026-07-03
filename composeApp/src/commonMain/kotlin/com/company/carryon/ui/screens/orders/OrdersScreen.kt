@@ -128,7 +128,8 @@ private val OrderCardStatusFontSize = 12.sp
 fun OrdersScreen(
     onBack: () -> Unit,
     onOrderClick: (orderId: String) -> Unit,
-    onTrackOrder: (orderId: String) -> Unit = onOrderClick
+    onTrackOrder: (orderId: String) -> Unit = onOrderClick,
+    onRebook: (pickup: String, delivery: String, vehicleType: String) -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(OrdersTab.ALL) }
 
@@ -285,7 +286,13 @@ fun OrdersScreen(
                     CompletedOrderCard(
                         card = completed,
                         onViewDetails = { onOrderClick(completed.order.id) },
-                        onRepeat = { onOrderClick(completed.order.id) }
+                        onRepeat = {
+                            onRebook(
+                                completed.order.pickup,
+                                completed.order.delivery,
+                                completed.order.vehicleType
+                            )
+                        }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -300,7 +307,13 @@ fun OrdersScreen(
                 cancelledCards.forEach { cancelled ->
                     CancelledOrderCard(
                         card = cancelled,
-                        onAction = { onOrderClick(cancelled.order.id) }
+                        onAction = {
+                            onRebook(
+                                cancelled.order.pickup,
+                                cancelled.order.delivery,
+                                cancelled.order.vehicleType
+                            )
+                        }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                 }
@@ -893,16 +906,18 @@ private fun CompletedOrderCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.fillMaxWidth().height(90.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().height(136.dp)) {
                 Column(
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(top = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
                         modifier = Modifier.size(10.dp).background(Color(0xFF034094), CircleShape)
                     )
                     Box(
-                        modifier = Modifier.width(1.dp).height(40.dp).background(Color(0x4DA7AAD7))
+                        modifier = Modifier.width(1.dp).weight(1f).background(Color(0x4DA7AAD7))
                     )
                     Box(
                         modifier = Modifier.size(10.dp).background(Color(0xFF034094), CircleShape)
