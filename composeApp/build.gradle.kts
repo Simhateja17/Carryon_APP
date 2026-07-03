@@ -92,8 +92,8 @@ android {
         applicationId = "com.company.carryon_malaysia"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 7
-        versionName = "1.0.2"
+        versionCode = 9
+        versionName = "1.0.3"
 
         val localProperties = Properties().apply {
             val file = rootProject.file("local.properties")

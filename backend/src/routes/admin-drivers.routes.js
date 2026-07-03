@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const prisma = require('../lib/prisma');
 const { AppError } = require('../middleware/errorHandler');
+const { parsePagination } = require('../lib/pagination');
 const { recordAudit } = require('../services/auditLog');
 const {
   DRIVER_DETAIL_INCLUDE,
@@ -15,6 +16,7 @@ const {
   updateDriverVerificationDecision,
 } = require('../services/adminDriverVerification');
 const { createAdminDriverRegistration } = require('../services/adminDriverRegistration');
+const { hasRequiredBankDetails, maskedBankDestination } = require('../services/manualDriverPayouts');
 
 const router = Router();
 
@@ -61,6 +63,64 @@ router.post('/', async (req, res, next) => {
     res.status(201).json({
       success: true,
       data: driverListProjection(driver),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/admin/drivers/:driverId/payouts — read-only payout history
+router.get('/:driverId/payouts', async (req, res, next) => {
+  try {
+    const { page, limit, skip } = parsePagination(req.query);
+    const driver = await prisma.driver.findUnique({
+      where: { id: req.params.driverId },
+      select: { id: true },
+    });
+    if (!driver) return next(new AppError('Driver not found', 404));
+
+    const [total, payouts] = await Promise.all([
+      prisma.driverPayout.count({ where: { driverId: req.params.driverId } }),
+      prisma.driverPayout.findMany({
+        where: { driverId: req.params.driverId },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    const transactionIds = payouts
+      .map((payout) => payout.transactionId)
+      .filter(Boolean);
+    const transactions = transactionIds.length > 0
+      ? await prisma.driverWalletTransaction.findMany({
+        where: { id: { in: transactionIds } },
+      })
+      : [];
+    const transactionsById = new Map(transactions.map((transaction) => [transaction.id, transaction]));
+
+    const items = payouts.map((payout) => {
+      const transaction = payout.transactionId ? transactionsById.get(payout.transactionId) : null;
+      const requestedAmount = transaction?.grossAmount || payout.amount;
+      const feeAmount = transaction?.platformFeeAmount || 0;
+      return {
+        ...payout,
+        requestedAmount,
+        feeAmount,
+        transferAmount: payout.amount,
+        bankDestination: maskedBankDestination(payout.bankSnapshot || {}),
+        transaction: transaction || null,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        items,
+        total,
+        page,
+        pageSize: limit,
+      },
     });
   } catch (err) {
     next(err);
@@ -121,6 +181,60 @@ router.post('/:id/pii/reveal', async (req, res, next) => {
         expiresAt: new Date(Date.now() + 60_000).toISOString(),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /api/admin/drivers/:id/bank-details/review — approve or reject payout details
+router.put('/:id/bank-details/review', async (req, res, next) => {
+  try {
+    const status = String(req.body?.status || '').trim().toUpperCase();
+    const rejectionReason = String(req.body?.rejectionReason || '').trim();
+    if (!['APPROVED', 'REJECTED'].includes(status)) {
+      return next(new AppError('status must be APPROVED or REJECTED', 400));
+    }
+    if (status === 'REJECTED' && rejectionReason.length < 3) {
+      return next(new AppError('rejectionReason is required when rejecting bank details', 400));
+    }
+
+    const driver = await prisma.driver.findUnique({ where: { id: req.params.id } });
+    if (!driver) return next(new AppError('Driver not found', 404));
+    if (status === 'APPROVED' && !hasRequiredBankDetails(driver)) {
+      return next(new AppError('Required bank payout details are missing', 400));
+    }
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const changed = await tx.driver.update({
+        where: { id: req.params.id },
+        data: {
+          bankDetailsStatus: status,
+          bankDetailsReviewedAt: new Date(),
+          bankDetailsReviewedByAdminId: String(req.adminActor?.actorId || req.adminActor?.adminId || 'system'),
+          bankDetailsRejectionReason: status === 'REJECTED' ? rejectionReason.slice(0, 1000) : null,
+          ...(status === 'REJECTED' && { isOnline: false }),
+        },
+        include: DRIVER_DETAIL_INCLUDE,
+      });
+      await recordAudit(tx, {
+        actor: req.adminActor,
+        action: 'DRIVER_BANK_DETAILS_REVIEWED',
+        entityType: 'Driver',
+        entityId: req.params.id,
+        oldValue: {
+          bankDetailsStatus: driver.bankDetailsStatus,
+          bankDetailsRejectionReason: driver.bankDetailsRejectionReason,
+        },
+        newValue: {
+          bankDetailsStatus: status,
+          bankDetailsRejectionReason: status === 'REJECTED' ? rejectionReason : null,
+        },
+      });
+      return changed;
+    });
+
+    await signDriverDocuments(updated);
+    res.json({ success: true, data: detailProjection(updated) });
   } catch (err) {
     next(err);
   }

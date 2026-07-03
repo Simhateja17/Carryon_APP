@@ -3,7 +3,9 @@ const prisma = require('../lib/prisma');
 const { authenticateDriver, requireDriver } = require('../middleware/driverAuth');
 const { parsePagination } = require('../lib/pagination');
 const { calculateDriverWithdrawal } = require('../lib/driverPayoutFees');
+const { stripeCurrency } = require('../lib/stripe');
 const { onlineHoursForWindow } = require('../services/driverOnlineTime');
+const { hasRequiredBankDetails } = require('../services/manualDriverPayouts');
 
 const router = Router();
 router.use(authenticateDriver, requireDriver);
@@ -75,7 +77,40 @@ router.get('/transactions', async (req, res, next) => {
       take: limit,
     });
 
-    res.json({ success: true, data: transactions });
+    const withdrawalIds = transactions
+      .filter((transaction) => transaction.type === 'WITHDRAWAL')
+      .map((transaction) => transaction.id);
+    const payouts = withdrawalIds.length > 0
+      ? await prisma.driverPayout.findMany({
+        where: { transactionId: { in: withdrawalIds } },
+      })
+      : [];
+    const payoutsByTransactionId = new Map(
+      payouts
+        .filter((payout) => payout.transactionId)
+        .map((payout) => [payout.transactionId, payout])
+    );
+
+    const enriched = transactions.map((transaction) => {
+      if (transaction.type !== 'WITHDRAWAL') return transaction;
+      const payout = payoutsByTransactionId.get(transaction.id);
+      const requestedAmount = transaction.grossAmount || Math.abs(transaction.amount || 0);
+      const feeAmount = transaction.platformFeeAmount || 0;
+      const transferAmount = payout?.amount ?? Math.max(0, requestedAmount - feeAmount);
+      return {
+        ...transaction,
+        requestedAmount,
+        feeAmount,
+        transferAmount,
+        currency: payout?.currency || stripeCurrency(),
+        stripeTransferId: transaction.stripeTransferId || payout?.stripeTransferId || null,
+        stripePayoutId: payout?.stripePayoutId || null,
+        manualReference: transaction.manualReference || payout?.manualReference || null,
+        failureMessage: payout?.failureMessage || null,
+      };
+    });
+
+    res.json({ success: true, data: enriched });
   } catch (err) {
     next(err);
   }
@@ -92,6 +127,8 @@ router.get('/wallet', async (req, res, next) => {
       wallet = await prisma.driverWallet.create({ data: { driverId: req.driver.id } });
     }
 
+    const bankDetailsApproved = hasRequiredBankDetails(req.driver) && req.driver.bankDetailsStatus === 'APPROVED';
+
     res.json({
       success: true,
       data: {
@@ -100,12 +137,14 @@ router.get('/wallet', async (req, res, next) => {
         lifetimeEarnings: wallet.lifetimeEarnings,
         lastPayout: null,
         lastPayoutDate: null,
-        bankAccountLinked: !!req.driver.stripePayoutsEnabled,
-        bankAccountLast4: req.driver.stripePayoutsEnabled ? 'Stripe' : null,
+        bankAccountLinked: bankDetailsApproved,
+        bankAccountLast4: bankDetailsApproved ? String(req.driver.bankAccountNumber || '').slice(-4) : null,
         stripeAccountId: req.driver.stripeConnectAccountId || null,
-        stripeDetailsSubmitted: !!req.driver.stripeDetailsSubmitted,
-        stripePayoutsEnabled: !!req.driver.stripePayoutsEnabled,
+        stripeDetailsSubmitted: hasRequiredBankDetails(req.driver),
+        stripePayoutsEnabled: bankDetailsApproved,
         stripeRequirements: req.driver.stripeRequirements || null,
+        bankDetailsStatus: req.driver.bankDetailsStatus || 'PENDING',
+        bankDetailsRejectionReason: req.driver.bankDetailsRejectionReason || null,
         minimumWithdrawalAmount: calculateDriverWithdrawal(0).minimumAmount,
         withdrawalFeeFlat: Number(process.env.DRIVER_WITHDRAWAL_FEE_FLAT || 0),
         withdrawalFeeRate: Number(process.env.DRIVER_WITHDRAWAL_FEE_RATE || 0),
@@ -121,7 +160,7 @@ router.post('/wallet/withdraw', async (req, res, next) => {
   try {
     res.status(410).json({
       success: false,
-      message: 'Use /api/driver/payouts/withdraw for Stripe Connect withdrawals',
+      message: 'Use /api/driver/payouts/withdraw for manual bank withdrawals',
     });
   } catch (err) {
     next(err);
