@@ -46,12 +46,10 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
 import com.company.carryon.ui.theme.PrimaryBlue
-import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
 
 private val CompleteBg = Color(0xFFF7F8FC)
 private val CompleteCard = Color(0xFFE3F2FD)
-private val CompleteSoft = Color(0xFFBBDEFB)
 
 @Composable
 fun DeliveryCompleteScreen(
@@ -269,7 +267,7 @@ private fun MetricCard(title: String, value: String, unit: String, modifier: Mod
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = CompleteSoft)
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
