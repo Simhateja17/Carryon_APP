@@ -66,36 +66,10 @@ fun WalletScreen(
     onViewReceipts: () -> Unit = {},
     onSeeAllTransactions: () -> Unit = {}
 ) {
-    var wallet by remember { mutableStateOf<Wallet?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        val result = withContext(Dispatchers.Default) { WalletApi.getWallet() }
-        result.onSuccess { response ->
-            wallet = response.data
-        }
-        isLoading = false
-    }
-
     Scaffold(
         containerColor = Color(0xFFF5F6F8),
         contentWindowInsets = WindowInsets(0, 0, 0, 0)
     ) { paddingValues ->
-        if (isLoading) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = PrimaryBlue)
-            }
-            return@Scaffold
-        }
-
-        val transactions = (wallet?.transactions ?: emptyList()).take(3)
-        val balance = wallet?.balance ?: 0.0
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,71 +96,22 @@ fun WalletScreen(
                         )
                         .padding(18.dp)
                 ) {
-                    Text("Wallet Balance", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                    Text("Booking Payments", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        "RM ${balance.formatDecimal(2)}",
+                        "Pay per booking",
                         color = Color.White,
-                        fontSize = 44.sp,
+                        fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Button(
-                        onClick = onAddMoney,
-                        shape = RoundedCornerShape(999.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(46.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.AddCircleOutline,
-                                contentDescription = "Add Money",
-                                modifier = Modifier.size(18.dp),
-                                tint = PrimaryBlue
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Add Money", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Recent Transactions", color = Color.Black, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "See All",
-                        color = Color(0xFF034094),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { onSeeAllTransactions() }
+                        "Every delivery is charged directly through Stripe before dispatch.",
+                        color = Color.White.copy(alpha = 0.8f),
+                        fontSize = 14.sp
                     )
-                }
-            }
-
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .carryOnWhiteCard(RoundedCornerShape(18.dp))
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    if (transactions.isEmpty()) {
-                        Text("No transactions yet", color = TextSecondary, fontSize = 14.sp, modifier = Modifier.padding(8.dp))
-                    } else {
-                        transactions.forEach { txn ->
-                            TransactionRow(txn)
-                        }
-                    }
                 }
             }
 

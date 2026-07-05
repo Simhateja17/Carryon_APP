@@ -65,6 +65,7 @@ fun OrderDetailScreen(
     val durationMin     = booking?.duration ?: 0
     val totalPrice      = booking?.let { if (it.finalPrice > 0) it.finalPrice else it.estimatedPrice } ?: 0.0
     val paymentMethodText = when (booking?.paymentMethod) {
+        PaymentMethod.STRIPE -> "Stripe"
         PaymentMethod.WALLET -> "Wallet"
         PaymentMethod.CARD   -> "Card"
         PaymentMethod.DUITNOW -> "DuitNow"

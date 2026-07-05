@@ -9,7 +9,7 @@ enum class StripePaymentResult {
 }
 
 expect object StripePaymentLauncher {
-    suspend fun presentWalletTopUp(
+    suspend fun presentPaymentSheet(
         clientSecret: String,
         publishableKey: String,
         customPaymentMethods: List<CustomPaymentMethodConfig>

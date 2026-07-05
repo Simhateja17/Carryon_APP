@@ -36,7 +36,7 @@ actual object StripePaymentLauncher {
         }.build(activity)
     }
 
-    actual suspend fun presentWalletTopUp(
+    actual suspend fun presentPaymentSheet(
         clientSecret: String,
         publishableKey: String,
         customPaymentMethods: List<CustomPaymentMethodConfig>

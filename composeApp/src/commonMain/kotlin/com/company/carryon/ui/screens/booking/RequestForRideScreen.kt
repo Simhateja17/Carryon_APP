@@ -28,7 +28,6 @@ import com.company.carryon.data.network.BookingApi
 import com.company.carryon.data.network.BookingQuoteRequest
 import com.company.carryon.data.network.CreateBookingRequest
 import com.company.carryon.data.network.CreateAddressData
-import com.company.carryon.data.network.InsufficientBalanceException
 import com.company.carryon.data.network.WalletApi
 import com.company.carryon.data.network.newUuid
 import com.company.carryon.data.payment.StripePaymentLauncher
@@ -36,6 +35,7 @@ import com.company.carryon.data.payment.StripePaymentResult
 import com.company.carryon.ui.theme.*
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.util.formatDecimal
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 
@@ -54,7 +54,7 @@ fun RequestForRideScreen(
     onContinue: (bookingId: String, amount: Double, paymentMethod: String) -> Unit,
     onBack: () -> Unit
 ) {
-    var selectedPayment by remember { mutableStateOf("wallet") }
+    var selectedPayment by remember { mutableStateOf("stripe") }
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
 
@@ -91,13 +91,7 @@ fun RequestForRideScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var bookingAttemptKey by remember { mutableStateOf<String?>(null) }
 
-    // Inline top-up state
-    var showTopUpSheet by remember { mutableStateOf(false) }
-    var topUpShortfall by remember { mutableStateOf(0.0) }
-    var topUpCurrency by remember { mutableStateOf("MYR") }
-    var walletTopUpMin by remember { mutableStateOf(10.0) }
-    var isToppingUp by remember { mutableStateOf(false) }
-    var topUpStatus by remember { mutableStateOf<String?>(null) }
+    var paymentStatusText by remember { mutableStateOf<String?>(null) }
 
     // Backend quote is the only fare authority. The app geocodes only to provide coordinates.
     LaunchedEffect(pickupAddress, deliveryAddress, offloading, vehicleTypeApi) {
@@ -180,8 +174,21 @@ fun RequestForRideScreen(
     val subtotal = estimatedPrice + offloadingFee
     val totalAmount = subtotal + taxAmount
 
-    // Booking creation currently requires wallet payment on the backend.
-    val paymentMethodApi = "WALLET"
+    val paymentMethodApi = "STRIPE"
+
+    suspend fun waitForPaymentConfirmation(bookingId: String): Boolean {
+        repeat(20) {
+            delay(1500)
+            val latest = BookingApi.getBooking(bookingId).getOrNull()?.data ?: return@repeat
+            if (latest.paymentStatus.name == "COMPLETED" && latest.status.name != "PENDING") {
+                return true
+            }
+            if (latest.paymentStatus.name == "FAILED" || latest.status.name == "CANCELLED") {
+                throw Exception("Payment was not completed. Please try again.")
+            }
+        }
+        return false
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -197,6 +204,7 @@ fun RequestForRideScreen(
                         scope.launch {
                             isCreatingBooking = true
                             errorMessage = null
+                            paymentStatusText = null
 
                             val request = CreateBookingRequest(
                                 pickupAddress = CreateAddressData(
@@ -227,27 +235,52 @@ fun RequestForRideScreen(
                             
                             BookingApi.createBooking(request, idempotencyKey)
                                 .onSuccess { response ->
-                                    val booking = response.data
-                                    if (booking != null) {
+                                    val payload = response.data
+                                    val booking = payload?.booking
+                                    val payment = payload?.payment
+                                    if (booking != null && payment != null && payment.clientSecret.isNotBlank()) {
+                                        val config = WalletApi.getPaymentConfig().getOrNull()?.data
+                                        if (config?.publishableKey.isNullOrBlank()) {
+                                            errorMessage = "Payment setup unavailable. Please try again."
+                                            return@onSuccess
+                                        }
+
+                                        paymentStatusText = "Complete payment securely..."
+                                        val result = StripePaymentLauncher.presentPaymentSheet(
+                                            clientSecret = payment.clientSecret,
+                                            publishableKey = config.publishableKey,
+                                            customPaymentMethods = config.customPaymentMethods
+                                        )
+
+                                        when (result) {
+                                            StripePaymentResult.COMPLETED -> {
+                                                paymentStatusText = "Confirming payment..."
+                                                try {
+                                                    if (waitForPaymentConfirmation(booking.id)) {
+                                                        paymentStatusText = null
+                                                        onContinue(booking.id, totalAmount, selectedPayment)
+                                                    } else {
+                                                        errorMessage = "Payment is still pending. Open Orders to retry or check status."
+                                                    }
+                                                } catch (e: Exception) {
+                                                    errorMessage = e.message ?: "Payment was not completed. Please try again."
+                                                }
+                                            }
+                                            StripePaymentResult.CANCELED -> {
+                                                errorMessage = "Payment canceled."
+                                            }
+                                            StripePaymentResult.FAILED -> {
+                                                errorMessage = "Payment failed. Please try another method."
+                                            }
+                                        }
+                                    } else if (booking != null && booking.paymentStatus.name == "COMPLETED") {
                                         onContinue(booking.id, totalAmount, selectedPayment)
                                     } else {
-                                        errorMessage = "Failed to create booking"
+                                        errorMessage = "Failed to start payment"
                                     }
                                 }
                                 .onFailure { e ->
-                                    if (e is InsufficientBalanceException) {
-                                        topUpShortfall = e.shortfall
-                                        topUpCurrency = e.currency
-                                        // Fetch actual minimum so we can show the real top-up amount
-                                        scope.launch {
-                                            WalletApi.getPaymentConfig().getOrNull()?.data?.let {
-                                                walletTopUpMin = it.walletTopUpMin
-                                            }
-                                        }
-                                        showTopUpSheet = true
-                                    } else {
-                                        errorMessage = e.message ?: "Failed to create booking"
-                                    }
+                                    errorMessage = e.message ?: "Failed to start payment"
                                 }
                             isCreatingBooking = false
                         }
@@ -439,185 +472,17 @@ fun RequestForRideScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             PaymentMethodRow(
-                title = "CarryOn Wallet",
-                subtitle = "Top up with Stripe before dispatch",
-                isSelected = selectedPayment == "wallet"
-            ) { selectedPayment = "wallet" }
+                title = "Secure Stripe payment",
+                subtitle = "Pay this booking before driver dispatch",
+                isSelected = selectedPayment == "stripe"
+            ) { selectedPayment = "stripe" }
+
+            paymentStatusText?.let {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(it, fontSize = 13.sp, color = TextSecondary)
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
-        }
-    }
-
-    // Inline top-up bottom sheet
-    if (showTopUpSheet) {
-        val actualTopUp = maxOf(topUpShortfall, walletTopUpMin)
-        ModalBottomSheet(
-            onDismissRequest = { showTopUpSheet = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-            containerColor = Color.Transparent,
-            tonalElevation = 0.dp,
-            contentWindowInsets = { WindowInsets(0) }
-        ) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                        spotColor = Color(0x40000000),
-                        ambientColor = Color(0x40000000)
-                    ),
-                color = Color.White,
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-            ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-                    .navigationBarsPadding()
-            ) {
-                Text(
-                    "Insufficient Wallet Balance",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Add $topUpCurrency ${actualTopUp.formatDecimal(2)} to your wallet to confirm this delivery.",
-                    fontSize = 14.sp,
-                    color = TextSecondary
-                )
-                if (actualTopUp > topUpShortfall) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "(RM ${topUpShortfall.formatDecimal(2)} for this delivery + RM ${(actualTopUp - topUpShortfall).formatDecimal(2)} minimum top-up)",
-                        fontSize = 12.sp,
-                        color = TextSecondary
-                    )
-                }
-
-                topUpStatus?.let {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        it,
-                        fontSize = 13.sp,
-                        color = if (it.contains("completed", ignoreCase = true)) Color(0xFF2E7D32) else Color(0xFFC62828)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isToppingUp = true
-                            topUpStatus = "Starting payment..."
-                            val config = WalletApi.getPaymentConfig().getOrNull()?.data
-                            val topUpAmount = maxOf(topUpShortfall, config?.walletTopUpMin ?: 10.0)
-                            val intent = WalletApi.createTopUpIntent(topUpAmount).getOrNull()?.data
-                            if (config?.publishableKey.isNullOrBlank() || intent?.clientSecret.isNullOrBlank()) {
-                                topUpStatus = "Payment setup unavailable. Please try again."
-                                isToppingUp = false
-                                return@launch
-                            }
-
-                            topUpStatus = "Complete payment in Stripe..."
-                            val result = StripePaymentLauncher.presentWalletTopUp(
-                                clientSecret = intent.clientSecret,
-                                publishableKey = config.publishableKey,
-                                customPaymentMethods = config.customPaymentMethods
-                            )
-
-                            when (result) {
-                                StripePaymentResult.COMPLETED -> {
-                                    topUpStatus = "Top-up completed. Retrying booking..."
-                                    // Retry booking automatically
-                                    val request = CreateBookingRequest(
-                                        pickupAddress = CreateAddressData(
-                                            address = pickupAddress,
-                                            latitude = pickupLat!!,
-                                            longitude = pickupLng!!,
-                                            contactName = senderName,
-                                            contactPhone = senderPhone
-                                        ),
-                                        deliveryAddress = CreateAddressData(
-                                            address = deliveryAddress,
-                                            latitude = deliveryLat!!,
-                                            longitude = deliveryLng!!,
-                                            contactName = receiverName,
-                                            contactPhone = receiverPhone,
-                                            contactEmail = receiverEmail
-                                        ),
-                                        vehicleType = vehicleTypeApi,
-                                        paymentMethod = paymentMethodApi,
-                                        senderName = senderName,
-                                        senderPhone = senderPhone,
-                                        receiverName = receiverName,
-                                        receiverPhone = receiverPhone,
-                                        receiverEmail = receiverEmail,
-                                        offloading = offloading
-                                    )
-                                    val idempotencyKey = bookingAttemptKey ?: newUuid().also { bookingAttemptKey = it }
-                                    BookingApi.createBooking(request, idempotencyKey)
-                                        .onSuccess { response ->
-                                            val booking = response.data
-                                            if (booking != null) {
-                                                showTopUpSheet = false
-                                                onContinue(booking.id, totalAmount, selectedPayment)
-                                            } else {
-                                                topUpStatus = "Booking failed after top-up. Please contact support."
-                                            }
-                                        }
-                                        .onFailure { e ->
-                                            topUpStatus = e.message ?: "Booking failed after top-up."
-                                        }
-                                }
-                                StripePaymentResult.CANCELED -> {
-                                    topUpStatus = "Payment canceled."
-                                }
-                                StripePaymentResult.FAILED -> {
-                                    topUpStatus = "Payment failed. Please try another card."
-                                }
-                            }
-                            isToppingUp = false
-                        }
-                    },
-                    enabled = !isToppingUp,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue)
-                ) {
-                    if (isToppingUp) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            "Top Up $topUpCurrency ${actualTopUp.formatDecimal(2)} & Confirm",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                OutlinedButton(
-                    onClick = { showTopUpSheet = false },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("Cancel", fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-            } // Surface
         }
     }
 }

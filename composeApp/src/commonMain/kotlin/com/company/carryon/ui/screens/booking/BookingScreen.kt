@@ -360,7 +360,7 @@ fun BookingScreen(
                         Text("Payment type", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                         Spacer(modifier = Modifier.height(10.dp))
                         val paymentMethods = listOf(
-                            Pair("", "CarryOn Wallet")
+                            Pair("", "Stripe")
                         )
                         val rows = paymentMethods.chunked(3)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -452,7 +452,7 @@ fun BookingScreen(
                 Button(
                     onClick = {
                         selectedVehicle?.let { vehicle ->
-                            onConfirmBooking(vehicle.name, vehicle.priceValue, "WALLET")
+                            onConfirmBooking(vehicle.name, vehicle.priceValue, "STRIPE")
                         }
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(52.dp),

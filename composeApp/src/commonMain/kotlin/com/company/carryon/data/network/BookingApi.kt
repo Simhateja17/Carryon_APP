@@ -70,6 +70,21 @@ data class BookingQuote(
     val breakdown: BookingQuoteBreakdown? = null
 )
 
+@Serializable
+data class BookingPaymentIntent(
+    val paymentIntentId: String = "",
+    val clientSecret: String = "",
+    val amount: Double = 0.0,
+    val currency: String = "myr",
+    val expiresAt: String = ""
+)
+
+@Serializable
+data class CreateBookingPaymentResponse(
+    val booking: Booking = Booking(),
+    val payment: BookingPaymentIntent? = null
+)
+
 object BookingApi {
     private val client get() = HttpClientFactory.client
 
@@ -100,7 +115,7 @@ object BookingApi {
         }.body()
     }
 
-    suspend fun createBooking(request: CreateBookingRequest, idempotencyKey: String): Result<ApiResponse<Booking>> = runCatching {
+    suspend fun createBooking(request: CreateBookingRequest, idempotencyKey: String): Result<ApiResponse<CreateBookingPaymentResponse>> = runCatching {
         client.post("/api/bookings") {
             contentType(ContentType.Application.Json)
             header("Idempotency-Key", idempotencyKey)

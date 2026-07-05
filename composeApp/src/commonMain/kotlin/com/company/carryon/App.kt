@@ -132,7 +132,7 @@ sealed class AppScreen {
         val deliveryAddress: String = "",
         val vehicleType: String = "",
         val price: Double = 0.0,
-        val paymentMethod: String = "CASH",
+        val paymentMethod: String = "STRIPE",
         val pickupLat: Double = 0.0,
         val pickupLng: Double = 0.0,
         val deliveryLat: Double = 0.0,
@@ -144,7 +144,7 @@ sealed class AppScreen {
         val deliveryAddress: String = "",
         val vehicleType: String = "",
         val totalAmount: Double = 0.0,
-        val paymentMethod: String = "CASH",
+        val paymentMethod: String = "STRIPE",
         val senderName: String = "",
         val senderPhone: String = "",
         val receiverName: String = "",
@@ -661,6 +661,7 @@ private fun AppContent() {
                 PaymentScreen(
                     totalAmount = screen.totalAmount.toInt(),
                     initialMethod = when (screen.paymentMethod.uppercase()) {
+                        "STRIPE" -> "CARD"
                         "CARD" -> "VISA"
                         "WALLET", "DUITNOW" -> "WALLET"
                         "CASH" -> "CASH"
@@ -711,6 +712,8 @@ private fun AppContent() {
                 DriverApproachingScreen(
                     bookingId = screen.bookingId,
                     onPickupDone = { navigateToTrackingLive(screen.bookingId) },
+                    onDriverCancelled = { currentScreen = AppScreen.SearchingDriver(screen.bookingId) },
+                    onBookingCancelled = { currentScreen = AppScreen.Orders },
                     onBack = { currentScreen = AppScreen.Orders }
                 )
             }
@@ -813,26 +816,8 @@ private fun AppContent() {
                     receiverPhone = screen.receiverPhone,
                     receiverEmail = screen.receiverEmail,
                     offloading = screen.offloading,
-                    onContinue = { bookingId, amount, paymentMethod ->
-                        if (paymentMethod == "wallet") {
-                            currentScreen = AppScreen.SearchingDriver(bookingId, amount)
-                        } else if (paymentMethod == "card") {
-                            currentScreen = AppScreen.BookingPayment(
-                                bookingId = bookingId,
-                                pickupAddress = screen.pickup,
-                                deliveryAddress = screen.delivery,
-                                vehicleType = screen.vehicleType,
-                                totalAmount = amount,
-                                paymentMethod = paymentMethod.uppercase(),
-                                senderName = screen.senderName,
-                                senderPhone = screen.senderPhone,
-                                receiverName = screen.receiverName,
-                                receiverPhone = screen.receiverPhone,
-                                receiverEmail = screen.receiverEmail
-                            )
-                        } else {
-                            currentScreen = AppScreen.SearchingDriver(bookingId, amount)
-                        }
+                    onContinue = { bookingId, amount, _ ->
+                        currentScreen = AppScreen.SearchingDriver(bookingId, amount)
                     },
                     onBack = {
                         currentScreen = AppScreen.Details(
@@ -1019,7 +1004,7 @@ private fun AppBottomBar(
         val items = listOf(
             Res.drawable.icon_home to strings.navHome.uppercase(),
             Res.drawable.icon_timer to strings.navOrders.uppercase(),
-            Res.drawable.wallet_add_money_icon to strings.walletTitle.uppercase(),
+            Res.drawable.wallet_add_money_icon to "PAYMENTS",
             Res.drawable.icon_people to strings.profile.uppercase()
         )
         val actions = listOf(onHomeClick, onOrdersClick, onPaymentsClick, onAccountClick)

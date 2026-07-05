@@ -42,6 +42,8 @@ import kotlin.math.ceil
 fun DriverApproachingScreen(
     bookingId: String,
     onPickupDone: () -> Unit,
+    onDriverCancelled: () -> Unit,
+    onBookingCancelled: () -> Unit,
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
@@ -138,13 +140,26 @@ fun DriverApproachingScreen(
                 val updated = response.data
                 if (updated != null) {
                     booking = updated
-                    if (updated.status == BookingStatus.PICKUP_DONE ||
-                        updated.status == BookingStatus.IN_TRANSIT ||
-                        updated.status == BookingStatus.ARRIVED_AT_DROP ||
-                        updated.status == BookingStatus.DELIVERED
-                    ) {
-                        pickupDoneHandled = true
-                        onPickupDone()
+                    when (updated.status) {
+                        BookingStatus.PICKUP_DONE,
+                        BookingStatus.IN_TRANSIT,
+                        BookingStatus.ARRIVED_AT_DROP,
+                        BookingStatus.DELIVERED -> {
+                            pickupDoneHandled = true
+                            onPickupDone()
+                        }
+                        // Driver cancelled before pickup — booking is back in the pool.
+                        // Send the user back to the "searching for driver" screen.
+                        BookingStatus.SEARCHING_DRIVER -> {
+                            pickupDoneHandled = true
+                            onDriverCancelled()
+                        }
+                        // Booking was cancelled outright (e.g. by the user elsewhere).
+                        BookingStatus.CANCELLED -> {
+                            pickupDoneHandled = true
+                            onBookingCancelled()
+                        }
+                        else -> Unit
                     }
                 }
             }

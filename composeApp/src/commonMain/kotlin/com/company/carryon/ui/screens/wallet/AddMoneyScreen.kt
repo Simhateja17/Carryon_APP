@@ -203,7 +203,7 @@ fun AddMoneyScreen(
                     }
 
                     statusMessage = "Complete payment in Stripe."
-                    val result = StripePaymentLauncher.presentWalletTopUp(
+                    val result = StripePaymentLauncher.presentPaymentSheet(
                         clientSecret = intent.clientSecret,
                         publishableKey = config.publishableKey,
                         customPaymentMethods = config.customPaymentMethods

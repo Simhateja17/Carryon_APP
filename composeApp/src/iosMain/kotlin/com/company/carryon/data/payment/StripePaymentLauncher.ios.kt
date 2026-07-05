@@ -17,7 +17,7 @@ interface StripePresenter {
 actual object StripePaymentLauncher {
     var presenter: StripePresenter? = null
 
-    actual suspend fun presentWalletTopUp(
+    actual suspend fun presentPaymentSheet(
         clientSecret: String,
         publishableKey: String,
         customPaymentMethods: List<CustomPaymentMethodConfig>

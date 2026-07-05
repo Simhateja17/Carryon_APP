@@ -115,7 +115,7 @@ enum class BookingStatus {
 
 @Serializable
 enum class PaymentMethod {
-    CASH, DUITNOW, CARD, WALLET
+    CASH, DUITNOW, CARD, WALLET, STRIPE
 }
 
 @Serializable

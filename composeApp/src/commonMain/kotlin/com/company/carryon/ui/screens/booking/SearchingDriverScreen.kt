@@ -166,7 +166,7 @@ fun SearchingDriverScreen(
             title = { Text("Cancel request?") },
             text = {
                 Text(
-                    "If a driver has already been assigned for more than 3 minutes, a cancellation fee of up to RM ${cancellationFee.formatDecimal(2)} applies. The rest is refunded to your wallet."
+                    "If a driver has already been assigned for more than 3 minutes, a cancellation fee of up to RM ${cancellationFee.formatDecimal(2)} applies. The rest is refunded to your original payment method."
                 )
             },
             confirmButton = {
