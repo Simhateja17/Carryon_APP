@@ -68,7 +68,6 @@ import com.company.carryon.ui.screens.support.SupportCallScreen
 import com.company.carryon.ui.screens.support.SupportChatScreen
 import com.company.carryon.ui.screens.support.SupportScreen
 import com.company.carryon.ui.screens.support.TicketDetailScreen
-import com.company.carryon.ui.screens.promo.PromoScreen
 import com.company.carryon.ui.screens.invoice.DeliveryReceiptsScreen
 import com.company.carryon.ui.screens.invoice.InvoiceScreen
 import com.company.carryon.ui.screens.invoice.InvoiceHubScreen
@@ -197,7 +196,6 @@ sealed class AppScreen {
     data object PrivacySecurity : AppScreen()
     data object ChangePassword : AppScreen()
     data object LoggedInDevices : AppScreen()
-    data class Promo(val referralCode: String = "") : AppScreen()
     data object InvoiceHub : AppScreen()
     data class Invoice(val bookingId: String) : AppScreen()
     data class DeliveryComplete(val bookingId: String) : AppScreen()
@@ -258,7 +256,7 @@ private fun PendingPushNavigation.toAppScreen(): AppScreen? {
     toDeepLinkTarget()?.let { target ->
         return when (target) {
             is DeepLinkTarget.TrackBooking -> AppScreen.TrackOrder(target.bookingId)
-            is DeepLinkTarget.Referral -> AppScreen.Promo(target.code)
+            is DeepLinkTarget.Referral -> AppScreen.Profile
         }
     }
     val bookingId = bookingId?.takeIf { it.isNotBlank() } ?: return null
@@ -337,7 +335,6 @@ private fun AppContent() {
         currentScreen !is AppScreen.PaymentSuccess &&
         currentScreen !is AppScreen.SearchingDriver &&
         currentScreen !is AppScreen.DriverApproaching &&
-        currentScreen !is AppScreen.Support &&
         currentScreen !is AppScreen.SupportChat &&
         currentScreen !is AppScreen.SupportCall &&
         currentScreen !is AppScreen.PrivacySecurity &&
@@ -372,7 +369,7 @@ private fun AppContent() {
         is AppScreen.Transactions -> 2
         is AppScreen.Profile, is AppScreen.EditProfile, is AppScreen.SavedAddresses, is AppScreen.AddAddress,
         is AppScreen.Settings, is AppScreen.Help, is AppScreen.Support, is AppScreen.ReportIssue,
-        is AppScreen.SupportChat, is AppScreen.SupportCall, is AppScreen.TicketDetail, is AppScreen.PrivacySecurity, is AppScreen.ChangePassword, is AppScreen.LoggedInDevices, is AppScreen.LanguageSettings, is AppScreen.DefaultVehicle, is AppScreen.ClearCache, is AppScreen.Promo, is AppScreen.DriverRating,
+        is AppScreen.SupportChat, is AppScreen.SupportCall, is AppScreen.TicketDetail, is AppScreen.PrivacySecurity, is AppScreen.ChangePassword, is AppScreen.LoggedInDevices, is AppScreen.LanguageSettings, is AppScreen.DefaultVehicle, is AppScreen.ClearCache, is AppScreen.DriverRating,
         is AppScreen.Chat -> 3
         else -> 0
     }
@@ -476,7 +473,6 @@ private fun AppContent() {
                     onNavigateToDriverRating = { currentScreen = AppScreen.Orders }, // Navigate to orders to rate from specific booking
                     onNavigateToSettings = { currentScreen = AppScreen.Settings },
                     onNavigateToWallet = { currentScreen = AppScreen.Wallet },
-                    onNavigateToPromo = { currentScreen = AppScreen.Promo() },
                     onLogout = {
                         AuthStateManager.setLoggedIn(false)
                         scope.launch { AuthStateManager.logout() }
@@ -942,13 +938,6 @@ private fun AppContent() {
                     onBack = { currentScreen = AppScreen.Support }
                 )
             }
-            is AppScreen.Promo -> {
-                PromoScreen(
-                    initialReferralCode = screen.referralCode,
-                    onBack = { currentScreen = AppScreen.Profile },
-                    onApplyCoupon = null
-                )
-            }
             is AppScreen.Invoice -> {
                 InvoiceScreen(
                     bookingId = screen.bookingId,
@@ -1012,6 +1001,7 @@ private fun AppBottomBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .padding(horizontal = horizontalPadding, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom

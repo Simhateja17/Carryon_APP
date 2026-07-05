@@ -16,5 +16,7 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CarryOn lets you choose a profile photo for your account.</string>
 </dict>
 </plist>

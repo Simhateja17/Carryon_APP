@@ -1,14 +1,12 @@
 package com.company.carryon.ui.screens.support
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -179,21 +177,6 @@ fun SupportScreen(
             Text("•  AVAILABLE 24/7", color = PrimaryBlue, fontSize = 16.sp, fontWeight = FontWeight.Medium)
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFFEFF2F7), RoundedCornerShape(18.dp))
-                .padding(10.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            MiniTab("⌂", "Home", false)
-            MiniTab("", "Orders", false)
-            MiniTab("?", "Support", true)
-            MiniTab("◉", "Profile", false)
-        }
-
         Spacer(modifier = Modifier.height(10.dp))
     }
 }
@@ -247,28 +230,6 @@ private fun FaqRow(question: String, onClick: () -> Unit) {
         Spacer(modifier = Modifier.width(8.dp))
         Text(question, color = Color(0xFF111827), fontSize = 18.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text("›", color = Color(0xFF111827), fontSize = 28.sp)
-    }
-}
-
-@Composable
-private fun MiniTab(icon: String, label: String, selected: Boolean) {
-    Column(
-        modifier = Modifier
-            .background(if (selected) Color(0xFFDCE9FF) else Color.Transparent, RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Box(
-            modifier = if (selected) Modifier
-                .size(26.dp)
-                .background(PrimaryBlue, CircleShape)
-                .padding(4.dp) else Modifier,
-            contentAlignment = Alignment.Center
-        ) {
-            Text(icon, color = if (selected) Color.White else Color(0xFF6B7B93), fontSize = 14.sp)
-        }
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(label, color = if (selected) PrimaryBlue else Color(0xFF6B7B93), fontSize = 12.sp)
     }
 }
 

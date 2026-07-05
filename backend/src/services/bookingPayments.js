@@ -1,5 +1,5 @@
 const prisma = require('../lib/prisma');
-const { getStripe, stripeCurrency } = require('../lib/stripe');
+const { getStripe, isStripeLiveMode, stripeCurrency } = require('../lib/stripe');
 const { fromMinorUnits, money, toMinorUnits } = require('../lib/money');
 const { recordAudit } = require('./auditLog');
 
@@ -14,9 +14,11 @@ function isPendingPaymentFresh(payment, now = new Date()) {
   return payment?.status === 'PENDING' && paymentExpiresAt(payment.createdAt).getTime() > now.getTime();
 }
 
-async function ensureStripeCustomer(user) {
-  if (user.stripeCustomerId) return user.stripeCustomerId;
+function isMissingStripeResource(err) {
+  return err?.type === 'StripeInvalidRequestError' && err?.code === 'resource_missing';
+}
 
+async function createStripeCustomer(user, { persist = isStripeLiveMode() } = {}) {
   const customer = await getStripe().customers.create({
     email: user.email,
     name: user.name || undefined,
@@ -24,11 +26,49 @@ async function ensureStripeCustomer(user) {
     metadata: { userId: user.id },
   });
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: { stripeCustomerId: customer.id },
-  });
+  if (persist) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { stripeCustomerId: customer.id },
+    });
+  }
+
+  console.log(
+    '[booking-payments] stripe_customer_created',
+    'userId:', user.id,
+    'customerId:', customer.id,
+    'mode:', isStripeLiveMode() ? 'live' : 'test',
+    'persisted:', persist
+  );
+
   return customer.id;
+}
+
+async function ensureStripeCustomer(user) {
+  if (user.stripeCustomerId) {
+    try {
+      await getStripe().customers.retrieve(user.stripeCustomerId);
+      console.log(
+        '[booking-payments] stripe_customer_reused',
+        'userId:', user.id,
+        'customerId:', user.stripeCustomerId,
+        'mode:', isStripeLiveMode() ? 'live' : 'test'
+      );
+      return user.stripeCustomerId;
+    } catch (err) {
+      if (!isMissingStripeResource(err)) throw err;
+
+      console.warn(
+        '[booking-payments] ignoring missing or incompatible saved Stripe customer',
+        user.stripeCustomerId,
+        'currentMode:',
+        isStripeLiveMode() ? 'live' : 'test'
+      );
+      return createStripeCustomer(user);
+    }
+  }
+
+  return createStripeCustomer(user);
 }
 
 function bookingPaymentPayload(payment, paymentIntent) {
@@ -82,6 +122,19 @@ async function createBookingPaymentIntent({ booking, user }) {
     data: { paymentStatus: 'PENDING', paymentMethod: 'STRIPE' },
   });
 
+  console.log(
+    '[booking-payments] payment_intent_created',
+    'bookingId:', booking.id,
+    'orderCode:', booking.orderCode || '',
+    'userId:', user.id,
+    'paymentIntentId:', paymentIntent.id,
+    'amountMinor:', amountMinor,
+    'currency:', currency,
+    'customerId:', customer,
+    'mode:', isStripeLiveMode() ? 'live' : 'test',
+    'bookingPaymentId:', payment.id
+  );
+
   return bookingPaymentPayload(payment, paymentIntent);
 }
 
@@ -92,9 +145,33 @@ async function createOrReuseBookingPaymentIntent({ booking, user, now = new Date
   });
 
   if (isPendingPaymentFresh(latestPayment, now)) {
-    const paymentIntent = await getStripe().paymentIntents.retrieve(latestPayment.stripePaymentIntentId);
-    if (!['canceled', 'succeeded'].includes(paymentIntent.status)) {
-      return bookingPaymentPayload(latestPayment, paymentIntent);
+    try {
+      const paymentIntent = await getStripe().paymentIntents.retrieve(latestPayment.stripePaymentIntentId);
+      if (!['canceled', 'succeeded'].includes(paymentIntent.status)) {
+        console.log(
+          '[booking-payments] payment_intent_reused',
+          'bookingId:', booking.id,
+          'paymentIntentId:', latestPayment.stripePaymentIntentId,
+          'stripeStatus:', paymentIntent.status,
+          'bookingPaymentId:', latestPayment.id
+        );
+        return bookingPaymentPayload(latestPayment, paymentIntent);
+      }
+      console.log(
+        '[booking-payments] payment_intent_not_reused',
+        'bookingId:', booking.id,
+        'paymentIntentId:', latestPayment.stripePaymentIntentId,
+        'stripeStatus:', paymentIntent.status,
+        'bookingPaymentId:', latestPayment.id
+      );
+    } catch (err) {
+      if (!isMissingStripeResource(err)) throw err;
+      console.warn(
+        '[booking-payments] ignoring missing or incompatible pending PaymentIntent',
+        latestPayment.stripePaymentIntentId,
+        'currentMode:',
+        isStripeLiveMode() ? 'live' : 'test'
+      );
     }
   }
 
@@ -106,9 +183,26 @@ async function markBookingPaymentSucceededTx(tx, paymentIntent) {
     where: { stripePaymentIntentId: paymentIntent.id },
     include: { booking: { include: { pickupAddress: true, deliveryAddress: true, driver: true } } },
   });
-  if (!payment) return [];
+  if (!payment) {
+    console.warn(
+      '[booking-payments] payment_succeeded_unknown_intent',
+      'paymentIntentId:', paymentIntent.id
+    );
+    return [];
+  }
 
   const now = new Date();
+  console.log(
+    '[booking-payments] payment_succeeded_webhook',
+    'bookingId:', payment.bookingId,
+    'bookingPaymentId:', payment.id,
+    'paymentIntentId:', paymentIntent.id,
+    'amount:', payment.amount,
+    'priorPaymentStatus:', payment.status,
+    'bookingStatus:', payment.booking?.status,
+    'bookingPaymentStatus:', payment.booking?.paymentStatus
+  );
+
   await tx.bookingPayment.update({
     where: { id: payment.id },
     data: {
@@ -132,6 +226,14 @@ async function markBookingPaymentSucceededTx(tx, paymentIntent) {
     },
   });
 
+  console.log(
+    '[booking-payments] booking_payment_completed',
+    'bookingId:', payment.bookingId,
+    'paymentIntentId:', paymentIntent.id,
+    'advancedToDispatch:', updateResult.count === 1,
+    'updateCount:', updateResult.count
+  );
+
   await recordAudit(tx, {
     actor: { actorId: payment.userId, actorType: 'USER' },
     action: 'BOOKING_PAYMENT_COMPLETED',
@@ -151,7 +253,33 @@ async function markBookingPaymentFailedTx(tx, paymentIntent, status, failureMess
   const payment = await tx.bookingPayment.findUnique({
     where: { stripePaymentIntentId: paymentIntent.id },
   });
-  if (!payment || payment.status === 'COMPLETED') return [];
+  if (!payment) {
+    console.warn(
+      '[booking-payments] payment_failed_unknown_intent',
+      'paymentIntentId:', paymentIntent.id,
+      'status:', status
+    );
+    return [];
+  }
+  if (payment.status === 'COMPLETED') {
+    console.log(
+      '[booking-payments] payment_failure_ignored_completed_payment',
+      'bookingId:', payment.bookingId,
+      'bookingPaymentId:', payment.id,
+      'paymentIntentId:', paymentIntent.id,
+      'incomingStatus:', status
+    );
+    return [];
+  }
+
+  console.log(
+    '[booking-payments] payment_failed_webhook',
+    'bookingId:', payment.bookingId,
+    'bookingPaymentId:', payment.id,
+    'paymentIntentId:', paymentIntent.id,
+    'status:', status,
+    'failureMessage:', failureMessage || ''
+  );
 
   await tx.bookingPayment.update({
     where: { id: payment.id },
@@ -192,9 +320,29 @@ async function refundLatestBookingPayment({ booking, amount, reason = 'Booking c
 
   const remainingRefundable = money(payment.amount - (payment.refundedAmount || 0));
   const refundMinor = Math.min(toMinorUnits(refundAmount), toMinorUnits(remainingRefundable));
-  if (refundMinor <= 0) return null;
+  if (refundMinor <= 0) {
+    console.log(
+      '[booking-payments] refund_skipped_nothing_refundable',
+      'bookingId:', booking.id,
+      'bookingPaymentId:', payment.id,
+      'requestedRefundAmount:', refundAmount,
+      'alreadyRefundedAmount:', payment.refundedAmount || 0,
+      'paymentAmount:', payment.amount
+    );
+    return null;
+  }
 
   try {
+    console.log(
+      '[booking-payments] refund_create_started',
+      'bookingId:', booking.id,
+      'bookingPaymentId:', payment.id,
+      'paymentIntentId:', payment.stripePaymentIntentId,
+      'refundMinor:', refundMinor,
+      'currency:', payment.currency,
+      'reason:', reason
+    );
+
     const refund = await getStripe().refunds.create({
       payment_intent: payment.stripePaymentIntentId,
       amount: refundMinor,
@@ -224,8 +372,24 @@ async function refundLatestBookingPayment({ booking, amount, reason = 'Booking c
       });
     });
 
+    console.log(
+      '[booking-payments] refund_completed',
+      'bookingId:', booking.id,
+      'bookingPaymentId:', payment.id,
+      'paymentIntentId:', payment.stripePaymentIntentId,
+      'refundId:', refund.id,
+      'refundedAmount:', refundedAmount
+    );
+
     return refund;
   } catch (err) {
+    console.error(
+      '[booking-payments] refund_failed',
+      'bookingId:', booking.id,
+      'bookingPaymentId:', payment.id,
+      'paymentIntentId:', payment.stripePaymentIntentId,
+      'message:', err.message || String(err)
+    );
     await prisma.bookingPayment.update({
       where: { id: payment.id },
       data: {

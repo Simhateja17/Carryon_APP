@@ -79,7 +79,7 @@ fun SupportCallScreen(
                 lineHeight = 20.sp
             )
 
-            ContactCard(Icons.Outlined.Phone, "Operations support", "+60 3-9212 7740", "8:00 AM - 10:00 PM MYT. Use for active delivery issues.")
+            ContactCard(Icons.Outlined.Phone, "Operations support", "+60 14-396-0385", "8:00 AM - 10:00 PM MYT. Use for active delivery issues.")
             ContactCard(Icons.Outlined.Email, "Email support", "support@carryon.my", "Use for account, receipt, refund, or document follow-up.")
             ContactCard(Icons.Outlined.Schedule, "Expected response", "Tickets: usually within 2 hours", "Urgent and active delivery tickets are prioritized first.")
 

@@ -16,8 +16,8 @@ import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.LocalShipping
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.PersonOutline
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AlertDialog
@@ -35,22 +35,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import carryon.composeapp.generated.resources.Res
-import carryon.composeapp.generated.resources.ellipse_4
-import org.jetbrains.compose.resources.painterResource
 import com.company.carryon.data.network.UserApi
+import com.company.carryon.data.network.HttpClientFactory
+import com.company.carryon.data.network.UploadApi
 import com.company.carryon.i18n.LocalStrings
 import com.company.carryon.ui.components.CarryOnHeader
+import com.company.carryon.ui.components.decodeImageBytes
+import com.company.carryon.ui.components.rememberImagePickerLauncher
 import androidx.compose.ui.text.style.TextOverflow
 import com.company.carryon.ui.theme.PrimaryBlue
-import com.company.carryon.ui.theme.PrimaryBlueDark
 import com.company.carryon.ui.theme.TextPrimary
 import com.company.carryon.ui.theme.TextSecondary
 import com.company.carryon.ui.theme.carryOnWhiteCard
+import io.ktor.client.call.body
+import io.ktor.client.request.get
 
 @Composable
 fun ProfileScreen(
@@ -64,40 +68,97 @@ fun ProfileScreen(
     onNavigateToDriverRating: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToWallet: () -> Unit = {},
-    onNavigateToPromo: () -> Unit = {},
     onLogout: () -> Unit,
     onDeleteAccount: () -> Unit = {},
     onBack: () -> Unit
 ) {
     val strings = LocalStrings.current
     val scope = rememberCoroutineScope()
-    var userName by remember { mutableStateOf("—") }
-    var userPhone by remember { mutableStateOf("—") }
-    var isLoading by remember { mutableStateOf(true) }
+    var userName by remember { mutableStateOf(ProfileScreenMemoryCache.userName ?: "—") }
+    var userPhone by remember { mutableStateOf(ProfileScreenMemoryCache.userPhone ?: "—") }
+    var isLoading by remember { mutableStateOf(!ProfileScreenMemoryCache.hasProfile) }
     var profileError by remember { mutableStateOf<String?>(null) }
-    var totalShipments by remember { mutableStateOf(0) }
-    var userRating by remember { mutableStateOf(0.0) }
+    var totalShipments by remember { mutableStateOf(ProfileScreenMemoryCache.totalShipments) }
+    var userRating by remember { mutableStateOf(ProfileScreenMemoryCache.userRating) }
     var statsError by remember { mutableStateOf<String?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var isDeletingAccount by remember { mutableStateOf(false) }
     var deleteError by remember { mutableStateOf<String?>(null) }
+    var profileImageBitmap by remember { mutableStateOf(ProfileImageMemoryCache.bitmap) }
+    var isUploadingProfileImage by remember { mutableStateOf(false) }
+    var profileImageError by remember { mutableStateOf<String?>(null) }
+
+    val imagePicker = rememberImagePickerLauncher(
+        onImagePickFailed = { message -> profileImageError = message },
+        onImagePicked = { imageBytes ->
+            profileImageBitmap = decodeImageBytes(imageBytes) ?: profileImageBitmap
+            profileImageError = null
+            scope.launch {
+                isUploadingProfileImage = true
+                UploadApi.uploadProfileImage(imageBytes)
+                    .onSuccess { upload ->
+                        profileImageError = null
+                        ProfileImageMemoryCache.put(upload.profileImage, profileImageBitmap)
+                        ProfileScreenMemoryCache.profileImage = upload.profileImage
+                        loadProfileImageBitmap(upload.profileImageUrl)
+                            .onSuccess { bitmap ->
+                                val resolvedBitmap = bitmap ?: profileImageBitmap
+                                profileImageBitmap = resolvedBitmap
+                                ProfileImageMemoryCache.put(upload.profileImage, resolvedBitmap)
+                            }
+                    }
+                    .onFailure { error ->
+                        profileImageError = error.message ?: "Failed to upload profile image"
+                    }
+                isUploadingProfileImage = false
+            }
+        }
+    )
 
     LaunchedEffect(Unit) {
-        UserApi.getProfile()
-            .onSuccess { user ->
-                userName = user.name.ifBlank { "—" }
-                userPhone = user.phone.ifBlank { "—" }
-                profileError = null
-            }
-            .onFailure { profileError = it.message ?: "Failed to load profile" }
+        if (!ProfileScreenMemoryCache.hasProfile) {
+            UserApi.getProfile()
+                .onSuccess { user ->
+                    userName = user.name.ifBlank { "—" }
+                    userPhone = user.phone.ifBlank { "—" }
+                    ProfileScreenMemoryCache.storeProfile(
+                        userName = userName,
+                        userPhone = userPhone,
+                        profileImage = user.profileImage
+                    )
+                    profileError = null
+                    val storedProfileImage = user.profileImage?.takeIf { it.isNotBlank() }
+                    if (storedProfileImage == null) {
+                        ProfileImageMemoryCache.clear()
+                        profileImageBitmap = null
+                    } else if (ProfileImageMemoryCache.key == storedProfileImage && ProfileImageMemoryCache.bitmap != null) {
+                        profileImageBitmap = ProfileImageMemoryCache.bitmap
+                    } else {
+                        user.profileImageUrl?.takeIf { it.isNotBlank() }?.let { imageUrl ->
+                            loadProfileImageBitmap(imageUrl)
+                                .onSuccess { bitmap ->
+                                    profileImageBitmap = bitmap
+                                    ProfileImageMemoryCache.put(storedProfileImage, bitmap)
+                                }
+                                .onFailure { profileImageError = it.message ?: "Failed to load profile image" }
+                        }
+                    }
+                }
+                .onFailure { profileError = it.message ?: "Failed to load profile" }
+        } else if (ProfileImageMemoryCache.bitmap != null) {
+            profileImageBitmap = ProfileImageMemoryCache.bitmap
+        }
 
-        UserApi.getUserStats()
-            .onSuccess { stats ->
-                totalShipments = stats.totalShipments
-                userRating = stats.userRating
-                statsError = null
-            }
-            .onFailure { statsError = it.message ?: "Failed to load stats" }
+        if (!ProfileScreenMemoryCache.hasStats) {
+            UserApi.getUserStats()
+                .onSuccess { stats ->
+                    totalShipments = stats.totalShipments
+                    userRating = stats.userRating
+                    ProfileScreenMemoryCache.storeStats(totalShipments, userRating)
+                    statsError = null
+                }
+                .onFailure { statsError = it.message ?: "Failed to load stats" }
+        }
 
         isLoading = false
     }
@@ -128,26 +189,53 @@ fun ProfileScreen(
 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 Box(modifier = Modifier.size(130.dp)) {
-                    Image(
-                        painter = painterResource(Res.drawable.ellipse_4),
-                        contentDescription = "Avatar",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(34.dp))
-                    )
+                    val avatarModifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(34.dp))
+                        .clickable(enabled = !isUploadingProfileImage) { imagePicker.launch() }
+                    val selectedProfileImage = profileImageBitmap
+                    if (selectedProfileImage != null) {
+                        Image(
+                            bitmap = selectedProfileImage,
+                            contentDescription = "Profile image",
+                            contentScale = ContentScale.Crop,
+                            modifier = avatarModifier
+                        )
+                    } else {
+                        Box(
+                            modifier = avatarModifier.background(Color(0xFFEAF1FB), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Person,
+                                contentDescription = "Profile image placeholder",
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(72.dp)
+                            )
+                        }
+                    }
                     Box(
                         modifier = Modifier
                             .size(34.dp)
                             .align(Alignment.BottomEnd)
+                            .clickable(enabled = !isUploadingProfileImage) { imagePicker.launch() }
                             .background(PrimaryBlue, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Edit,
-                            contentDescription = "Edit profile",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
-                        )
+                        if (isUploadingProfileImage) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.Edit,
+                                contentDescription = "Add profile image",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -177,6 +265,15 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = profileError ?: "",
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = TextSecondary,
+                    fontSize = 12.sp
+                )
+            }
+            if (profileImageError != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = profileImageError ?: "",
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = TextSecondary,
                     fontSize = 12.sp
@@ -218,8 +315,6 @@ fun ProfileScreen(
             ProfileOptionCard(icon = Icons.Outlined.Settings, title = strings.settings, onClick = onNavigateToSettings)
             Spacer(modifier = Modifier.height(10.dp))
             ProfileOptionCard(icon = Icons.AutoMirrored.Outlined.HelpOutline, title = strings.helpAndSupport, onClick = onNavigateToHelp)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProfileOptionCard(icon = Icons.Outlined.Security, title = strings.promoAndReferrals, onClick = onNavigateToPromo)
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -227,7 +322,11 @@ fun ProfileScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .carryOnWhiteCard(RoundedCornerShape(18.dp))
-                    .clickable { onLogout() }
+                    .clickable {
+                        ProfileScreenMemoryCache.clear()
+                        ProfileImageMemoryCache.clear()
+                        onLogout()
+                    }
                     .padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -285,6 +384,8 @@ fun ProfileScreen(
                                     UserApi.deleteAccount()
                                         .onSuccess {
                                             AuthStateManager.logout()
+                                            ProfileScreenMemoryCache.clear()
+                                            ProfileImageMemoryCache.clear()
                                             showDeleteDialog = false
                                             isDeletingAccount = false
                                             onDeleteAccount()
@@ -322,6 +423,67 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
         }
+    }
+}
+
+private suspend fun loadProfileImageBitmap(imageUrl: String): Result<ImageBitmap?> = runCatching {
+    val bytes = HttpClientFactory.publicClient.get(imageUrl).body<ByteArray>()
+    decodeImageBytes(bytes)
+}
+
+private object ProfileImageMemoryCache {
+    var key: String? = null
+        private set
+    var bitmap: ImageBitmap? = null
+        private set
+
+    fun put(nextKey: String, nextBitmap: ImageBitmap?) {
+        key = nextKey
+        bitmap = nextBitmap
+    }
+
+    fun clear() {
+        key = null
+        bitmap = null
+    }
+}
+
+private object ProfileScreenMemoryCache {
+    var userName: String? = null
+        private set
+    var userPhone: String? = null
+        private set
+    var profileImage: String? = null
+    var totalShipments: Int = 0
+        private set
+    var userRating: Double = 0.0
+        private set
+    var hasProfile: Boolean = false
+        private set
+    var hasStats: Boolean = false
+        private set
+
+    fun storeProfile(userName: String, userPhone: String, profileImage: String?) {
+        this.userName = userName
+        this.userPhone = userPhone
+        this.profileImage = profileImage
+        hasProfile = true
+    }
+
+    fun storeStats(totalShipments: Int, userRating: Double) {
+        this.totalShipments = totalShipments
+        this.userRating = userRating
+        hasStats = true
+    }
+
+    fun clear() {
+        userName = null
+        userPhone = null
+        profileImage = null
+        totalShipments = 0
+        userRating = 0.0
+        hasProfile = false
+        hasStats = false
     }
 }
 
